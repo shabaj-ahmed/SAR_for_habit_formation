@@ -44,18 +44,18 @@ Start Mosquitto server using the following
 
 # Robot Hardware that will be used
 
-The robot I am controlling is the Picoh robot, and I am using a Raspberry with a touchscreen LCD attached. This controller is for a socially assistive robot, and it does not have locomotion or the ability to interact with physical objects in the environment. The robot can only express emotion and talk.
+I am currently operating a Picoh robot using a Raspberry Pi with an attached touchscreen LCD. This controller is designed for a socially assistive robot, which means that it is not equipped with any physical movement abilities or the ability to interact with the environment. The robot's functions are limited to expressing emotions and conversing with individuals. The following components are used in the setup:
 
-- Picoh
-- Raspberry Pi
-- Micro SD card
-- Raspberry pi camera
-- Microphone
-- 7-inch touch screen display
-- Speaker
-- Two 5V power supplies
-- WiFi module
-- Switch
+- Picoh,
+- Raspberry Pi 5,
+- Micro SD card,
+- Raspberry Pi camera 3,
+- USB microphone,
+- 7-inch touchscreen display,
+- USB speaker,
+- two 5V power supplies,
+- Mobile WiFi module,
+- Mechanical switch.
 
 # Sensor input that will be used
 
