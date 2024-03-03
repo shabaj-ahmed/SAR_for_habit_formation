@@ -1,4 +1,14 @@
-This code is for developing a study in which a Socially Assistive Robot (SAR) is used to aid in fostering long-term healthy behaviours. The main focus of this study is to understand how SARs can promote lifestyle choices that can improve both lifespan and health span. My research explores the psychological and behavioural effects of prolonged robot interaction and how SARs can be used to encourage positive behavioural changes. Unlike traditional methods that rely on reflective behavioural change, my research focuses on habitual behaviour modification. The aim is to empower individuals to adopt healthier routines naturally. Through my work, I want to contribute to the development of robots that can coexist with humans and actively support their health and success.
+This code is for developing a study in which a Socially Assistive Robot (SAR) is used to aid in fostering long-term healthy behaviours. The main focus of this study is to understand how SARs can promote healthy lifestyle choices that can improve both lifespan and health span. My research explores the psychological and behavioural effects of prolonged robot interaction and how SARs can be used to encourage positive behavioural changes. Unlike traditional methods that rely on reflective behavioural change, my research focuses on habitual behaviour modification. The aim is to empower individuals to adopt healthier routines naturally. Through my work, I want to contribute to the development of robots that can coexist with humans and actively support their health and success.
+
+This code has been developed to be a modular behaviour control system...
+
+- Software architecture
+  - Microservices
+  - Reactive
+  - Deliberate
+  - Hybrid
+
+File structure - Controller - Subsumption architecture - States - States can be made up of multiple behaviours. - Models - How data from API will be stored and used - Services - API’s - Behaviours - An atomic unit of action
 
 # How To use
 
@@ -56,9 +66,20 @@ I am currently operating a Picoh robot using a Raspberry Pi with an attached tou
 - two 5V power supplies,
 - Mobile WiFi module,
 - Mechanical switch.
+- LED indicator for showing active carmera
 
-# Sensor input that will be used
+## Sensors
 
 - Microphone
-- User interface
+- Touch interface to interact with user interface
 - Camera
+- on/off switch
+- Real time clock
+- Proximity/sonar sensor to detext someone presence in the room during reminder time???
+
+## Actuators
+
+- Speaker
+- LED matrix
+- Servos on robot to turn head
+- Serovs on robot lip to display neutral, smile or frown.
