@@ -7,6 +7,7 @@ class ReactiveLayer:
         inputs = self.mqtt_client.get_inputs()
 
         # Transition logic
+        # I will be listening to messages published on topics and based on the message received, I will transition the state of the FSM
         if inputs['switch_state'] == True:
             self.fsm.transition_to('Active')
             # Need to acknowledge the switch state and switch it to None

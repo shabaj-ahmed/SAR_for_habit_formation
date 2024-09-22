@@ -1,5 +1,5 @@
 import unittest
-from your_state_machine_module import State, FSM, SleepState, AwakeState
+from finite_state_machine import SleepState, AwakeState
 
 
 class TestStateMachine(unittest.TestCase):
