@@ -1,6 +1,5 @@
 import sys
 
-from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
     QApplication,
     QLabel,
@@ -25,13 +24,12 @@ class Color(QWidget):
         self.setPalette(palette)
 
 
-class Dashboard(QWidget):
+class DashboardScreen(QWidget):
     def __init__(self):
         super().__init__()
 
         vLayout = QVBoxLayout()
 
-        vLayout.addWidget(QLabel("Welcome to the app"))
         vLayout.addWidget(QLabel("Implementation intention"))
 
         hLayout = QHBoxLayout()
@@ -42,34 +40,59 @@ class Dashboard(QWidget):
         self.setLayout(vLayout)
 
 
+class NotificationBar(QWidget):
+    def __init__(self):
+        super().__init__()
+
+        appBarLayout = QHBoxLayout()
+
+        infoLayout = QHBoxLayout()
+        infoLayout.addWidget(QLabel("contact"))
+        infoLayout.addWidget(QLabel("help"))
+
+        timeLayout = QHBoxLayout()
+        timeLayout.addWidget(QLabel("time"))
+
+        indicatorLayout = QHBoxLayout()
+        indicatorLayout.addWidget(QLabel("WiFi"))
+        indicatorLayout.addWidget(QLabel("Mic"))
+        indicatorLayout.addWidget(QLabel("Cam"))
+
+        appBarLayout.addLayout(infoLayout)
+        appBarLayout.addLayout(timeLayout)
+        appBarLayout.addLayout(indicatorLayout)
+
+        self.setLayout(appBarLayout)
+
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
         self.setWindowTitle("My App ")
 
+        verticalSpace = QVBoxLayout()
+
+        verticalSpace.addWidget(NotificationBar())
+        verticalSpace.addWidget(self.buildTab())
+
+        widget = QWidget()
+        widget.setLayout(verticalSpace)
+        self.setCentralWidget(widget)
+
+    def buildTab(self):
+        dashboard = DashboardScreen()
+
         tabs = QTabWidget()
         tabs.setTabPosition(QTabWidget.TabPosition.West)
         tabs.setMovable(True)
-
-        dashboard = Dashboard()
 
         tabs.addTab(dashboard, "Home")
         tabs.addTab(Color("blue"), "Check-In")
         tabs.addTab(Color("green"), "History")
         tabs.addTab(Color("yellow"), "Profile")
 
-        verticalSpace = QVBoxLayout()
-        horizontalSpace = QHBoxLayout()
-
-        notificationBar = QLabel("Welcome to my app")
-
-        verticalSpace.addWidget(notificationBar)
-        verticalSpace.addWidget(tabs)
-
-        widget = QWidget()
-        widget.setLayout(verticalSpace)
-        self.setCentralWidget(widget)
+        return tabs
 
 
 app = QApplication(sys.argv)
