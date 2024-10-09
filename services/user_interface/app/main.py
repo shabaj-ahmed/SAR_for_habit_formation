@@ -8,9 +8,11 @@ from PyQt6.QtWidgets import (
     QTabWidget,
     QWidget,
     QVBoxLayout,
-    QHBoxLayout
+    QHBoxLayout,
+    QMessageBox,
 )
-from PyQt6.QtGui import QPalette, QColor
+from PyQt6.QtGui import QPalette, QColor, QIcon, QPixmap
+from PyQt6.QtCore import Qt, QSize
 
 
 class Color(QWidget):
@@ -47,22 +49,59 @@ class NotificationBar(QWidget):
         appBarLayout = QHBoxLayout()
 
         infoLayout = QHBoxLayout()
-        infoLayout.addWidget(QLabel("contact"))
-        infoLayout.addWidget(QLabel("help"))
-
+        # infoLayout.addWidget(QLabel("contact"))
+        contactButton = QPushButton(
+            # Icon made by alimasykurm from @flaticon
+            icon=QIcon("./support_alimasykurm.png"),
+            text="Contact",
+            parent=self
+        )
+        contactButton.clicked.connect(self.button_clicked)
+        # self.setCentralWidget(button)
+        infoLayout.addWidget(contactButton)
+        # infoLayout.addWidget(QLabel("help"))
+        helpButton = QPushButton(
+            # Icon made by Freepik from @flaticon
+            icon=QIcon("./question_Freepik.png"),
+            text="Help",
+            parent=self
+        )
+        helpButton.clicked.connect(self.button_clicked)
+        infoLayout.addWidget(helpButton)
         timeLayout = QHBoxLayout()
         timeLayout.addWidget(QLabel("time"))
 
         indicatorLayout = QHBoxLayout()
-        indicatorLayout.addWidget(QLabel("WiFi"))
+
+        # wifiStatus = QLabel(self)
+        # pixmap = QPixmap('wifi_redempticon.png')
+        # wifiStatus.setPixmap(pixmap)
+        # self.setCentralWidget(wifiStatus)
+        # self.resize(pixmap.width(), pixmap.height())
+
+        wifiStatus = QLabel(self)
+        pixmap = QPixmap('wifi_redempticon.png')
+        scaled_pixmap = pixmap.scaled(
+            QSize(24, 24), Qt.AspectRatioMode.KeepAspectRatio)
+        wifiStatus.setPixmap(scaled_pixmap)
+        indicatorLayout.addWidget(wifiStatus)
+
         indicatorLayout.addWidget(QLabel("Mic"))
+        # Dave Gandy for microphone on and off image
+
         indicatorLayout.addWidget(QLabel("Cam"))
+        # icon_small for videocam on image
+        # icon_small for videocam off image
 
         appBarLayout.addLayout(infoLayout)
         appBarLayout.addLayout(timeLayout)
         appBarLayout.addLayout(indicatorLayout)
 
         self.setLayout(appBarLayout)
+
+    def button_clicked(self, s):
+        dlg = QMessageBox.about(
+            self, "about", "If you need help or encounter any issued with the system please dont hesitate to contact Shabaj using the following contact details:\nEmail:\nPhone:")
 
 
 class MainWindow(QMainWindow):
