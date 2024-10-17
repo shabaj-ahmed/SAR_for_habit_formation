@@ -1,4 +1,5 @@
 import sys
+from mqtt_client import MQTTClient
 
 from PyQt6.QtWidgets import (
     QApplication,
@@ -134,9 +135,26 @@ class MainWindow(QMainWindow):
         return tabs
 
 
-app = QApplication(sys.argv)
+def main():
+    # Replace with your MQTT broker address
+    broker_address = 'localhost'
+    port = 1883  # Replace with the correct port if needed
 
-window = MainWindow()
-window.show()
+    # Initialise MQTT client
+    mqtt_client = MQTTClient(broker_address, port)
 
-app.exec()
+    app = QApplication(sys.argv)
+
+    window = MainWindow()
+
+    try:
+        window.show()
+    except KeyboardInterrupt:
+        print("Exiting program...")
+    finally:
+        mqtt_client.disconnect()
+        app.exec()
+
+
+if __name__ == "__main__":
+    main()
