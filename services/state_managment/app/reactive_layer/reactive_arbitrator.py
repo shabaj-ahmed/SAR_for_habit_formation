@@ -14,7 +14,7 @@ class ReactiveLayer:
             # or else the state will keep transitioning to Active
         elif inputs['switch_state'] == False:
             self.fsm.transition_to('Sleep')
-        elif inputs['wake_word'] == True:
+        elif inputs['check_in'] == True:
             self.fsm.transition_to('Active')
         elif inputs['error'] == True:
             self.fsm.transition_to('Error')

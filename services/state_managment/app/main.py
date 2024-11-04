@@ -1,8 +1,8 @@
 import time
-from .mqtt_client import MQTTClient
-from .reactive_layer.reactive_arbitrator import ReactiveLayer
+from mqtt_client import MQTTClient
+from reactive_layer.reactive_arbitrator import ReactiveLayer
 # from .deliberate_layer.behaviour_tree import BehaviorTree
-from .deliberate_layer.finite_state_machine import FSM
+from deliberate_layer.finite_state_machine import FSM
 
 # Initialise MQTT client
 mqtt_client = MQTTClient(broker_address='localhost', port=1883)

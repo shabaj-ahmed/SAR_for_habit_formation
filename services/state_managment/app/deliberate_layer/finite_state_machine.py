@@ -60,6 +60,7 @@ class FSM:
             'Awake': AwakeState(),
             'Idle': IdleState(),
             'Interacting': InteractingState(),
+            'Active': AwakeState(),
         }
         self.state = self.states[initial_state]
         self.state.enter()
