@@ -24,18 +24,7 @@ class HibernateSwithcBehavior:
         pass  # logic to suppress the behavior
 
 
-class LEDMatrixBehavior:
-    def __init__(self):
-        pass  # constructor logic
-
-    def get_output(self):
-        pass  # define the output logic
-
-    def suppress(self):
-        pass  # logic to suppress the behavior
-
-
-class WakeWordBehavior:
+class WakedBehavior:
     def __init__(self):
         pass  # constructor logic
 
