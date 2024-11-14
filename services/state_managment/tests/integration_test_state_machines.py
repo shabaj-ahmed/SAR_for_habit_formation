@@ -99,7 +99,7 @@ class TestIntegrationStateMachines(unittest.TestCase):
             'switch_state': True,
             'error': None
         }
-        time.sleep(1)  # Allow some time for state propagation
+        time.sleep(0.5)  # Allow some time for state propagation
 
         # Check if FSM transitioned to 'active' and behavior tree also picked up the state
         self.assertEqual(self.finite_state_machine_layer.get_state(), 'Active')
@@ -111,7 +111,7 @@ class TestIntegrationStateMachines(unittest.TestCase):
             'switch_state': False,
             'error': None
         }
-        time.sleep(1)  # Allow some time for state propagation
+        time.sleep(0.5)  # Allow some time for state propagation
 
         # Check if FSM transitioned to 'sleep' and behavior tree also picked up the state
         self.assertEqual(self.finite_state_machine_layer.get_state(), 'Sleep')
@@ -123,17 +123,113 @@ class TestIntegrationStateMachines(unittest.TestCase):
             'switch_state': None,
             'error': True
         }
-        time.sleep(1)  # Allow some time for state propagation
+        time.sleep(0.5)  # Allow some time for state propagation
 
         # Check if FSM transitioned to 'Error' state
         self.assertEqual(self.finite_state_machine_layer.get_state(), 'Error')
-
-    def test_integration_default_to_sleep_state(self):
+    
+    def test_integration_transition_to_check_in_branch(self):
         self.mock_mqtt_client.get_inputs.return_value = {
-            'switch_state': None,
+            'switch_state': False,
             'error': None
         }
+        time.sleep(0.5)  # Allow some time for state propagation
 
+        # Check if FSM transitioned to 'sleep' and behavior tree also picked up the state
+        self.assertEqual(self.finite_state_machine_layer.get_state(), 'Sleep')
+        self.assertEqual(self.behavior_tree.get_current_state(), 'Sleep')
+
+        # Test if the state machines integrate correctly when switching to 'active' state
+        self.mock_mqtt_client.get_inputs.return_value = {
+            'switch_state': True,
+            'error': None
+        }
+        time.sleep(0.5)  # Allow some time for state propagation
+
+        # Check if FSM transitioned to 'active' and behavior tree also picked up the state
+        self.assertEqual(self.finite_state_machine_layer.get_state(), 'Active')
+        self.assertEqual(self.behavior_tree.get_current_state(), 'Active')
+
+        self.mock_mqtt_client.get_user_event.return_value = {
+            'check_in': True,
+            'configurations': None
+        }
+
+        time.sleep(0.5)  # Allow some time for state propagation
+
+        self.assertEqual(self.behavior_tree.get_current_branch(), "check_in")
+
+    def test_integration_transition_to_configurations_branch(self):
+        self.mock_mqtt_client.get_inputs.return_value = {
+            'switch_state': False,
+            'error': None
+        }
+        time.sleep(0.5)  # Allow some time for state propagation
+
+        # Check if FSM transitioned to 'sleep' and behavior tree also picked up the state
+        self.assertEqual(self.finite_state_machine_layer.get_state(), 'Sleep')
+        self.assertEqual(self.behavior_tree.get_current_state(), 'Sleep')
+
+        # Test if the state machines integrate correctly when switching to 'active' state
+        self.mock_mqtt_client.get_inputs.return_value = {
+            'switch_state': True,
+            'error': None
+        }
+        time.sleep(0.5)  # Allow some time for state propagation
+
+        # Check if FSM transitioned to 'active' and behavior tree also picked up the state
+        self.assertEqual(self.finite_state_machine_layer.get_state(), 'Active')
+        self.assertEqual(self.behavior_tree.get_current_state(), 'Active')
+
+        self.mock_mqtt_client.get_user_event.return_value = {
+            'check_in': None,
+            'configurations': True
+        }
+
+        time.sleep(0.5)  # Allow some time for state propagation
+
+        self.assertEqual(self.behavior_tree.get_current_branch(), "configurations")
+
+    def test_integration_transition_to_reminder_branch(self):
+        self.mock_mqtt_client.get_inputs.return_value = {
+            'switch_state': False,
+            'error': None
+        }
+        time.sleep(0.5)  # Allow some time for state propagation
+
+        # Check if FSM transitioned to 'sleep' and behavior tree also picked up the state
+        self.assertEqual(self.finite_state_machine_layer.get_state(), 'Sleep')
+        self.assertEqual(self.behavior_tree.get_current_state(), 'Sleep')
+
+        # Test if the state machines integrate correctly when switching to 'active' state
+        self.mock_mqtt_client.get_inputs.return_value = {
+            'switch_state': True,
+            'error': None
+        }
+        time.sleep(0.5)  # Allow some time for state propagation
+
+        # Check if FSM transitioned to 'active' and behavior tree also picked up the state
+        self.assertEqual(self.finite_state_machine_layer.get_state(), 'Active')
+        self.assertEqual(self.behavior_tree.get_current_state(), 'Active')
+
+        self.mock_mqtt_client.get_user_event.return_value = {
+            'check_in': True,
+            'configurations': None
+        }
+
+        time.sleep(0.5)  # Allow some time for state propagation
+
+        self.assertEqual(self.behavior_tree.get_current_branch(), "check_in")
+
+        self.mock_mqtt_client.get_behaviour_completion_status.return_value = {
+            'reminder': False,
+            'check_in': True,
+            'configurations': False
+        }
+
+        time.sleep(0.5)  # Allow some time for state propagation
+
+        self.assertEqual(self.behavior_tree.get_current_branch(), "reminder")
 
     def tearDown(self):
         # Stop threads if needed
