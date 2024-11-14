@@ -230,11 +230,11 @@ class BehaviorTree:
                 self.set_current_state(state)
                 
                 # Transition based on the FSM state
-                if state == 'sleep':
+                if state == 'Sleep':
                     self.transition_to_branch(self.behaviours[0])  # Reminder branch
-                elif state == 'active':
+                elif state == 'Active':
                     self.transition_to_branch(self.behaviours[0])  # Reminder branch
-                elif state == 'error':
+                elif state == 'Error':
                     pass
                     # Handle error state if required
     

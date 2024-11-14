@@ -52,10 +52,10 @@ class TestBehaviourTree(unittest.TestCase):
             'configurations': None
         }
 
-        finite_state_machine_event_queue.put({"state": "active"})
+        finite_state_machine_event_queue.put({"state": "Active"})
         for i in range(10):
             self.BT.update()
-        self.assertEqual(self.BT.get_current_state(), 'active')
+        self.assertEqual(self.BT.get_current_state(), 'Active')
 
     def test_switch_to_sleep_state(self):
         print("Test switch to sleep state")
@@ -64,10 +64,10 @@ class TestBehaviourTree(unittest.TestCase):
             'configurations': None
         }
 
-        finite_state_machine_event_queue.put({"state": "sleep"})
+        finite_state_machine_event_queue.put({"state": "Sleep"})
         for i in range(10):
             self.BT.update()
-        self.assertEqual(self.BT.get_current_state(), 'sleep')
+        self.assertEqual(self.BT.get_current_state(), 'Sleep')
     
     def test_transition_to_configurations_branch(self):
         print("Test transition to configurations branch")
@@ -144,7 +144,7 @@ class TestBehaviourTree(unittest.TestCase):
         for i in range(10):
             self.BT.update()
 
-        finite_state_machine_event_queue.put({"state": "active"})
+        finite_state_machine_event_queue.put({"state": "Active"})
 
         # for i in range(10):
         #     self.BT.update()
