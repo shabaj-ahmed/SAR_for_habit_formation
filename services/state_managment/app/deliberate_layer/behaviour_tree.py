@@ -14,15 +14,15 @@ class Task:
 class CheckIn(Task):
     def start(self):
         # Start voice assistant
-        # print("Greet participant")
+        print("Greet participant")
         pass
 
     def update(self):
-        # print("Ask questions and record responses...")
+        print("Ask questions and record responses...")
         pass
 
     def end(self):
-        # print("Summarise responses and wish farewell")
+        print("Summarise responses and wish farewell")
         pass
 
 class AutonomousBhaviour(Task):
@@ -154,7 +154,10 @@ class BehaviorTree:
         self.mqtt_client = mqtt_client
         self.current_branch = None
         self.current_state = None
-        self.previous_event = None
+        self.previous_event = {
+            'check_in': False,
+            'configurations': False
+        }
         self.previousBehaviourCompletionStatus = None
 
         self.finite_state_machine_event_queue = finite_state_machine_event_queue
@@ -193,7 +196,7 @@ class BehaviorTree:
         return self.current_state
     
     def get_current_branch(self):
-        return self.current_branch.name
+        return self.current_branch.name if self.current_branch else None
 
     def add_branch(self, branch_name, branch):
         self.branches[branch_name] = branch
@@ -241,16 +244,17 @@ class BehaviorTree:
     def check_mqtt_messages_for_user_events(self):
         # check mqtt for new messages and update behaviors accordingly
         event = self.mqtt_client.get_user_event()
+        print(f"Event received: {event} and previous event: {self.previous_event}")
         
-        if event != self.previous_event:
-            if event['check_in'] is True:
-                print("Check-in event received")
-                self.transition_to_branch(self.behaviours[1])
-                self.set_current_state('interacting')
-            elif event['configurations'] is True:
-                print("Configurations event received")
-                self.transition_to_branch(self.behaviours[2])
-                self.set_current_state('configuring')
+        if event['check_in'] and not self.previous_event['check_in']:
+            print("Check-in event received")
+            self.transition_to_branch(self.behaviours[1])
+            self.set_current_state('interacting')
+            self.previous_event = event
+        elif event['configurations'] and not self.previous_event['configurations']:
+            print("Configurations event received")
+            self.transition_to_branch(self.behaviours[2])
+            self.set_current_state('configuring')
             self.previous_event = event
 
     def manage_behavior(self):

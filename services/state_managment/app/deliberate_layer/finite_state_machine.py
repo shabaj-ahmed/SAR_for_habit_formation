@@ -48,8 +48,7 @@ class ActiveState:
         self.stateName = 'Active'
 
     def enter(self):
-        # screen
-        # Task scheduler
+        # User Interface
         pass
 
     def exit(self):
@@ -136,8 +135,8 @@ class FSM:
             self.currentState.exit()
             self.currentState = self.states[state_name]
             self.currentState.enter()
-            self.finite_state_machine_event_queue.put({"layer": "finite_state_machine", "state": state_name})
-            self.mqtt_client.publish("finite_state_machine", state_name)
+            self.finite_state_machine_event_queue.put({"state": state_name})
+            self.mqtt_client.publish_fsm_state(state_name)
         else:
             print(f"State {state_name} not found.")
     

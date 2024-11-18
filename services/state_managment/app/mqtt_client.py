@@ -9,13 +9,14 @@ class MQTTClient:
         self.mqtt_client.connect(broker_address, port, keepalive=60)
         self.mqtt_client.loop_start()
 
-        self.inputs = {
-            'switch_state': None,
-            'error': None
+        self.criticalEvents = {
+            'switch_state': False,
+            'reminder': False,
+            'error': False
         }
         self.userEvents = {
-            'check_in': None,
-            'configurations': None
+            'check_in': False,
+            'configurations': False
         }
         self.behaviourCompletionStatus = {
             'reminder': False,
@@ -44,13 +45,13 @@ class MQTTClient:
         self.mqtt_client.message_callback_add(
             "robot/error", self.process_error_message)
 
-        self.mqtt_client.subscribe("robot/check_in")
+        self.mqtt_client.subscribe("user/check_in")
         self.mqtt_client.message_callback_add(
-            "robot/check_in", self.process_check_in)
+            "user/check_in", self.process_check_in)
         
-        self.mqtt_client.subscribe("robot/configurations")
+        self.mqtt_client.subscribe("user/configurations")
         self.mqtt_client.message_callback_add(
-            "robot/configurations", self.process_configurations
+            "user/configurations", self.process_configurations
         )
 
         self.mqtt_client.subscribe("robot/reminder")
@@ -58,19 +59,21 @@ class MQTTClient:
             "robot/reminder", self.process_reminder_status
         )
 
-        self.mqtt_client.subscribe("robot/check_in")
+        self.mqtt_client.subscribe("robot/check_in_status")
         self.mqtt_client.message_callback_add(
-            "robot/check_in", self.process_check_in_status
+            "robot/check_in_status", self.process_check_in_status
         )
-
+    
+    def publish_fsm_state(self, state):
+        self.mqtt_client.publish(f"fsm/state", state)
 
     def process_switch_state(self, client, userdata, message):
         print("Processing switch state")
-        self.inputs['switch_state'] = message.payload.decode()
+        self.criticalEvents['switch_state'] = message.payload.decode()
 
     def process_error_message(self, client, userdata, message):
         print("Processing error message")
-        self.inputs['error'] = message.payload.decode()
+        self.criticalEvents['error'] = message.payload.decode()
 
     def process_check_in(self, client, userdata, message):
         print("Processing check in")
@@ -94,20 +97,24 @@ class MQTTClient:
         print("Processing reminder status")
         print("Reminder message received")
         if message.payload.decode() == 'running':
-            self.behaviourCompletionStatus['reminder'] = False
-        elif message.payload.decode() == 'completed':
             self.behaviourCompletionStatus['reminder'] = True
+        elif message.payload.decode() == 'completed':
+            self.behaviourCompletionStatus['reminder'] = False
+            self.userEvents['configurations'] = False
+            self.userEvents['check_in'] = False
     
     def process_check_in_status(self, client, userdata, message):
         print("Processing check in status")
         print("Check in message received")
         if message.payload.decode() == 'running':
-            self.behaviourCompletionStatus['check_in'] = False
-        elif message.payload.decode() == 'completed':
             self.behaviourCompletionStatus['check_in'] = True
+        elif message.payload.decode() == 'completed':
+            self.behaviourCompletionStatus['check_in'] = False
+            self.userEvents['configurations'] = False
+            self.userEvents['check_in'] = False
 
-    def get_inputs(self):
-        return self.inputs
+    def get_critical_events(self):
+        return self.criticalEvents
     
     def get_user_event(self):
         return self.userEvents
