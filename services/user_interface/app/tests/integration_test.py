@@ -1,10 +1,18 @@
 import pytest
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtTest import QTest  # Import QTest for waiting
-from ..src.mqtt_client import MQTTClient
-from ..src.main import MainWindow  # Adjust the path to your MainWindow
 from PyQt6.QtCore import QCoreApplication
 
+# Add the project root directory to sys.path
+import sys
+import os
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.abspath(os.path.join(current_dir, "../../../"))
+sys.path.insert(0, project_root)
+
+from services.user_interface.app.src.mqtt_client import MQTTClient
+from services.user_interface.app.src.main import MainWindow  # Adjust the path to your MainWindow
 
 @pytest.fixture
 def app(qtbot):

@@ -12,6 +12,7 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
     QHBoxLayout,
     QMessageBox,
+    QTextEdit
 )
 from PyQt6.QtGui import QPalette, QColor, QIcon, QPixmap
 from PyQt6.QtCore import Qt, QSize
@@ -54,31 +55,42 @@ class CheckInScreen(QWidget):
         self.mqtt_client = mqtt_client
         super().__init__()
 
-        vLayout = QVBoxLayout()
+        self.vLayout = QVBoxLayout()
 
-        implementationIntention = QLabel(
-            "Conversation history", alignment=Qt.AlignmentFlag.AlignCenter)
-        implementationIntention.setStyleSheet("font-size: 20px")
-        vLayout.addWidget(implementationIntention)
+        self.conversation_history = QTextEdit(self)
+        self.conversation_history.setReadOnly(True)  # Prevent user from editing
+        self.conversation_history.setPlaceholderText("Conversation history will appear here...")
+        self.vLayout.addWidget(self.conversation_history)
 
         # infoLayout.addWidget(QLabel("contact"))
-        contactButton = QPushButton(
+        self.start_conversatin_button = QPushButton(
             # Icon made by alimasykurm from @flaticon
-            icon=QIcon("../assets/support_alimasykurm.png"),
-            text="Contact",
+            icon=QIcon("../assets/check_in.png"),
+            text="Start check in",
             parent=self
         )
-        contactButton.clicked.connect(self.button_clicked)
+        self.start_conversatin_button.clicked.connect(self.button_clicked)
         # self.setCentralWidget(button)
-        vLayout.addWidget(contactButton)
-        self.setLayout(vLayout)
+        self.vLayout.addWidget(self.start_conversatin_button)
+        self.setLayout(self.vLayout)
 
-    def button_clicked(self, s):
+        # Connect MQTT signal for updating conversation history
+        self.mqtt_client.message_signal.connect(self.update_conversation)
+
+    def button_clicked(self):
         sleep(1)
         self.mqtt_client.start_check_in()
-        dlg = QMessageBox.about(
-            self, "about", "If you need help or encounter any issued with the system please dont hesitate to contact Shabaj using the following contact details:\nEmail:\nPhone:")
 
+    def update_conversation(self, message):
+        """
+        Updates the conversation history with a new message.
+        """
+        # Append the new message to the text edit
+        self.conversation_history.append(f"{message['sender'].upper()}: {message['content']}")
+
+        # Auto-scroll to the bottom if the user hasn't scrolled up
+        scrollbar = self.conversation_history.verticalScrollBar()
+        scrollbar.setValue(scrollbar.maximum())
 
 class NotificationBar(QWidget):
     def __init__(self):
