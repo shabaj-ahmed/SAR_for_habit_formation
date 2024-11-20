@@ -31,8 +31,8 @@ class TestBehaviourTree(unittest.TestCase):
             behavior_tree_event_queue.get()
 
         # Create a mock MQTT client
-        self.mock_mqtt_client = MagicMock()
-        self.mock_mqtt_client.get_behaviour_completion_status.return_value = {
+        self.communication_interface = MagicMock()
+        self.communication_interface.get_behaviour_completion_status.return_value = {
             'reminder': False,
             'check_in': False,
             'configurations': False
@@ -40,14 +40,14 @@ class TestBehaviourTree(unittest.TestCase):
 
         # Instantiate the FSM
         self.BT = BehaviorTree(
-            mqtt_client=self.mock_mqtt_client,
             finite_state_machine_event_queue=finite_state_machine_event_queue,
             behavior_tree_event_queue=behavior_tree_event_queue
         )
+        self.BT.communication_interface = self.communication_interface
         
     def test_switch_to_active_state(self):
         print("Test switch to active state")
-        self.mock_mqtt_client.get_user_event.return_value = {
+        self.communication_interface.get_user_event.return_value = {
             'check_in': None,
             'configurations': None
         }
@@ -59,7 +59,7 @@ class TestBehaviourTree(unittest.TestCase):
 
     def test_switch_to_sleep_state(self):
         print("Test switch to sleep state")
-        self.mock_mqtt_client.get_user_event.return_value = {
+        self.communication_interface.get_user_event.return_value = {
             'check_in': None,
             'configurations': None
         }
@@ -71,7 +71,7 @@ class TestBehaviourTree(unittest.TestCase):
     
     def test_transition_to_configurations_branch(self):
         print("Test transition to configurations branch")
-        self.mock_mqtt_client.get_user_event.return_value = {
+        self.communication_interface.get_user_event.return_value = {
             'check_in': None,
             'configurations': True
         }
@@ -83,7 +83,7 @@ class TestBehaviourTree(unittest.TestCase):
 
     def test_transition_to_check_in_branch(self):
         print("Test transition to check-in branch")
-        self.mock_mqtt_client.get_user_event.return_value = {
+        self.communication_interface.get_user_event.return_value = {
             'check_in': True,
             'configurations': None
         }
@@ -95,7 +95,7 @@ class TestBehaviourTree(unittest.TestCase):
 
     def test_transition_back_to_reminder_branch(self):
         print("Test transition back to reminder branch")
-        self.mock_mqtt_client.get_user_event.return_value = {
+        self.communication_interface.get_user_event.return_value = {
             'check_in': True,
             'configurations': None
         }
@@ -105,12 +105,12 @@ class TestBehaviourTree(unittest.TestCase):
             self.BT.update()
         # self.assertEqual(self.BT.get_current_branch(), "check_in")
 
-        self.mock_mqtt_client.get_user_event.return_value = {
+        self.communication_interface.get_user_event.return_value = {
             'check_in': None,
             'configurations': None
         }
         # publish a message to the MQTT client to confirm check-in is complete
-        self.mock_mqtt_client.get_behaviour_completion_status.return_value = {
+        self.communication_interface.get_behaviour_completion_status.return_value = {
             'reminder': False,
             'check_in': True,
             'configurations': False
@@ -119,7 +119,7 @@ class TestBehaviourTree(unittest.TestCase):
         for i in range(10):
             self.BT.update()
 
-        self.mock_mqtt_client.get_behaviour_completion_status.return_value = {
+        self.communication_interface.get_behaviour_completion_status.return_value = {
             'reminder': False,
             'check_in': False,
             'configurations': False
@@ -131,11 +131,11 @@ class TestBehaviourTree(unittest.TestCase):
     
     def test_transition_accross_multiple_branches(self):
         print("Test transition accross multiple branches")
-        self.mock_mqtt_client.get_user_event.return_value = {
+        self.communication_interface.get_user_event.return_value = {
             'check_in': None,
             'configurations': None
         }
-        self.mock_mqtt_client.get_behaviour_completion_status.return_value = {
+        self.communication_interface.get_behaviour_completion_status.return_value = {
             'reminder': False,
             'check_in': False,
             'configurations': False
@@ -149,14 +149,14 @@ class TestBehaviourTree(unittest.TestCase):
         # for i in range(10):
         #     self.BT.update()
 
-        # self.mock_mqtt_client.get_user_event.return_value = {
+        # self.communication_interface.get_user_event.return_value = {
         #     'check_in': True,
         #     'configurations': None
         # }
 
         # self.BT.update()
 
-        # self.mock_mqtt_client.get_user_event.return_value = {
+        # self.communication_interface.get_user_event.return_value = {
         #     'check_in': None,
         #     'configurations': None
         # }
@@ -167,7 +167,7 @@ class TestBehaviourTree(unittest.TestCase):
         
         # self.assertEqual(self.BT.get_current_branch(), "check_in")
 
-        # self.mock_mqtt_client.get_behaviour_completion_status.return_value = {
+        # self.communication_interface.get_behaviour_completion_status.return_value = {
         #     'reminder': False,
         #     'check_in': True,
         #     'configurations': False
@@ -175,7 +175,7 @@ class TestBehaviourTree(unittest.TestCase):
 
         # self.BT.update()
 
-        # self.mock_mqtt_client.get_behaviour_completion_status.return_value = {
+        # self.communication_interface.get_behaviour_completion_status.return_value = {
         #     'reminder': False,
         #     'check_in': False,
         #     'configurations': False

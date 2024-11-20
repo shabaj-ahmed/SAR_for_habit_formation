@@ -1,5 +1,20 @@
+from .bt_communication_interface import CommunicationInterface
+from dotenv import load_dotenv
+from pathlib import Path
+import os
+
+# Relative path to the .env file in the config directory
+# Move up one level and into config
+dotenv_path = Path('../../configurations/.env')
+
+# Load the .env file
+load_dotenv(dotenv_path=dotenv_path)
+
 # Behaviour tree leaf nodes
-class Task:
+class Leaf:
+    def __init__(self, communication_interface=None):
+        self.comm_interface = communication_interface
+
     def start(self):
         pass
 
@@ -11,10 +26,12 @@ class Task:
 
 # For each behaviour mark the services that are critical to the behaviour to previent transition to another state while behaviour is running
 
-class CheckIn(Task):
+class CheckIn(Leaf):
     def start(self):
         # Start voice assistant
         print("Greet participant")
+        # Publish message to MQTT to start voice assistant
+        self.comm_interface.publish("service/start", "Starting Voice Assistant")
         pass
 
     def update(self):
@@ -23,9 +40,10 @@ class CheckIn(Task):
 
     def end(self):
         print("Summarise responses and wish farewell")
+        self.comm_interface.publish("service/end", "Ending Voice Assistant")
         pass
 
-class AutonomousBhaviour(Task):
+class AutonomousBhaviour(Leaf):
     def start(self):
         # Face tracking
         # Autonomous roaming
@@ -40,7 +58,7 @@ class AutonomousBhaviour(Task):
         # print("Stopped autonomous behaviour")
         pass
 
-class EmotionGeneration(Task):
+class EmotionGeneration(Leaf):
     def start(self):
         # Enable the robots emotion generation system in robot behavior
         # print("Starting to generate emotion")
@@ -54,7 +72,7 @@ class EmotionGeneration(Task):
         # print("Stopped generating emotion")
         pass
 
-class AdministerSurvey(Task):
+class AdministerSurvey(Leaf):
     def start(self):
         # Start survey in user interface
         # print("Starting survey")
@@ -69,11 +87,13 @@ class AdministerSurvey(Task):
         pass
 
 
-class TaskScheduler(Task):
+class TaskScheduler(Leaf):
     def start(self):
         # Send message to the task scheduler to start scheduling tasks
         # Send message to user interface to show scheduled tasks
         # print("Starting task scheduler")
+        if self.comm_interface:
+            self.comm_interface.publish("service/start", "Starting Task Scheduler")
         pass
 
     def update(self):
@@ -82,10 +102,12 @@ class TaskScheduler(Task):
 
     def end(self):
         # print("Stopped task scheduler")
+        if self.comm_interface:
+            self.comm_interface.publish("service/end", "Stopping Task Scheduler")
         pass
 
 
-class Configurations(Task):
+class Configurations(Leaf):
     def start(self):
         # Show configuration options in user interface and start robot behaviour configuration
         # print("Show configuration options")
@@ -103,13 +125,15 @@ class Configurations(Task):
 class BehaviorBranch:
     """Represents a branch of behaviors accessible during a specific FSM state."""
 
-    def __init__(self, name):
+    def __init__(self, name, communication_interface):
         self.name = name
+        self.communication_interface = communication_interface
         self.behaviors = []
         self.all_services_available = False
         self.behaviour_running = False
 
-    def add_behavior(self, behavior):
+    def add_behavior(self, behavior_class):
+        behavior = behavior_class(self.communication_interface)
         self.behaviors.append(behavior)
 
     def start(self):
@@ -150,8 +174,15 @@ class BehaviorBranch:
 
 
 class BehaviorTree:
-    def __init__(self, mqtt_client, finite_state_machine_event_queue, behavior_tree_event_queue):
-        self.mqtt_client = mqtt_client
+    def __init__(self, finite_state_machine_event_queue, behavior_tree_event_queue):
+        self.communication_interface = CommunicationInterface(
+            broker_address = str(os.getenv('MQTT_BROKER_ADDRESS')),
+            port = int(os.getenv('MQTT_BROKER_PORT'))
+        )
+
+        self.finite_state_machine_event_queue = finite_state_machine_event_queue
+        self.behavior_tree_event_queue = behavior_tree_event_queue
+
         self.current_branch = None
         self.current_state = None
         self.previous_event = {
@@ -159,10 +190,6 @@ class BehaviorTree:
             'configurations': False
         }
         self.previousBehaviourCompletionStatus = None
-
-        self.finite_state_machine_event_queue = finite_state_machine_event_queue
-        self.behavior_tree_event_queue = behavior_tree_event_queue
-
         self.branches = {}
 
         # Service names to control
@@ -172,21 +199,21 @@ class BehaviorTree:
         self.behaviour_branch_status = {behaviour: False for behaviour in self.behaviours}
 
         # Reminder
-        self.reminder_branch = BehaviorBranch(self.behaviours[0])
-        self.reminder_branch.add_behavior(TaskScheduler())
+        self.reminder_branch = BehaviorBranch(self.behaviours[0], self.communication_interface)
+        self.reminder_branch.add_behavior(TaskScheduler)
         self.add_branch(self.behaviours[0], self.reminder_branch)
 
         # Check-in
-        self.check_in_dialog_branch = BehaviorBranch(self.behaviours[1])
-        self.check_in_dialog_branch.add_behavior(CheckIn())
-        self.check_in_dialog_branch.add_behavior(AutonomousBhaviour())
-        self.check_in_dialog_branch.add_behavior(EmotionGeneration())
-        self.check_in_dialog_branch.add_behavior(AdministerSurvey())
+        self.check_in_dialog_branch = BehaviorBranch(self.behaviours[1], self.communication_interface)
+        self.check_in_dialog_branch.add_behavior(CheckIn)
+        self.check_in_dialog_branch.add_behavior(AutonomousBhaviour)
+        self.check_in_dialog_branch.add_behavior(EmotionGeneration)
+        self.check_in_dialog_branch.add_behavior(AdministerSurvey)
         self.add_branch(self.behaviours[1], self.check_in_dialog_branch)
 
         # Configuration
-        self.configurations_branch = BehaviorBranch(self.behaviours[2])
-        self.configurations_branch.add_behavior(Configurations())
+        self.configurations_branch = BehaviorBranch(self.behaviours[2], self.communication_interface)
+        self.configurations_branch.add_behavior(Configurations)
         self.add_branch(self.behaviours[2], self.configurations_branch)
 
     def set_current_state(self, state):
@@ -222,7 +249,7 @@ class BehaviorTree:
 
         """Update all active behaviors in the current branch"""
         self.current_branch.update()
-    
+
     def check_finite_state_machine_event_queue(self):
         if self.finite_state_machine_event_queue.empty() is False:
             print("Checking FSM event queue...")
@@ -243,7 +270,7 @@ class BehaviorTree:
     
     def check_mqtt_messages_for_user_events(self):
         # check mqtt for new messages and update behaviors accordingly
-        event = self.mqtt_client.get_user_event()
+        event = self.communication_interface.get_user_event()
         print(f"Event received: {event} and previous event: {self.previous_event}")
         
         if event['check_in'] and not self.previous_event['check_in']:
@@ -260,7 +287,7 @@ class BehaviorTree:
     def manage_behavior(self):
         """Activate or deactivate a specific behavior in the current branch"""
         behaviourIsRunning = self.current_branch.behaviour_running
-        behaviourCompletionStatus = self.mqtt_client.get_behaviour_completion_status()
+        behaviourCompletionStatus = self.communication_interface.get_behaviour_completion_status()
         behaviourIsComplete = behaviourCompletionStatus[self.current_branch.name]
         previousBehaviourIsComplete = self.previousBehaviourCompletionStatus[self.current_branch.name] if self.previousBehaviourCompletionStatus else None
 
