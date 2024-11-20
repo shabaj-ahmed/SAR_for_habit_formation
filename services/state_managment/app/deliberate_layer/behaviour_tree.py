@@ -271,7 +271,6 @@ class BehaviorTree:
     def check_mqtt_messages_for_user_events(self):
         # check mqtt for new messages and update behaviors accordingly
         event = self.communication_interface.get_user_event()
-        print(f"Event received: {event} and previous event: {self.previous_event}")
         
         if event['check_in'] and not self.previous_event['check_in']:
             print("Check-in event received")
