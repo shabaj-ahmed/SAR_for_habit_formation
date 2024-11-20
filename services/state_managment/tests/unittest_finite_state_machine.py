@@ -1,7 +1,6 @@
 # test_finite_state_machine.py
 
 import unittest
-from unittest.mock import MagicMock
 import sys
 import os
 
@@ -27,9 +26,6 @@ class TestReactiveLayer(unittest.TestCase):
             finite_state_machine_event_queue.get()
         while not behavior_tree_event_queue.empty():
             behavior_tree_event_queue.get()
-
-        # Create a mock MQTT client
-        self.communication_interface = MagicMock()
 
         # Instantiate the FSM
         self.fsm = FSM(subsumption_layer_event_queue=subsumption_layer_event_queue, finite_state_machine_event_queue=finite_state_machine_event_queue, behavior_tree_event_queue=behavior_tree_event_queue)
