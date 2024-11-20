@@ -24,19 +24,22 @@ class TestReactiveLayer(unittest.TestCase):
             subsumption_layer_event_queue.get()
 
         # Create a mock MQTT client
-        self.mock_mqtt_client = MagicMock()
-        self.mock_mqtt_client.get_inputs.return_value = {
+        self.communication_interface = MagicMock()
+        self.communication_interface.get_critical_events.return_value = {
             'switch_state': None,
+            'reminder': None,
             'error': None
         }
 
         # Instantiate ReactiveLayer with the mock MQTT client
-        self.reactive_layer = ReactiveLayer(mqtt_client=self.mock_mqtt_client, event_queue=subsumption_layer_event_queue)
+        self.reactive_layer = ReactiveLayer(event_queue=subsumption_layer_event_queue)
+        self.reactive_layer.communication_interface = self.communication_interface
 
     def test_switch_to_active_state(self):
         # Simulate receiving 'switch_state' set to True
-        self.mock_mqtt_client.get_inputs.return_value = {
+        self.communication_interface.get_critical_events.return_value = {
             'switch_state': True,
+            'reminder': None,
             'error': None
         }
 
@@ -47,8 +50,9 @@ class TestReactiveLayer(unittest.TestCase):
 
     def test_switch_to_sleep_state(self):
         # Simulate receiving 'switch_state' set to False
-        self.mock_mqtt_client.get_inputs.return_value = {
+        self.communication_interface.get_critical_events.return_value = {
             'switch_state': False,
+            'reminder': None,
             'error': None
         }
 
@@ -59,8 +63,9 @@ class TestReactiveLayer(unittest.TestCase):
 
     def test_error_state(self):
         # Simulate receiving 'error' set to True
-        self.mock_mqtt_client.get_inputs.return_value = {
+        self.communication_interface.get_critical_events.return_value = {
             'switch_state': None,
+            'reminder': None,
             'error': True
         }
 
@@ -71,8 +76,9 @@ class TestReactiveLayer(unittest.TestCase):
 
     def test_default_to_sleep_state(self):
         # Simulate receiving 'switch_state' and 'error' set to None
-        self.mock_mqtt_client.get_inputs.return_value = {
+        self.communication_interface.get_critical_events.return_value = {
             'switch_state': None,
+            'reminder': None,
             'error': None
         }
 
@@ -83,8 +89,9 @@ class TestReactiveLayer(unittest.TestCase):
 
     def test_priority_order(self):
         # Simulate receiving 'error' set to True
-        self.mock_mqtt_client.get_inputs.return_value = {
+        self.communication_interface.get_critical_events.return_value = {
             'switch_state': True,
+            'reminder': None,
             'error': True
         }
 
@@ -94,8 +101,9 @@ class TestReactiveLayer(unittest.TestCase):
         self.assertEqual(current_state, 'Error')
 
     def test_switching_states(self):
-        self.mock_mqtt_client.get_inputs.return_value = {
+        self.communication_interface.get_critical_events.return_value = {
             'switch_state': False,
+            'reminder': None,
             'error': True
         }
 
@@ -104,8 +112,9 @@ class TestReactiveLayer(unittest.TestCase):
         current_state = subsumption_layer_event_queue.get()["state"]
         self.assertEqual(current_state, 'Error')
 
-        self.mock_mqtt_client.get_inputs.return_value = {
+        self.communication_interface.get_critical_events.return_value = {
             'switch_state': True,
+            'reminder': None,
             'error': False
         }
 

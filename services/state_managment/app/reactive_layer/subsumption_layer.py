@@ -1,11 +1,26 @@
+from .ss_communication_interface import CommunicationInterface
+from dotenv import load_dotenv
+from pathlib import Path
+import os
+
+# Relative path to the .env file in the config directory
+# Move up one level and into config
+dotenv_path = Path('../../configurations/.env')
+
+# Load the .env file
+load_dotenv(dotenv_path=dotenv_path)
+
 class ReactiveLayer:
-    def __init__(self, mqtt_client, event_queue):
-        self.mqtt_client = mqtt_client
+    def __init__(self, event_queue):
+        self.communication_interface = CommunicationInterface(
+            broker_address = str(os.getenv('MQTT_BROKER_ADDRESS')),
+            port = int(os.getenv('MQTT_BROKER_PORT'))
+        )
         self.event_queue = event_queue
         self.previous_state = None
 
     def detect_critical_condition(self):
-        inputs = self.mqtt_client.get_critical_events()
+        inputs = self.communication_interface.get_critical_events()
 
         # The logic below follows the subsumption design architecture. It monitors the
         # inputs from critical events. based on the priority of the event it would
