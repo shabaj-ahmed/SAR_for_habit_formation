@@ -29,10 +29,10 @@ class TestReactiveLayer(unittest.TestCase):
             behavior_tree_event_queue.get()
 
         # Create a mock MQTT client
-        self.mock_mqtt_client = MagicMock()
+        self.communication_interface = MagicMock()
 
         # Instantiate the FSM
-        self.fsm = FSM(mqtt_client=self.mock_mqtt_client, initial_state='Sleep', subsumption_layer_event_queue=subsumption_layer_event_queue, finite_state_machine_event_queue=finite_state_machine_event_queue, behavior_tree_event_queue=behavior_tree_event_queue)
+        self.fsm = FSM(subsumption_layer_event_queue=subsumption_layer_event_queue, finite_state_machine_event_queue=finite_state_machine_event_queue, behavior_tree_event_queue=behavior_tree_event_queue)
 
     def test_switch_to_active_state(self):
         subsumption_layer_event_queue.put({"layer": "subsumption", "state": "Active"})

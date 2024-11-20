@@ -1,3 +1,15 @@
+from .fsm_communication_interface import CommunicationInterface
+from dotenv import load_dotenv
+from pathlib import Path
+import os
+
+# Relative path to the .env file in the config directory
+# Move up one level and into config
+dotenv_path = Path('../../configurations/.env')
+
+# Load the .env file
+load_dotenv(dotenv_path=dotenv_path)
+
 class State:
     def enter(self):
         pass
@@ -109,8 +121,11 @@ class ErrorState:
 
 
 class FSM:
-    def __init__(self, mqtt_client, initial_state, subsumption_layer_event_queue, finite_state_machine_event_queue, behavior_tree_event_queue):
-        self.mqtt_client = mqtt_client
+    def __init__(self, subsumption_layer_event_queue, finite_state_machine_event_queue, behavior_tree_event_queue):
+        self.communication_interface = CommunicationInterface(
+            broker_address = str(os.getenv('MQTT_BROKER_ADDRESS')),
+            port = int(os.getenv('MQTT_BROKER_PORT'))
+        )
 
         self.subsumption_layer_event_queue = subsumption_layer_event_queue
         self.finite_state_machine_event_queue = finite_state_machine_event_queue
@@ -124,7 +139,7 @@ class FSM:
             'Configuring': ConfiguringState(),
             'Error': ErrorState()
         }
-        self.currentState = self.states[initial_state]
+        self.currentState = self.states["Sleep"]
         self.currentState.enter()
     
     def get_state(self):
@@ -136,7 +151,7 @@ class FSM:
             self.currentState = self.states[state_name]
             self.currentState.enter()
             self.finite_state_machine_event_queue.put({"state": state_name})
-            self.mqtt_client.publish_fsm_state(state_name)
+            self.communication_interface.publish("fsm/state", state_name)
         else:
             print(f"State {state_name} not found.")
     
