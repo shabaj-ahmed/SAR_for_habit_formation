@@ -10,7 +10,7 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.abspath(os.path.join(current_dir, "../../../"))
 sys.path.insert(0, project_root)
 
-from services.state_managment.app.reactive_layer.subsumption_layer import ReactiveLayer
+from services.state_managment.app.reactive_layer.reactive_layer import ReactiveLayer
 
 from queue import Queue
 subsumption_layer_event_queue = Queue()

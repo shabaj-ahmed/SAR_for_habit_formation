@@ -1,4 +1,4 @@
-from .ss_communication_interface import CommunicationInterface
+from .rt_communication_interface import CommunicationInterface
 from dotenv import load_dotenv
 from pathlib import Path
 import os
