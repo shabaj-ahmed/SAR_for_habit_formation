@@ -11,14 +11,14 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.abspath(os.path.join(current_dir, "../../../"))
 sys.path.insert(0, project_root)
 
-from services.user_interface.app.src.mqtt_client import MQTTClient
+from services.user_interface.app.src.communication_interface import CommunicationInterface
 from services.user_interface.app.src.main import MainWindow  # Adjust the path to your MainWindow
 
 @pytest.fixture
 def app(qtbot):
     """Set up the PyQt application for integration testing."""
     app = QApplication([])  # Create the PyQt application
-    mqtt_client = MQTTClient(broker_address='localhost',
+    mqtt_client = CommunicationInterface(broker_address='localhost',
                              port=1883)  # Use real MQTT broker
     window = MainWindow(mqtt_client)
     qtbot.addWidget(window)

@@ -1,5 +1,5 @@
 import sys
-from mqtt_client import MQTTClient
+from communication_interface import CommunicationInterface
 from time import sleep
 
 from PyQt6.QtWidgets import (
@@ -237,7 +237,7 @@ def main():
     port = 1883  # Replace with the correct port if needed
 
     # Initialise MQTT client
-    mqtt_client = MQTTClient(broker_address, port)
+    mqtt_client = CommunicationInterface(broker_address, port)
 
     app = QApplication(sys.argv)
 
