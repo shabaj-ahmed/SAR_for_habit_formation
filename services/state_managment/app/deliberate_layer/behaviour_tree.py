@@ -32,6 +32,8 @@ class CheckIn(Leaf):
         print("Greet participant")
         # Publish message to MQTT to start voice assistant
         self.comm_interface.publish("service/start", "Starting Voice Assistant")
+        self.comm_interface.publish("robot/cameraActive", "1")
+        self.comm_interface.publish("robot/audioActive", "1")
         pass
 
     def update(self):
@@ -41,6 +43,8 @@ class CheckIn(Leaf):
     def end(self):
         print("Summarise responses and wish farewell")
         self.comm_interface.publish("service/end", "Ending Voice Assistant")
+        self.comm_interface.publish("robot/cameraActive", "0")
+        self.comm_interface.publish("robot/audioActive", "0")
         pass
 
 class AutonomousBhaviour(Leaf):

@@ -1,8 +1,7 @@
 import time
-from mqtt_client import MQTTClient
 import threading
 from queue import Queue
-from reactive_layer.subsumption_layer import ReactiveLayer
+from reactive_layer.reactive_layer import ReactiveLayer
 import deliberate_layer.finite_state_machine as fsm
 from deliberate_layer.behaviour_tree import BehaviorTree
 
@@ -11,13 +10,10 @@ subsumption_layer_event_queue = Queue()
 finite_state_machine_event_queue = Queue()
 behavior_tree_event_queue = Queue()
 
-# Initialise MQTT client
-mqtt_client = MQTTClient(broker_address='localhost', port=1883)
-
 # Instantiate High-Level FSM, Behavior Tree, and Reactive Layer
-reactive_layer = ReactiveLayer(mqtt_client=mqtt_client, event_queue=subsumption_layer_event_queue)
-finite_state_machine_layer = fsm.FSM(mqtt_client=mqtt_client, initial_state='Sleep', subsumption_layer_event_queue=subsumption_layer_event_queue, finite_state_machine_event_queue=finite_state_machine_event_queue, behavior_tree_event_queue=behavior_tree_event_queue)
-deliberate_layer = BehaviorTree(mqtt_client=mqtt_client, finite_state_machine_event_queue=finite_state_machine_event_queue, behavior_tree_event_queue=behavior_tree_event_queue)
+reactive_layer = ReactiveLayer(event_queue=subsumption_layer_event_queue)
+finite_state_machine_layer = fsm.FSM(subsumption_layer_event_queue=subsumption_layer_event_queue, finite_state_machine_event_queue=finite_state_machine_event_queue, behavior_tree_event_queue=behavior_tree_event_queue)
+deliberate_layer = BehaviorTree(finite_state_machine_event_queue=finite_state_machine_event_queue, behavior_tree_event_queue=behavior_tree_event_queue)
 
 # Loop interval
 LOOP_INTERVAL = 0.1
