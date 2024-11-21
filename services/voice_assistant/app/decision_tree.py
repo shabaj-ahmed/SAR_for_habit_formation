@@ -1,4 +1,3 @@
-
 from speech_to_text_recognition import SpeedToText
 import datetime
 import re
@@ -6,9 +5,9 @@ import time
 
 
 class DecisionTree:
-    def __init__(self, mqtt_client):
+    def __init__(self, communication_interface):
         self.sr = SpeedToText()
-        self.mqtt_client = mqtt_client
+        self.communication_interface = communication_interface
 
     def check_in(self):
         # Get the current day and determine the initial question based on that
@@ -106,7 +105,7 @@ class DecisionTree:
         print("In ask_question function in DecisionTree class")
         while question:
             print(f"Question: {question}")
-            self.mqtt_client.publish_message(
+            self.communication_interface.publish_message(
                 sender="Robot",
                 message_type="question",
                 content=question
