@@ -5,9 +5,9 @@ import time
 
 
 class DecisionTree:
-    def __init__(self, communication_interface):
+    def __init__(self):
         self.sr = SpeedToText()
-        self.communication_interface = communication_interface
+        self.communication_interface = None
 
     def check_in(self):
         # Get the current day and determine the initial question based on that
@@ -18,7 +18,7 @@ class DecisionTree:
             initial_question["question"],
             initial_question["expected_format"]
         )
-    
+
     # Function to determine the day and adjust the questions accordingly
     def get_current_day_questions(self):
         # Get the current day of the week
@@ -49,9 +49,8 @@ class DecisionTree:
         else:
             initial_question = {
                 "question": "How would you rate your progress on a scale of 1 to 10?", "expected_format": "open-ended"}
-
         return initial_question
-    
+
     def extract_number_from(self, response):
         # Use regex to find the first occurrence of a number (integer)
         match = re.search(r'\d+', response)
@@ -59,8 +58,8 @@ class DecisionTree:
             return int(match.group())
         else:
             return None
-        
-    def determine_next_question(self, question, response):
+
+    def determine_next_question(self, question, response, expected_format):
         if question == "What specific goals do you have for this week?": # Monday
             return {"question": "What strategies will you use to achieve these goals?", "expected_format": "open-ended"}
         elif question == "What would you like to reflect on this week?": # Tuesday
@@ -76,31 +75,30 @@ class DecisionTree:
         elif question == "What strategies helped you this week?": # Sunday
             return {"question": "How can you build on these strategies for next week?", "expected_format": "open-ended"}
         else:
-            question == "How would you rate your progress on a scale of 1 to 10?"
-
-        if question == "How would you rate your progress on a scale of 1 to 10?":
-            try:
-                rating = self.extract_number_from(response)
-                if rating < 5:
-                    return {"question": "What obstacles kept you from meeting your goals?", "expected_format": "open-ended"}
-                elif 5 <= rating <= 7:
-                    return {"question": "What can you improve next week?", "expected_format": "open-ended"}
+            if question == "How would you rate your progress on a scale of 1 to 10?":
+                try:
+                    rating = self.extract_number_from(response)
+                    if rating < 5:
+                        return {"question": "What obstacles kept you from meeting your goals?", "expected_format": "open-ended"}
+                    elif 5 <= rating <= 7:
+                        return {"question": "What can you improve next week?", "expected_format": "open-ended"}
+                    else:
+                        return {"question": "Great! What strategies worked well for you?", "expected_format": "open-ended"}
+                except ValueError:
+                    return {"question": "Please provide a valid number between 1 and 10.", "expected_format": "short"}
+            # Branching based on responses for obstacles
+            elif question == "What obstacles kept you from meeting your goals?":
+                if "time" in response.lower():
+                    return {"question": "Would allocating more time next week help?", "expected_format": "open-ended"}
+                elif "motivation" in response.lower():
+                    return {"question": "What could help you stay motivated?", "expected_format": "open-ended"}
                 else:
-                    return {"question": "Great! What strategies worked well for you?", "expected_format": "open-ended"}
-            except ValueError:
-                return {"question": "Please provide a valid number between 1 and 10.", "expected_format": "short"}
-
-        # Branching based on responses for obstacles
-        elif question == "What obstacles kept you from meeting your goals?":
-            if "time" in response.lower():
-                return {"question": "Would allocating more time next week help?", "expected_format": "open-ended"}
-            elif "motivation" in response.lower():
-                return {"question": "What could help you stay motivated?", "expected_format": "open-ended"}
+                    return {"question": "What can you change to improve your progress?", "expected_format": "open-ended"}
+            elif question == "How would you rate your progress on a scale of 1 to 10?":
+                return None
             else:
-                return {"question": "What can you change to improve your progress?", "expected_format": "open-ended"}
+                return {"question": "How would you rate your progress on a scale of 1 to 10?", "expected_format": "short"}
 
-        return None
-    
     def ask_question(self, question = "", expected_format = "open-ended"):
         print("In ask_question function in DecisionTree class")
         while question:
@@ -115,12 +113,13 @@ class DecisionTree:
             # Publish the question to the speech microservice and get the response
             response = self.sr.recognise_response(expected_format)
 
-            print(f"recognition response: {response}, with expected format: {expected_format}")
+            print(f"recognition response: {response}, for question: {question}, with expected format: {expected_format}")
 
             # Determine the next question based on the current response
             next_question = self.determine_next_question(
                 question,
-                response
+                response,
+                expected_format
             )        
 
             # If there is no next question, break the loop

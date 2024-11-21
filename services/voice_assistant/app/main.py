@@ -18,10 +18,8 @@ decision_tree = DecisionTree()
 
 def publish_heartbeat():
     while True:
-        communication_interface.publish_status("running", "Service is active.")
+        communication_interface.publish_status("running")
         time.sleep(30)  # Publish heartbeat every 30 seconds
-
-threading.Thread(target=publish_heartbeat, daemon=True).start()
 
 def main_logic():
     decision_tree.check_in()
@@ -32,7 +30,7 @@ def on_start_command(max_retries, delay):
     while attempt < max_retries:
         try:
             main_logic()
-            communication_interface.publish_status("success", "Service completed successfully.")
+            communication_interface.publish_status("completed")
             break  # Exit the loop if successful
         except Exception as e:
             attempt += 1
@@ -51,8 +49,11 @@ if __name__ == "__main__":
         port = int(os.getenv('MQTT_BROKER_PORT'))
     )
 
+    threading.Thread(target=publish_heartbeat, daemon=True).start()
+
     # Assign the callback function for the start command
     communication_interface.on_start_command = on_start_command
+
 
     # Pass the MQTT client to the decision tree
     decision_tree.communication_interface = communication_interface
