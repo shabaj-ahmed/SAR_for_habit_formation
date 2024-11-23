@@ -10,13 +10,6 @@ class DecisionTree:
         self.sr = SpeedToText()
         self.communication_interface = None
 
-    def test(self):
-        self.communication_interface.thread_safe_publish("conv/hist", json.dumps({
-            "sender": "Robot",
-            "message_type": "question",
-            "content": "This is a test question."
-        }))
-
     def check_in(self):
         if not self.communication_interface:
             print("Communication interface is not set!")
@@ -126,6 +119,12 @@ class DecisionTree:
             time.sleep(2)
 
             response = self._get_response(expected_format)
+
+            self.communication_interface.publish_message(
+                sender = "User",
+                message_type = "Response",
+                content = response
+            )
 
             # Determine the next question based on the current response
             next_question = self.determine_next_question(

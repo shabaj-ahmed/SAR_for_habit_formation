@@ -44,7 +44,7 @@ class CommunicationInterface(MQTTClientBase):
             self.max_retries = max_retries
             self.delay = delay
         
-    def thread_safe_publish(self, topic, message):
+    def _thread_safe_publish(self, topic, message):
         # print(f"Thread safe publish: {topic}, {message}")
         self.message_queue.put((topic, message))
 
@@ -70,7 +70,7 @@ class CommunicationInterface(MQTTClientBase):
             "content": content
         }
         json_message = json.dumps(message)
-        self.thread_safe_publish("conv/hist", json_message)
+        self._thread_safe_publish("conv/hist", json_message)
 
     def publish_behaviour_complete(self):
         payload = {
