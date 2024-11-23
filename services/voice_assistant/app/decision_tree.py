@@ -1,4 +1,5 @@
 from speech_to_text_recognition import SpeedToText
+import json
 import datetime
 import re
 import time
@@ -9,7 +10,19 @@ class DecisionTree:
         self.sr = SpeedToText()
         self.communication_interface = None
 
+    def test(self):
+        self.communication_interface.thread_safe_publish("conv/hist", json.dumps({
+            "sender": "Robot",
+            "message_type": "question",
+            "content": "This is a test question."
+        }))
+
     def check_in(self):
+        if not self.communication_interface:
+            print("Communication interface is not set!")
+            return
+        print("Communication interface is set and ready to use.")
+
         # Get the current day and determine the initial question based on that
         initial_question = self.get_current_day_questions()
 
@@ -19,39 +32,40 @@ class DecisionTree:
             initial_question["expected_format"]
         )
 
+
     # Function to determine the day and adjust the questions accordingly
     def get_current_day_questions(self):
+        """
+        Determine the initial question based on the current day of the week.
+
+        Returns:
+            dict: A dictionary containing the question and expected response format.
+        """
+
+        QUESTION_MAP = {
+            "Monday": "What specific goals do you have for this week?",
+            "Tuesday": "What would you like to reflect on this week?",
+            "Wednesday": "What can you improve next week?",
+            "Thursday": "What strategies worked well for you?",
+            "Friday": "What is your main goal for today?",
+            "Saturday": "What have you done to stay on track with your behavior change goals?",
+            "Sunday": "What strategies helped you this week?",
+        }
+
         # Get the current day of the week
         current_day = datetime.datetime.now().strftime('%A')
 
         # Assign different initial questions based on the day
-        if current_day == "Monday":
-            initial_question = {
-                "question": "What specific goals do you have for this week?", "expected_format": "open-ended"}
-        elif current_day == "Tuseday":
-            initial_question = {
-                "question": "What would you like to reflect on this week?", "expected_format": "open-ended"}
-        elif current_day == "Wednesday":
-            initial_question = {
-                "question": "What can you improve next week?", "expected_format": "open-ended"}
-        elif current_day == "Thursday":
-            initial_question = {
-                "question": "What strategies worked well for you?", "expected_format": "open-ended"}
-        elif current_day == "Friday":
-            initial_question = {
-                "question": "What is your main goal for today?", "expected_format": "open-ended"}
-        elif current_day == "Saturday":
-            initial_question = {
-                "question": "What have you done to stay on track with you behaviour change goals", "expected_format": "open-ended"}
-        elif current_day == "Sunday":
-            initial_question = {
-                "question": "What strategies helped you this week?", "expected_format": "open-ended"}
-        else:
-            initial_question = {
-                "question": "How would you rate your progress on a scale of 1 to 10?", "expected_format": "open-ended"}
-        return initial_question
+        question = QUESTION_MAP.get(
+            current_day,
+            "How would you rate your progress on a scale of 1 to 10?"
+        )
+        return {"question": question, "expected_format": "open-ended"}
 
     def extract_number_from(self, response):
+        if not isinstance(response, str):
+            print(f"Invalid response type: {type(response)}. Expected string.")
+            return None
         # Use regex to find the first occurrence of a number (integer)
         match = re.search(r'\d+', response)
         if match:
@@ -78,7 +92,10 @@ class DecisionTree:
             if question == "How would you rate your progress on a scale of 1 to 10?":
                 try:
                     rating = self.extract_number_from(response)
-                    if rating < 5:
+                    if rating is None:
+                        # Handle the case where no valid number was found
+                        return {"question": "Please provide a valid number between 1 and 10.", "expected_format": "short"}
+                    elif rating < 5:
                         return {"question": "What obstacles kept you from meeting your goals?", "expected_format": "open-ended"}
                     elif 5 <= rating <= 7:
                         return {"question": "What can you improve next week?", "expected_format": "open-ended"}
@@ -100,20 +117,15 @@ class DecisionTree:
                 return {"question": "How would you rate your progress on a scale of 1 to 10?", "expected_format": "short"}
 
     def ask_question(self, question = "", expected_format = "open-ended"):
-        print("In ask_question function in DecisionTree class")
         while question:
-            print(f"Question: {question}")
             self.communication_interface.publish_message(
-                sender="Robot",
-                message_type="question",
-                content=question
+                sender = "Robot",
+                message_type = "question",
+                content = question
             )
-            time.sleep(1)
+            time.sleep(2)
 
-            # Publish the question to the speech microservice and get the response
-            response = self.sr.recognise_response(expected_format)
-
-            print(f"recognition response: {response}, for question: {question}, with expected format: {expected_format}")
+            response = self._get_response(expected_format)
 
             # Determine the next question based on the current response
             next_question = self.determine_next_question(
@@ -124,12 +136,20 @@ class DecisionTree:
 
             # If there is no next question, break the loop
             if next_question is None:
-                print("All questions answered.")
                 break
 
             # Move to the next question
             question = next_question["question"]
             expected_format = next_question["expected_format"]
     
+    def _get_response(self, expected_format):
+        response = self.sr.recognise_response(expected_format)
+        if not isinstance(response, str) or not response.strip():
+            self.communication_interface.publish_status(
+                "error", "No valid response received."
+            )
+            return ""
+        return response
+
     # def save_response(question, response, summary=""):
         # Save the response to a database or file
