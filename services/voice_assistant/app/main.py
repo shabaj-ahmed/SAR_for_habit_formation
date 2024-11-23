@@ -30,7 +30,7 @@ def main_logic():
 #     attempt = 0
 #     while attempt < max_retries:
 #         try:
-#             communication_interface.thread_safe_publish("conv/hist", json.dumps({
+#             communication_interface.thread_safe_publish("conversation/history", json.dumps({
 #                 "sender": "Robot",
 #                 "message_type": "question",
 #                 "content": "This is a test question."
@@ -78,6 +78,7 @@ if __name__ == "__main__":
                     try:
                         main_logic()
                         communication_interface.publish_status("completed")
+                        communication_interface.start_command = False
                         break  # Exit the loop if successful
                     except Exception as e:
                         attempt += 1

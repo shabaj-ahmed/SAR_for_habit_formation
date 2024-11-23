@@ -51,7 +51,6 @@ class CommunicationInterface(MQTTClientBase):
     def process_message_queue(self):
         while not self.message_queue.empty():
             topic, message = self.message_queue.get()
-            print(f"Processing message queue: topic = {topic}, message = {message}")
             self.publish(topic, message)
 
     def publish_status(self, status, message="", details=None):
@@ -70,7 +69,7 @@ class CommunicationInterface(MQTTClientBase):
             "content": content
         }
         json_message = json.dumps(message)
-        self._thread_safe_publish("conv/hist", json_message)
+        self._thread_safe_publish("conversation/history", json_message)
 
     def publish_behaviour_complete(self):
         payload = {
