@@ -12,7 +12,7 @@ project_root = os.path.abspath(os.path.join(current_dir, "../../../"))
 sys.path.insert(0, project_root)
 
 from services.user_interface.app.src.communication_interface import CommunicationInterface
-from services.user_interface.app.src.main import MainWindow  # Adjust the path to your MainWindow
+from services.user_interface.app.main import MainWindow  # Adjust the path to your MainWindow
 
 @pytest.fixture
 def app(qtbot):

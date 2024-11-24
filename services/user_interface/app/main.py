@@ -1,6 +1,8 @@
 import sys
-from communication_interface import CommunicationInterface
+from src.communication_interface import CommunicationInterface
+from loggin import setup_logger
 from time import sleep
+import logging
 
 from PyQt6.QtWidgets import (
     QApplication,
@@ -19,7 +21,6 @@ from PyQt6.QtCore import Qt, QSize
 
 
 class Color(QWidget):
-
     def __init__(self, color):
         super(Color, self).__init__()
         self.setAutoFillBackground(True)
@@ -54,6 +55,7 @@ class CheckInScreen(QWidget):
     def __init__(self, communication_interface):
         self.communication_interface = communication_interface
         super().__init__()
+        self.logger = logging.getLogger(self.__class__.__name__)
 
         self.vLayout = QVBoxLayout()
 
@@ -85,7 +87,7 @@ class CheckInScreen(QWidget):
         """
         Updates the conversation history with a new message.
         """
-        # print(f"Message received: {message}")
+        self.logger.info(f"Message received: {message}")
         # Append the new message to the text edit
         self.conversation_history.append(f"{message['sender'].upper()}: {message['content']}")
 
@@ -184,6 +186,7 @@ class NotificationBar(QWidget):
 class MainWindow(QMainWindow):
     def __init__(self, communication_interface):
         super().__init__()
+        self.logger = logging.getLogger(self.__class__.__name__)
 
         self.setWindowTitle("My App ")
 
@@ -225,16 +228,20 @@ class MainWindow(QMainWindow):
         return tabs
 
     def update_switch_state(self, state):
-        print(f"Switch state changed: {state}")
+        self.logger.info(f"Switch state changed: {state}")
 
     def update_wake_word(self, wake_word):
-        print(f"Wake word detected: {wake_word}")
+        self.logger.info(f"Wake word detected: {wake_word}")
 
     def show_error_message(self, error_message):
         QMessageBox.critical(self, "Error", f"Error received: {error_message}")
 
 
 def main():
+    setup_logger()
+
+    logger = logging.getLogger("Main")
+
     # Replace with your MQTT broker address
     broker_address = 'localhost'
     port = 1883  # Replace with the correct port if needed
@@ -250,7 +257,7 @@ def main():
         window.show()
         app.exec()
     except KeyboardInterrupt:
-        print("Exiting program...")
+        logger.info("Exiting user interface service...")
     finally:
         communication_interface.disconnect()
 

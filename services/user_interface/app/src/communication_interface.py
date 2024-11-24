@@ -10,6 +10,7 @@ sys.path.insert(0, project_root)
 from shared_libraries.mqtt_client_base import MQTTClientBase
 
 from PyQt6.QtCore import pyqtSignal, QObject
+import logging
 
 
 class CommunicationInterface(QObject):
@@ -23,12 +24,12 @@ class CommunicationInterface(QObject):
     def __init__(self, broker_address, port):
         # Initialize QObject explicitly (no arguments are required for QObject)
         QObject.__init__(self)
+        self.logger = logging.getLogger(self.__class__.__name__)
         
         self.mqtt_client = MQTTClientBase(broker_address, port)
 
         self.inputs = {
             'switch_state': False,
-            'wake_word': False,
             'error': False,
             'audioActive': False,
             'cameraActive': False,
@@ -67,10 +68,10 @@ class CommunicationInterface(QObject):
     def _on_message(self, client, userdata, message):
         try:
             payload = json.loads(message.payload.decode("utf-8"))
-            # print(f"Message received on 'conversation/history, payload: {payload}")
+            self.logger.info(f"Message received on 'conversation/history, payload: {payload}")
             self.message_signal.emit(payload)
         except json.JSONDecodeError as e:
-            print(f"Error decoding JSON payload: {e}")
+            self.logger.error(f"Error decoding JSON payload: {e}")
 
     # These methods will be called safely from the main thread
     def emit_switch_state_signal(self, switch_state):
