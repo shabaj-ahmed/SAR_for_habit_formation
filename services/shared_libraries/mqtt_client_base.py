@@ -4,6 +4,7 @@ import paho.mqtt.client as mqtt
 class MQTTClientBase:
     def __init__(self, broker_address, port, client_id=None):
         self.mqtt_client = mqtt.Client(client_id=client_id)
+        self.mqtt_client.enable_logger()
 
         try:
             self.mqtt_client.connect(broker_address, port, keepalive=60)
@@ -28,19 +29,27 @@ class MQTTClientBase:
 
     def on_message(self, client, userdata, message):
         """Default on_message handler."""
-        print(
-            f"Received message '{message.payload.decode()}' on topic '{message.topic}'"
-        )
+        # print(
+            # f"Received message '{message.payload.decode()}' on topic '{message.topic}'"
+        # )
+        pass
 
     def subscribe(self, topic, callback=None):
         """Subscribe to a topic and optionally add a callback."""
         self.mqtt_client.subscribe(topic)
+        # print(f"Subscribed to topic: {topic}")
         if callback:
             self.mqtt_client.message_callback_add(topic, callback)
+            # print(f"Callback added for topic: {topic}")
 
     def publish(self, topic, message):
         """Publish a message to a topic."""
-        self.mqtt_client.publish(topic, message)
+        result = self.mqtt_client.publish(topic, message)
+        if result.rc != mqtt.MQTT_ERR_SUCCESS:
+            print(f"Failed to publish message to {topic}. Return code: {result.rc}")
+        else:
+            # print(f"Message '{message}' published to topic '{topic}'")
+            pass
 
     def disconnect(self):
         """Disconnect the MQTT client."""
