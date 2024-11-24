@@ -3,6 +3,7 @@ import json
 import time
 import sys
 import os
+import logging
 
 # Add the project root directory to sys.path
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -15,6 +16,8 @@ from services.shared_libraries.mqtt_client_base import MQTTClientBase
 class CommunicationInterface(MQTTClientBase):
     def __init__(self, broker_address, port):
         super().__init__(broker_address, port)
+        self.logger = logging.getLogger(self.__class__.__name__)
+
         self.start_command = False
         self.max_retries = 5
         self.delay = 10
@@ -31,9 +34,9 @@ class CommunicationInterface(MQTTClientBase):
             message = payload.get("message", "")
             max_retries = payload.get("max_retries", 5)
             delay = payload.get("delay", 10)
-            print(f"message = {message}")
+            self.logger.info(f"message = {message}")
         except json.JSONDecodeError:
-            print("Invalid JSON payload. Using default retry parameters.")
+            self.logger.error("Invalid JSON payload. Using default retry parameters.")
             max_retries = 5
             delay = 10
 
@@ -45,7 +48,7 @@ class CommunicationInterface(MQTTClientBase):
             self.delay = delay
         
     def _thread_safe_publish(self, topic, message):
-        # print(f"Thread safe publish: {topic}, {message}")
+        self.logger.info(f"Thread safe publish: {topic}, {message}")
         self.message_queue.put((topic, message))
 
     def process_message_queue(self):
@@ -58,9 +61,9 @@ class CommunicationInterface(MQTTClientBase):
             "status": status,
             "message": message,
             "details": details,
-            # "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
         }
-        self.publish("service_status/check_in", json.dumps(payload))
+        self.publish("check_in_status", json.dumps(payload))
 
     def publish_message(self, sender, content, message_type="response"):
         message = {
@@ -70,12 +73,3 @@ class CommunicationInterface(MQTTClientBase):
         }
         json_message = json.dumps(message)
         self._thread_safe_publish("conversation/history", json_message)
-
-    def publish_behaviour_complete(self):
-        payload = {
-            "status": "completed",
-            "message": "",
-            "details": "",
-            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
-        }
-        self.publish("service/voice_assistant_status", json.dumps(payload))

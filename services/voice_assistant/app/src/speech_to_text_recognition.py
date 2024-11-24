@@ -75,6 +75,8 @@ class SpeedToText:
             nonlocal first_response_received
             first_response_received = True
             silence_start_time = time.time()
+            communication_interface.silance_detected()
+
 
         def recognised_cb(evt: speechsdk.SpeechRecognitionEventArgs):
             # print('recogniseD: {}'.format(evt))
@@ -82,6 +84,8 @@ class SpeedToText:
             nonlocal silence_start_time
             # Reset silence start time when recognising speech
             silence_start_time = time.time()
+            communication_interface.silance_detected()
+
 
         def stop_cb(evt: speechsdk.SessionEventArgs):
             """callback that signals to stop continuous recognition"""
@@ -101,6 +105,7 @@ class SpeedToText:
 
         # Initialize silence tracking
         silence_start_time = time.time()
+        communication_interface.silance_detected()
 
         while not done:
             current_time = time.time()

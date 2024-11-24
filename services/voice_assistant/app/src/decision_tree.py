@@ -1,20 +1,21 @@
-from speech_to_text_recognition import SpeedToText
-import json
+from services.voice_assistant.app.src.speech_to_text_recognition import SpeedToText
 import datetime
 import re
 import time
+import logging
 
 
 class DecisionTree:
     def __init__(self):
+        self.logger = logging.getLogger(self.__class__.__name__)
         self.sr = SpeedToText()
         self.communication_interface = None
 
     def check_in(self):
         if not self.communication_interface:
-            print("Communication interface is not set!")
+            self.logger.debug("Communication interface is not set!")
             return
-        print("Communication interface is set and ready to use.")
+        self.logger.info("Communication interface is set and ready to use.")
 
         # Step 1: Send greeting
         self.communication_interface.publish_message(
@@ -24,13 +25,13 @@ class DecisionTree:
         )
         time.sleep(2)
 
-        print("Starting the check-in process.")
+        self.logger.info("Starting the check-in process.")
 
         # Step 2: Weekday-specific questions
         try:
             self.ask_questions(self.get_current_day_questions)
         except Exception as e:
-            print(f"Error asking questions: {e}")
+            self.logger.error(f"Error asking questions: {e}")
         
         # Step 3: Experience sampling questions
         self.ask_questions(self.experience_sampling_questions)
@@ -47,7 +48,7 @@ class DecisionTree:
 
     # Function to determine the day and adjust the questions accordingly
     def get_current_day_questions(self, question = "", response = ""):
-        print(f"In get_current_day_questions: question = {question}, response = {response}")
+        self.logger.info(f"In get_current_day_questions: question = {question}, response = {response}")
         """
         Determine the initial question based on the current day of the week.
 
@@ -67,16 +68,16 @@ class DecisionTree:
 
         # Get the current day of the week
         current_day = datetime.datetime.now().strftime('%A')
-        print(f"Current day: {current_day}")
+        self.logger.info(f"Current day: {current_day}")
 
         if question == "":
             # Assign different initial questions based on the day
-            print(f"Initial question: {QUESTION_MAP.get(current_day)}")
+            self.logger.info(f"Initial question: {QUESTION_MAP.get(current_day)}")
             question = QUESTION_MAP.get(
                 current_day,
                 "What specific goals do you have for this week?"
                 )
-            print(f"Initial question: {question}")
+            self.logger.info(f"Initial question: {question}")
         else:
             if question == "What specific goals do you have for this week?": # Monday
                 question = "What strategies will you use to achieve these goals?"
@@ -93,14 +94,14 @@ class DecisionTree:
             elif question == "What strategies helped you this week?": # Sunday
                 question = "How can you build on these strategies for next week?"
             else:
-                print(f"No more questions for the week. Returning None.")
+                self.logger.info(f"No more questions for the week. Returning None.")
                 return None
-        print(f"Returning question: {question}")
+        self.logger.info(f"Returning question: {question}")
 
         return {"question": question, "expected_format": "open-ended"}
 
     def experience_sampling_questions(self, question = "", response = ""):
-        print(f"In experience_sampling_questions: question = {question}, response = {response}")
+        self.logger.info(f"In experience_sampling_questions: question = {question}, response = {response}")
         if question == "":
             return {"question": "How would you rate your progress on a scale of 1 to 10?", "expected_format": "short"}
         elif question == "How would you rate your progress on a scale of 1 to 10?":
@@ -129,7 +130,7 @@ class DecisionTree:
         elif question == "Great! What strategies worked well for you?":
             return {"question": "How can you apply these strategies in the future?", "expected_format": "open-ended"}
         else:
-            print(f"No more questions for experience sampling. Returning None.")
+            self.logger.info(f"No more questions for experience sampling. Returning None.")
             return None
     
     def ask_questions(self, next_question):
@@ -176,7 +177,7 @@ class DecisionTree:
 
     def _extract_number_from(self, response):
         if not isinstance(response, str):
-            print(f"Invalid response type: {type(response)}. Expected string.")
+            self.logger.debug(f"Invalid response type: {type(response)}. Expected string.")
             return None
         # Use regex to find the first occurrence of a number (integer)
         match = re.search(r'\d+', response)

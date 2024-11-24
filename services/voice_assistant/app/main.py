@@ -1,12 +1,12 @@
-from communication_interface import CommunicationInterface
-from decision_tree import DecisionTree
+from services.voice_assistant.app.src.communication_interface import CommunicationInterface
+from services.voice_assistant.app.src.decision_tree import DecisionTree
+from services.voice_assistant.app.loggin.logging_config import setup_logger
 import time
 import threading
 import traceback
 from dotenv import load_dotenv
 from pathlib import Path
 import os
-import json
 
 # Relative path to the .env file in the config directory
 # Move up one level and into config
@@ -24,7 +24,7 @@ def publish_heartbeat():
 
 def main_logic():
     decision_tree.check_in()
-    communication_interface.publish_behaviour_complete()
+    communication_interface.publish_status("completed")
 
 # def on_start_command(max_retries, delay):
 #     attempt = 0
@@ -62,6 +62,8 @@ def setup_communication():
     return interface
 
 if __name__ == "__main__":
+    setup_logger()
+    
     communication_interface = setup_communication()
 
     threading.Thread(target=publish_heartbeat, daemon=True).start()
@@ -78,7 +80,6 @@ if __name__ == "__main__":
                     try:
                         main_logic()
                         communication_interface.publish_status("completed")
-                        communication_interface.start_command = False
                         break  # Exit the loop if successful
                     except Exception as e:
                         attempt += 1
