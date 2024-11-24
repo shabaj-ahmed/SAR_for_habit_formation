@@ -1,6 +1,7 @@
 import json
 import sys
 import os
+import time
 
 # Add the project root directory to sys.path
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -92,3 +93,12 @@ class CommunicationInterface(QObject):
 
     def start_check_in(self):
         self.mqtt_client.publish("user/check_in", "1")
+
+    def publish_status(self, status, message="", details=None):
+        payload = {
+            "status": status,
+            "message": message,
+            "details": details,
+            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+        }
+        self.mqtt_client.publish("UI_status", json.dumps(payload))

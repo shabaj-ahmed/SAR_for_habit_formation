@@ -2,7 +2,19 @@ import sys
 from src.communication_interface import CommunicationInterface
 from custom_logging.logging_config import setup_logger
 from time import sleep
+from dotenv import load_dotenv
+from pathlib import Path
+import os
 import logging
+import threading
+import time
+
+# Relative path to the .env file in the config directory
+# Move up one level and into config
+dotenv_path = Path('../../configurations/.env')
+
+# Load the .env file
+load_dotenv(dotenv_path=dotenv_path)
 
 from PyQt6.QtWidgets import (
     QApplication,
@@ -236,18 +248,22 @@ class MainWindow(QMainWindow):
     def show_error_message(self, error_message):
         QMessageBox.critical(self, "Error", f"Error received: {error_message}")
 
+def publish_heartbeat():
+    while True:
+        communication_interface.publish_status("running")
+        time.sleep(30)  # Publish heartbeat every 30 seconds
 
-def main():
+if __name__ == "__main__":
     setup_logger()
 
     logger = logging.getLogger("Main")
 
-    # Replace with your MQTT broker address
-    broker_address = 'localhost'
-    port = 1883  # Replace with the correct port if needed
+    communication_interface = CommunicationInterface(
+        broker_address=str(os.getenv("MQTT_BROKER_ADDRESS")),
+        port=int(os.getenv("MQTT_BROKER_PORT"))
+    )
 
-    # Initialise MQTT client
-    communication_interface = CommunicationInterface(broker_address, port)
+    threading.Thread(target=publish_heartbeat, daemon=True).start()
 
     app = QApplication(sys.argv)
 
@@ -260,7 +276,3 @@ def main():
         logger.info("Exiting user interface service...")
     finally:
         communication_interface.disconnect()
-
-
-if __name__ == "__main__":
-    main()

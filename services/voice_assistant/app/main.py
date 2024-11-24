@@ -7,6 +7,7 @@ import traceback
 from dotenv import load_dotenv
 from pathlib import Path
 import os
+import logging
 
 # Relative path to the .env file in the config directory
 # Move up one level and into config
@@ -22,33 +23,6 @@ def publish_heartbeat():
         communication_interface.publish_status("running")
         time.sleep(30)  # Publish heartbeat every 30 seconds
 
-def main_logic():
-    decision_tree.check_in()
-    communication_interface.publish_status("completed")
-
-# def on_start_command(max_retries, delay):
-#     attempt = 0
-#     while attempt < max_retries:
-#         try:
-#             communication_interface.thread_safe_publish("conversation/history", json.dumps({
-#                 "sender": "Robot",
-#                 "message_type": "question",
-#                 "content": "This is a test question."
-#             }))
-#             main_logic()
-#             communication_interface.publish_status("completed")
-#             break  # Exit the loop if successful
-#         except Exception as e:
-#             attempt += 1
-#             error_details = traceback.format_exc()
-#             communication_interface.publish_status("error", f"Attempt {attempt}: {e}", details=error_details)
-
-#             if attempt < max_retries:
-#                 time.sleep(delay)
-#             else:
-#                 communication_interface.publish_status("failure", "Max retries reached. Service stopped.")
-#                 break
-
 def process_communication_queue():
     while True:
         communication_interface.process_message_queue()
@@ -61,14 +35,20 @@ def setup_communication():
     )
     return interface
 
+def main():
+    decision_tree.check_in()
+    communication_interface.publish_status("completed")
+
 if __name__ == "__main__":
     setup_logger()
+
+    logger = logging.getLogger("Main")
     
     communication_interface = setup_communication()
 
     threading.Thread(target=publish_heartbeat, daemon=True).start()
     threading.Thread(target=process_communication_queue, daemon=True).start()
-
+    
     decision_tree.communication_interface = communication_interface
 
     # Keep the program running to listen for commands
@@ -78,20 +58,23 @@ if __name__ == "__main__":
             if communication_interface.start_command:
                 while attempt < communication_interface.max_retries:
                     try:
-                        main_logic()
+                        main()
                         communication_interface.publish_status("completed")
                         break  # Exit the loop if successful
                     except Exception as e:
                         attempt += 1
                         error_details = traceback.format_exc()
+                        logger.error(f"Attempt {attempt}: {e}")
+                        logger.error(error_details)
                         communication_interface.publish_status("error", f"Attempt {attempt}: {e}", details=error_details)
 
                         if attempt < communication_interface.max_retries:
                             time.sleep(communication_interface.delay)
                         else:
+                            logger.error("Max retries reached. Service stopped.")
                             communication_interface.publish_status("failure", "Max retries reached. Service stopped.")
                             break
             time.sleep(1)
     except KeyboardInterrupt:
-        print("Shutting down service...")
+        logger.info("Exiting voice assistant service...")
         communication_interface.disconnect()
