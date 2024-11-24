@@ -1,6 +1,6 @@
 from services.voice_assistant.app.src.communication_interface import CommunicationInterface
 from services.voice_assistant.app.src.decision_tree import DecisionTree
-from services.voice_assistant.app.loggin.logging_config import setup_logger
+from services.voice_assistant.app.logging.logging_config import setup_logger
 import time
 import threading
 import traceback
