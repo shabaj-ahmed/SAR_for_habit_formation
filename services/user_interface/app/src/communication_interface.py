@@ -1,3 +1,4 @@
+import json
 import sys
 import os
 
@@ -25,7 +26,6 @@ class CommunicationInterface(QObject):
         
         self.mqtt_client = MQTTClientBase(broker_address, port)
 
-
         self.inputs = {
             'switch_state': False,
             'wake_word': False,
@@ -45,7 +45,7 @@ class CommunicationInterface(QObject):
 
         self.mqtt_client.subscribe("robot/cameraActive", self._process_camera_active)
         
-        # self.mqtt_client.subscribe("conversation/history", self.on_message)
+        self.mqtt_client.subscribe("conversation/history", self._on_message)
 
     # Use QMetaObject.invokeMethod to ensure signal emission in the main thread
     def _process_switch_state(self, client, userdata, message):
@@ -63,6 +63,14 @@ class CommunicationInterface(QObject):
     def _process_camera_active(self, client, userdata, message):
         camera_active = message.payload.decode() == '1'
         self.camera_signal.emit(camera_active)
+
+    def _on_message(self, client, userdata, message):
+        try:
+            payload = json.loads(message.payload.decode("utf-8"))
+            # print(f"Message received on 'conversation/history, payload: {payload}")
+            self.message_signal.emit(payload)
+        except json.JSONDecodeError as e:
+            print(f"Error decoding JSON payload: {e}")
 
     # These methods will be called safely from the main thread
     def emit_switch_state_signal(self, switch_state):

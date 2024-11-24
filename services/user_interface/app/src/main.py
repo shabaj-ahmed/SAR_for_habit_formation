@@ -51,8 +51,8 @@ class HomeScreen(QWidget):
 
 
 class CheckInScreen(QWidget):
-    def __init__(self, mqtt_client):
-        self.mqtt_client = mqtt_client
+    def __init__(self, communication_interface):
+        self.communication_interface = communication_interface
         super().__init__()
 
         self.vLayout = QVBoxLayout()
@@ -75,16 +75,17 @@ class CheckInScreen(QWidget):
         self.setLayout(self.vLayout)
 
         # Connect MQTT signal for updating conversation history
-        self.mqtt_client.message_signal.connect(self.update_conversation)
+        self.communication_interface.message_signal.connect(self.update_conversation)
 
     def button_clicked(self):
         sleep(1)
-        self.mqtt_client.start_check_in()
+        self.communication_interface.start_check_in()
 
     def update_conversation(self, message):
         """
         Updates the conversation history with a new message.
         """
+        # print(f"Message received: {message}")
         # Append the new message to the text edit
         self.conversation_history.append(f"{message['sender'].upper()}: {message['content']}")
 
@@ -181,12 +182,12 @@ class NotificationBar(QWidget):
 
 
 class MainWindow(QMainWindow):
-    def __init__(self, mqtt_client):
+    def __init__(self, communication_interface):
         super().__init__()
 
         self.setWindowTitle("My App ")
 
-        self.mqtt_client = mqtt_client
+        self.communication_interface = communication_interface
 
         verticalSpace = QVBoxLayout()
 
@@ -198,17 +199,19 @@ class MainWindow(QMainWindow):
         widget.setLayout(verticalSpace)
         self.setCentralWidget(widget)
 
-        self.mqtt_client.switch_state_signal.connect(self.update_switch_state)
-        self.mqtt_client.wake_word_signal.connect(self.update_wake_word)
-        self.mqtt_client.error_signal.connect(self.show_error_message)
-        self.mqtt_client.audio_signal.connect(
+        self.communication_interface.switch_state_signal.connect(self.update_switch_state)
+        self.communication_interface.wake_word_signal.connect(self.update_wake_word)
+        self.communication_interface.error_signal.connect(self.show_error_message)
+        self.communication_interface.audio_signal.connect(
             self.notification_bar.update_mic_status)
-        self.mqtt_client.camera_signal.connect(
+        self.communication_interface.camera_signal.connect(
             self.notification_bar.update_cam_status)
+        
+        self.showMaximized() 
 
     def buildTab(self):
         home = HomeScreen()
-        check_in = CheckInScreen(self.mqtt_client)
+        check_in = CheckInScreen(self.communication_interface)
 
         tabs = QTabWidget()
         tabs.setTabPosition(QTabWidget.TabPosition.West)
@@ -237,11 +240,11 @@ def main():
     port = 1883  # Replace with the correct port if needed
 
     # Initialise MQTT client
-    mqtt_client = CommunicationInterface(broker_address, port)
+    communication_interface = CommunicationInterface(broker_address, port)
 
     app = QApplication(sys.argv)
 
-    window = MainWindow(mqtt_client)
+    window = MainWindow(communication_interface)
 
     try:
         window.show()
@@ -249,7 +252,7 @@ def main():
     except KeyboardInterrupt:
         print("Exiting program...")
     finally:
-        mqtt_client.disconnect()
+        communication_interface.disconnect()
 
 
 if __name__ == "__main__":
