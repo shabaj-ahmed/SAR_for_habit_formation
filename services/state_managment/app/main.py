@@ -4,8 +4,10 @@ from queue import Queue
 from src.reactive_layer.reactive_layer import ReactiveLayer
 import src.deliberate_layer.finite_state_machine as fsm
 from src.deliberate_layer.behaviour_tree import BehaviorTree
-from services.state_managment.app.logging.logging_config import setup_logger
+from app.custom_logging.logging_config import setup_logger
 import logging
+
+setup_logger()
 
 # Initialise a shared event queue for communication
 subsumption_layer_event_queue = Queue()
@@ -52,8 +54,6 @@ def behavior_tree():
         logger.info("Shutting down behavior tree...")
 
 if __name__ == "__main__":
-    setup_logger()
-
     logger = logging.getLogger("Main")
 
     subsumption_thread = threading.Thread(target=subsumption_layer, daemon=False)

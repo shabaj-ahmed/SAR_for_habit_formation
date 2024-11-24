@@ -29,7 +29,8 @@ class Leaf:
 # For each behaviour mark the services that are critical to the behaviour to previent transition to another state while behaviour is running
 
 class CheckIn(Leaf):
-    def __init__(self):
+    def __init__(self, communication_interface=None):
+        super().__init__(communication_interface)
         self.logger = logging.getLogger(self.__class__.__name__)
 
     def start(self):
@@ -59,7 +60,8 @@ class CheckIn(Leaf):
         pass
 
 class AutonomousBhaviour(Leaf):
-    def __init__(self):
+    def __init__(self, communication_interface=None):
+        super().__init__(communication_interface)
         self.logger = logging.getLogger(self.__class__.__name__)
 
     def start(self):
@@ -76,7 +78,8 @@ class AutonomousBhaviour(Leaf):
         pass
 
 class EmotionGeneration(Leaf):
-    def __init__(self):
+    def __init__(self, communication_interface=None):
+        super().__init__(communication_interface)
         self.logger = logging.getLogger(self.__class__.__name__)
 
     def start(self):
@@ -92,7 +95,8 @@ class EmotionGeneration(Leaf):
         pass
 
 class AdministerSurvey(Leaf):
-    def __init__(self):
+    def __init__(self, communication_interface=None):
+        super().__init__(communication_interface)
         self.logger = logging.getLogger(self.__class__.__name__)
 
     def start(self):
@@ -109,7 +113,8 @@ class AdministerSurvey(Leaf):
 
 
 class TaskScheduler(Leaf):
-    def __init__(self):
+    def __init__(self, communication_interface=None):
+        super().__init__(communication_interface)
         self.logger = logging.getLogger(self.__class__.__name__)
 
     def start(self):
@@ -131,7 +136,8 @@ class TaskScheduler(Leaf):
 
 
 class Configurations(Leaf):
-    def __init__(self):
+    def __init__(self, communication_interface=None):
+        super().__init__(communication_interface)
         self.logger = logging.getLogger(self.__class__.__name__)
 
     def start(self):

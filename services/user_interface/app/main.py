@@ -1,6 +1,6 @@
 import sys
 from src.communication_interface import CommunicationInterface
-from logging import setup_logger
+from custom_logging.logging_config import setup_logger
 from time import sleep
 import logging
 
