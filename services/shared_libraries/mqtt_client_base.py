@@ -4,7 +4,6 @@ import paho.mqtt.client as mqtt
 class MQTTClientBase:
     def __init__(self, broker_address, port, client_id=None):
         self.mqtt_client = mqtt.Client(client_id=client_id)
-        self.mqtt_client.enable_logger()
 
         try:
             self.mqtt_client.connect(broker_address, port, keepalive=60)
