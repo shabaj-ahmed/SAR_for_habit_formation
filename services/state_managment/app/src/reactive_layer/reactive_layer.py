@@ -2,6 +2,7 @@ from .rt_communication_interface import CommunicationInterface
 from dotenv import load_dotenv
 from pathlib import Path
 import os
+import logging
 
 # Relative path to the .env file in the config directory
 # Move up one level and into config
@@ -12,6 +13,7 @@ load_dotenv(dotenv_path=dotenv_path)
 
 class ReactiveLayer:
     def __init__(self, event_queue):
+        self.logger = logging.getLogger(self.__class__.__name__)
         self.communication_interface = CommunicationInterface(
             broker_address = str(os.getenv('MQTT_BROKER_ADDRESS')),
             port = int(os.getenv('MQTT_BROKER_PORT'))
@@ -29,22 +31,27 @@ class ReactiveLayer:
             if self.previous_state != "Error":
                 self.event_queue.put({"state": "Error"})
                 self.previous_state = "Error"
+                self.logger.info("Transitioning to Error state")
         elif inputs['switch_state'] == False: # Emergency stop
             if self.previous_state != "Sleep":
                 self.event_queue.put({"state": "Sleep"})
                 self.previous_state = "Sleep"
+                self.logger.info("Transitioning to Sleep state")
         elif inputs['switch_state'] == True:
             if self.previous_state != "Active":
                 self.event_queue.put({"state": "Active"})
                 self.previous_state = "Active"
+                self.logger.info("Transitioning to Active state")
         elif inputs['reminder'] == True: # If user has turned the system off no reminder should be sent
             if self.previous_state != "Active":
                 self.event_queue.put({"state": "Active"})
                 self.previous_state = "Active"
+                self.logger.info("Transitioning to Active state")
         else: # default to sleep
             if self.previous_state != "Sleep":
                 self.event_queue.put({"state": "Sleep"})
                 self.previous_state = "Sleep"
+                self.logger.info("Transitioning to Sleep state")
 
         # If the transition from one state to another requires a specific sequence of events
         # to occur to safely transition, then the deliberate layer would be responsible for

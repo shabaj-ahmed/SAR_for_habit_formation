@@ -1,9 +1,11 @@
 import time
 import threading
 from queue import Queue
-from reactive_layer.reactive_layer import ReactiveLayer
-import deliberate_layer.finite_state_machine as fsm
-from deliberate_layer.behaviour_tree import BehaviorTree
+from src.reactive_layer.reactive_layer import ReactiveLayer
+import src.deliberate_layer.finite_state_machine as fsm
+from src.deliberate_layer.behaviour_tree import BehaviorTree
+from services.state_managment.app.logging.logging_config import setup_logger
+import logging
 
 # Initialise a shared event queue for communication
 subsumption_layer_event_queue = Queue()
@@ -20,30 +22,40 @@ LOOP_INTERVAL = 0.1
 
 # Define each layer's main function to run in its own thread
 def subsumption_layer():
+    logger = logging.getLogger("SubsumptionLayer")
+    logger.info("Subsumption layer started.")
     try:
         while True:
             reactive_layer.detect_critical_condition()
             time.sleep(LOOP_INTERVAL)
     except KeyboardInterrupt:
-        print("Shutting down subsumption layer...")
+        logger.info("Shutting down subsumption layer...")
 
 def finite_state_machine():
+    logger = logging.getLogger("FiniteStateMachine")
+    logger.info("Finite state machine layer started.")
     try:
         while True:
             finite_state_machine_layer.update()            
             time.sleep(LOOP_INTERVAL)
     except KeyboardInterrupt:
-        print("Shutting down FSM...")
+        logger.info("Shutting down finite state machine...")
 
 def behavior_tree():
+    logger = logging.getLogger("BehaviorTree")
+    logger.info("Behavior tree layer started.")
     try:
         while True:
             deliberate_layer.update()
             time.sleep(LOOP_INTERVAL)
     except KeyboardInterrupt:
-        print("Shutting down behavior tree...")
+        logger.info("Shutting down behavior tree...")
 
 if __name__ == "__main__":
+    setup_logger()
+
+    logger = logging.getLogger("Main")
+
     subsumption_thread = threading.Thread(target=subsumption_layer, daemon=False)
     fsm_thread = threading.Thread(target=finite_state_machine, daemon=False)
     behavior_tree_thread = threading.Thread(target=behavior_tree, daemon=False)
@@ -57,4 +69,5 @@ if __name__ == "__main__":
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
-        print("Shutting down...")
+        logger.info("Exiting state managment service...")
+        

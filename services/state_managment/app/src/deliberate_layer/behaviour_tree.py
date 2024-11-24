@@ -1,7 +1,9 @@
 from .bt_communication_interface import CommunicationInterface
+import json
 from dotenv import load_dotenv
 from pathlib import Path
 import os
+import logging
 
 # Relative path to the .env file in the config directory
 # Move up one level and into config
@@ -27,102 +29,121 @@ class Leaf:
 # For each behaviour mark the services that are critical to the behaviour to previent transition to another state while behaviour is running
 
 class CheckIn(Leaf):
+    def __init__(self):
+        self.logger = logging.getLogger(self.__class__.__name__)
+
     def start(self):
         # Start voice assistant
-        print("Greet participant")
-        # Publish message to MQTT to start voice assistant
-        self.comm_interface.publish("service/start", "Starting Voice Assistant")
+        self.logger.info("Starting check-in process")
+        payload = {
+            "message": "start",
+            "max_retries": 10,
+            "delay": 10,
+        }
+        self.comm_interface.publish("service/checkin", json.dumps(payload))
         self.comm_interface.publish("robot/cameraActive", "1")
         self.comm_interface.publish("robot/audioActive", "1")
         pass
 
     def update(self):
-        print("Ask questions and record responses...")
         pass
 
     def end(self):
-        print("Summarise responses and wish farewell")
-        self.comm_interface.publish("service/end", "Ending Voice Assistant")
+        self.logger.info("Exiting check-in process")
+        payload = {
+            "message": "end",
+        }
+        self.comm_interface.publish("service/checkin", json.dumps(payload))
         self.comm_interface.publish("robot/cameraActive", "0")
         self.comm_interface.publish("robot/audioActive", "0")
         pass
 
 class AutonomousBhaviour(Leaf):
+    def __init__(self):
+        self.logger = logging.getLogger(self.__class__.__name__)
+
     def start(self):
         # Face tracking
         # Autonomous roaming
-        # print("Starting to autonomously behave")
+        self.logger.info("Starting autonomous behaviour")
         pass
 
     def update(self):
-        # print("Behaving autonimously...")
         pass
 
     def end(self):
-        # print("Stopped autonomous behaviour")
+        self.logger.info("Exiting autonomous behaviour")
         pass
 
 class EmotionGeneration(Leaf):
+    def __init__(self):
+        self.logger = logging.getLogger(self.__class__.__name__)
+
     def start(self):
         # Enable the robots emotion generation system in robot behavior
-        # print("Starting to generate emotion")
+        self.logger.info("Starting emotion generation")
         pass
 
     def update(self):
-        # print("Generating emotion...")
         pass
 
     def end(self):
-        # print("Stopped generating emotion")
+        self.logger.info("Exiting emotion generation")
         pass
 
 class AdministerSurvey(Leaf):
+    def __init__(self):
+        self.logger = logging.getLogger(self.__class__.__name__)
+
     def start(self):
         # Start survey in user interface
-        # print("Starting survey")
+        self.logger.info("Starting survey")
         pass
 
     def update(self):
-        # print("Surveying...")
         pass
 
     def end(self):
-        # print("Stopped survey")
+        self.logger.info("Exiting survey")
         pass
 
 
 class TaskScheduler(Leaf):
+    def __init__(self):
+        self.logger = logging.getLogger(self.__class__.__name__)
+
     def start(self):
         # Send message to the task scheduler to start scheduling tasks
         # Send message to user interface to show scheduled tasks
-        # print("Starting task scheduler")
+        self.logger.info("Starting task scheduler")
         if self.comm_interface:
             self.comm_interface.publish("service/start", "Starting Task Scheduler")
         pass
 
     def update(self):
-        # print("Scheduling tasks...")
         pass
 
     def end(self):
-        # print("Stopped task scheduler")
+        self.logger.info("Exiting task scheduler")
         if self.comm_interface:
             self.comm_interface.publish("service/end", "Stopping Task Scheduler")
         pass
 
 
 class Configurations(Leaf):
+    def __init__(self):
+        self.logger = logging.getLogger(self.__class__.__name__)
+
     def start(self):
         # Show configuration options in user interface and start robot behaviour configuration
-        # print("Show configuration options")
+        self.logger.info("Starting configuration page")
         pass
 
     def update(self):
-        # print("Configuring...")
         pass
 
     def end(self):
-        # print("Exit configuration page")
+        self.logger.info("Exiting configuration page")
         pass
 
 
@@ -179,6 +200,8 @@ class BehaviorBranch:
 
 class BehaviorTree:
     def __init__(self, finite_state_machine_event_queue, behavior_tree_event_queue):
+        self.logger = logging.getLogger(self.__class__.__name__)
+
         self.communication_interface = CommunicationInterface(
             broker_address = str(os.getenv('MQTT_BROKER_ADDRESS')),
             port = int(os.getenv('MQTT_BROKER_PORT'))
@@ -239,7 +262,7 @@ class BehaviorTree:
                 self.current_branch.end()  # Stop all behaviors in the current branch
             self.current_branch = self.branches[branch_name]
             self.current_branch.start()  # Start all behaviors in the new branch
-            print(f"Transitioned to {self.current_branch.name} branch")
+            self.logger.info(f"Transitioned to {self.current_branch.name} branch")
 
     def update(self):
         self.check_finite_state_machine_event_queue()
@@ -256,7 +279,7 @@ class BehaviorTree:
 
     def check_finite_state_machine_event_queue(self):
         if self.finite_state_machine_event_queue.empty() is False:
-            print("Checking FSM event queue...")
+            self.logger.info("Checking FSM event queue...")
             state = self.finite_state_machine_event_queue.get()["state"]
             
             # Set current state if it's different from the existing one
@@ -277,12 +300,12 @@ class BehaviorTree:
         event = self.communication_interface.get_user_event()
         
         if event['check_in'] and not self.previous_event['check_in']:
-            print("Check-in event received")
+            self.logger.info("Check-in event received")
             self.transition_to_branch(self.behaviours[1])
             self.set_current_state('interacting')
             self.previous_event = event
         elif event['configurations'] and not self.previous_event['configurations']:
-            print("Configurations event received")
+            self.logger.info("Configurations event received")
             self.transition_to_branch(self.behaviours[2])
             self.set_current_state('configuring')
             self.previous_event = event
@@ -297,9 +320,9 @@ class BehaviorTree:
         if behaviourIsRunning == False and behaviourIsComplete == False:
             self.current_branch.activate_behavior()
         elif behaviourIsRunning and behaviourIsComplete and previousBehaviourIsComplete != behaviourIsComplete:
-            print(f"Current branch is: {self.current_branch.name} and the behaviour is complete")
+            self.logger.info(f"Current branch is: {self.current_branch.name} and the behaviour is complete")
             self.current_branch.deactivate_behavior()
             self.transition_to_branch(self.behaviours[0])
-            print("Transitioned to reminder branch")
+            self.logger.info(f"Transitioned to reminder branch")
             self.set_current_state('active')
             self.previousBehaviourCompletionStatus = behaviourCompletionStatus

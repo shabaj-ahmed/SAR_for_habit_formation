@@ -2,6 +2,7 @@ from .fsm_communication_interface import CommunicationInterface
 from dotenv import load_dotenv
 from pathlib import Path
 import os
+import logging
 
 # Relative path to the .env file in the config directory
 # Move up one level and into config
@@ -122,6 +123,8 @@ class ErrorState:
 
 class FSM:
     def __init__(self, subsumption_layer_event_queue, finite_state_machine_event_queue, behavior_tree_event_queue):
+        self.logger = logging.getLogger(self.__class__.__name__)
+
         self.communication_interface = CommunicationInterface(
             broker_address = str(os.getenv('MQTT_BROKER_ADDRESS')),
             port = int(os.getenv('MQTT_BROKER_PORT'))
@@ -153,7 +156,7 @@ class FSM:
             self.finite_state_machine_event_queue.put({"state": state_name})
             self.communication_interface.publish("fsm/state", state_name)
         else:
-            print(f"State {state_name} not found.")
+            self.logger.debug(f"State {state_name} not found.")
     
     def update(self):
         if not self.subsumption_layer_event_queue.empty():
