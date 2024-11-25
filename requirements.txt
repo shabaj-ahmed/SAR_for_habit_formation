@@ -1,7 +1,7 @@
 annotated-types==0.6.0
 anyio==3.7.1
 asgiref==3.7.2
-azure-cognitiveservices-speech==1.41.1
+azure-cognitiveservices-speech>=1.40.0
 certifi==2023.7.22
 charset-normalizer==3.3.0
 click==8.1.7
