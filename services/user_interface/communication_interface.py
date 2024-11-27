@@ -21,6 +21,7 @@ class CommunicationInterface(MQTTClientBase):
 
         self.on_message = self.on_message
         self.message_callback = None
+        self.socketio = None
         
         self.inputs = {
             'switch_state': False,
@@ -51,9 +52,18 @@ class CommunicationInterface(MQTTClientBase):
 
     def _process_audio_active(self, client, userdata, message):
         audio_active = message.payload.decode() == '1'
+        self.logger.info(f"Microphone active: {audio_active}")
+        if self.socketio:
+            self.logger.info("Emitting mic_status event to clients")
+            self.socketio.emit('mic_status', {'active': audio_active})
 
     def _process_camera_active(self, client, userdata, message):
         camera_active = message.payload.decode() == '1'
+        self.logger.info(f"Camera active: {camera_active}")
+        if self.socketio:
+            self.logger.info("Emitting cam_status event to clients")
+            self.socketio.emit('cam_status', {'active': camera_active})
+
 
     def _on_message(self, client, userdata, message):
         try:

@@ -30,6 +30,8 @@ communication_interface = CommunicationInterface(
     port=int(os.getenv("MQTT_BROKER_PORT"))
 )
 
+communication_interface.socketio = socketio
+
 def publish_heartbeat():
     while True:
         communication_interface.publish_status("running")
@@ -76,7 +78,7 @@ def start_check_in():
     # Start the check-in process
     communication_interface.start_check_in()
     return jsonify({'status': 'success', 'message': 'Check-In command sent'})
-
+# Asynchronous response returning true but the message channel closed before response received
 
 @socketio.on('connect')
 def handle_connect():

@@ -1,59 +1,54 @@
 {% extends "base.html" %}
+
 {% block content %}
-<div class="chat-page">
-    <div class="msg-inbox">
-        <div class="chats">
-            <div class="msg-page" id="msg-page">
-                <!-- Messages will be dynamically appended here -->
-            </div>
+<div class="chat-wrapper">
+    <div class="chat-container">
+        <div id="messages" class="messages">
+            <p id="no-messages" style="text-align: center; color: #999;">No messages yet...</p>
+        </div>
+        <div class="chat-controls">
+            <button id="start-check-in-button">Start Check-In</button>
         </div>
     </div>
 </div>
+{% endblock %}
 
-<div class="check-in-controls">
-    <button id="start-check-in-button">Start Check-In</button>
-</div>
-
-<script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+{% block scripts %}
 <script>
-    const socket = io();
-
     // Function to create and append a received message
     function appendReceivedMessage(content, time) {
-        const msgPage = document.getElementById('msg-page');
+        const messages = document.getElementById('messages');
+        const noMessages = document.getElementById('no-messages');
+        if (noMessages) noMessages.remove(); // Remove placeholder if it exists
+
         const receivedChat = document.createElement('div');
-        receivedChat.classList.add('received-chats');
+        receivedChat.classList.add('received-message'); // Apply received message styling
         receivedChat.innerHTML = `
-            <div class="received-msg">
-                <div class="received-msg-inbox">
-                    <p class="single-msg">${content}</p>
-                    <span class="time">${time}</span>
-                </div>
-            </div>
+            <p>${content}</p>
+            <span class="time">${time}</span>
         `;
-        msgPage.appendChild(receivedChat);
-        msgPage.scrollTop = msgPage.scrollHeight; // Auto-scroll to the bottom
+        messages.appendChild(receivedChat);
+        messages.scrollTop = messages.scrollHeight; // Auto-scroll to the bottom
     }
 
     // Function to create and append an outgoing message
     function appendOutgoingMessage(content, time) {
-        const msgPage = document.getElementById('msg-page');
+        const messages = document.getElementById('messages');
+        const noMessages = document.getElementById('no-messages');
+        if (noMessages) noMessages.remove(); // Remove placeholder if it exists
+
         const outgoingChat = document.createElement('div');
-        outgoingChat.classList.add('outgoing-chats');
+        outgoingChat.classList.add('outgoing-message'); // Apply outgoing message styling
         outgoingChat.innerHTML = `
-            <div class="outgoing-msg">
-                <div class="outgoing-chats-msg">
-                    <p>${content}</p>
-                    <span class="time">${time}</span>
-                </div>
-            </div>
+            <p>${content}</p>
+            <span class="time">${time}</span>
         `;
-        msgPage.appendChild(outgoingChat);
-        msgPage.scrollTop = msgPage.scrollHeight; // Auto-scroll to the bottom
+        messages.appendChild(outgoingChat);
+        messages.scrollTop = messages.scrollHeight; // Auto-scroll to the bottom
     }
 
     // Load chat history on connection
-    socket.on('chat_history', function(history) {
+    window.socket.on('chat_history', function(history) {
         history.forEach(message => {
             if (message.sender === 'robot') {
                 appendReceivedMessage(message.content, message.time);
@@ -64,7 +59,7 @@
     });
 
     // Listen for new messages
-    socket.on('new_message', function(message) {
+    window.socket.on('new_message', function(message) {
         if (message.sender === 'robot') {
             appendReceivedMessage(message.content, message.time);
         } else {
@@ -81,6 +76,5 @@
             })
             .catch(error => console.error('Error starting check-in:', error));
     });
-    
 </script>
 {% endblock %}
