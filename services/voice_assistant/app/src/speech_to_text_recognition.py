@@ -17,6 +17,7 @@ class SpeedToText:
         # Load API keys from environment variables
         self.speech_key = os.getenv('SPEECH_KEY')
         self.service_region = os.getenv('SPEECH_REGION')
+        self.communication_interface = None
 
         # Set up the Azure STT configurations once, to avoid reconnecting each time
         self.speech_config = speechsdk.SpeechConfig(
@@ -75,7 +76,7 @@ class SpeedToText:
             nonlocal first_response_received
             first_response_received = True
             silence_start_time = time.time()
-            communication_interface.silance_detected()
+            self.communication_interface.silance_detected()
 
 
         def recognised_cb(evt: speechsdk.SpeechRecognitionEventArgs):
@@ -84,7 +85,7 @@ class SpeedToText:
             nonlocal silence_start_time
             # Reset silence start time when recognising speech
             silence_start_time = time.time()
-            communication_interface.silance_detected()
+            self.communication_interface.silance_detected()
 
 
         def stop_cb(evt: speechsdk.SessionEventArgs):
@@ -105,7 +106,7 @@ class SpeedToText:
 
         # Initialize silence tracking
         silence_start_time = time.time()
-        communication_interface.silance_detected()
+        self.communication_interface.silance_detected()
 
         while not done:
             current_time = time.time()

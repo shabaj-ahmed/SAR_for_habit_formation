@@ -73,3 +73,6 @@ class CommunicationInterface(MQTTClientBase):
         }
         json_message = json.dumps(message)
         self._thread_safe_publish("conversation/history", json_message)
+
+    def silance_detected(self):
+        self.publish("voice_assistant/silence", "1")

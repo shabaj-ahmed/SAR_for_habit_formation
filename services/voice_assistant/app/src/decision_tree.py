@@ -12,6 +12,7 @@ class DecisionTree:
         self.communication_interface = None
 
     def check_in(self):
+        self.sr.communication_interface = self.communication_interface
         if not self.communication_interface:
             self.logger.debug("Communication interface is not set!")
             return
@@ -19,7 +20,7 @@ class DecisionTree:
 
         # Step 1: Send greeting
         self.communication_interface.publish_message(
-            sender = "Robot",
+            sender = "robot",
             message_type = "greeting",
             content = "Hello! Welcome to your daily check-in."
         )
@@ -41,10 +42,13 @@ class DecisionTree:
 
         # Step 5: Wish participants farewell
         self.communication_interface.publish_message(
-            sender = "Robot",
+            sender = "robot",
             message_type = "farewell",
             content = "Thank you for checking in. Have a great day!"
         )
+
+        # Step 6: Save the conversation to a database or file
+        # publish behaviour is completed
 
     # Function to determine the day and adjust the questions accordingly
     def get_current_day_questions(self, question = "", response = ""):
@@ -137,7 +141,7 @@ class DecisionTree:
         question_data = next_question()
         while question_data:
             self.communication_interface.publish_message(
-                sender = "Robot",
+                sender = "robot",
                 message_type = "question",
                 content = question_data["question"]
             )
@@ -146,7 +150,7 @@ class DecisionTree:
             response = self._get_response(question_data["expected_format"])
 
             self.communication_interface.publish_message(
-                sender = "User",
+                sender = "user",
                 message_type = "Response",
                 content = response
             )
