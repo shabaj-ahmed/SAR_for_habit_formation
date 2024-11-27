@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="chat-page">
+    <div class="msg-inbox">
+        <div class="chats">
+            <div class="msg-page" id="msg-page">
+                <!-- Messages will be dynamically appended here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="check-in-controls">
+    <button id="start-check-in-button">Start Check-In</button>
+</div>
+
+<script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+<script>
+    const socket = io();
+
+    // Function to create and append a received message
+    function appendReceivedMessage(content, time) {
+        const msgPage = document.getElementById('msg-page');
+        const receivedChat = document.createElement('div');
+        receivedChat.classList.add('received-chats');
+        receivedChat.innerHTML = `
+            <div class="received-msg">
+                <div class="received-msg-inbox">
+                    <p class="single-msg">${content}</p>
+                    <span class="time">${time}</span>
+                </div>
+            </div>
+        `;
+        msgPage.appendChild(receivedChat);
+        msgPage.scrollTop = msgPage.scrollHeight; // Auto-scroll to the bottom
+    }
+
+    // Function to create and append an outgoing message
+    function appendOutgoingMessage(content, time) {
+        const msgPage = document.getElementById('msg-page');
+        const outgoingChat = document.createElement('div');
+        outgoingChat.classList.add('outgoing-chats');
+        outgoingChat.innerHTML = `
+            <div class="outgoing-msg">
+                <div class="outgoing-chats-msg">
+                    <p>${content}</p>
+                    <span class="time">${time}</span>
+                </div>
+            </div>
+        `;
+        msgPage.appendChild(outgoingChat);
+        msgPage.scrollTop = msgPage.scrollHeight; // Auto-scroll to the bottom
+    }
+
+    // Load chat history on connection
+    socket.on('chat_history', function(history) {
+        history.forEach(message => {
+            if (message.sender === 'robot') {
+                appendReceivedMessage(message.content, message.time);
+            } else {
+                appendOutgoingMessage(message.content, message.time);
+            }
+        });
+    });
+
+    // Listen for new messages
+    socket.on('new_message', function(message) {
+        if (message.sender === 'robot') {
+            appendReceivedMessage(message.content, message.time);
+        } else {
+            appendOutgoingMessage(message.content, message.time);
+        }
+    });
+
+    // Handle "Start Check-In" button click
+    document.getElementById('start-check-in-button').addEventListener('click', function() {
+        fetch('/start_check_in', { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Check-In started:', data);
+            })
+            .catch(error => console.error('Error starting check-in:', error));
+    });
+    
+</script>
+{% endblock %}

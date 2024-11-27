@@ -1,0 +1,52 @@
+body {
+    font-family: Arial, sans-serif;
+}
+
+#notification-bar {
+    display: flex;
+    justify-content: space-between;
+    background-color: #ddd;
+    padding: 10px;
+}
+
+#info-buttons button {
+    margin-right: 10px;
+}
+
+#indicators img {
+    width: 24px;
+    height: 24px;
+    margin-left: 10px;
+}
+
+#content {
+    padding: 20px;
+}
+
+#conversation-history {
+    border: 1px solid #ccc;
+    padding: 10px;
+    height: 300px;
+    overflow-y: scroll;
+    margin-bottom: 10px;
+}
+
+.check-in-controls {
+    text-align: center;
+    margin-top: 20px;
+}
+
+#start-check-in-button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+#start-check-in-button:hover {
+    background-color: #45a049;
+}
