@@ -34,7 +34,7 @@ communication_interface.socketio = socketio
 
 def publish_heartbeat():
     while True:
-        communication_interface.publish_status("running")
+        communication_interface.publish_UI_status("running")
         time.sleep(30)  # Publish heartbeat every 30 seconds
 
 # Start heartbeat thread

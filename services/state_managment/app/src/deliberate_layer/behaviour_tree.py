@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from pathlib import Path
 import os
 import logging
+import time
 
 # Relative path to the .env file in the config directory
 # Move up one level and into config
@@ -21,6 +22,7 @@ class Leaf:
         pass
 
     def update(self):
+        # check if the behaviour is complete
         pass
 
     def end(self):
@@ -36,27 +38,22 @@ class CheckIn(Leaf):
     def start(self):
         # Start voice assistant
         self.logger.info("Starting check-in process")
-        payload = {
-            "message": "start",
-            "max_retries": 10,
-            "delay": 10,
-        }
-        self.comm_interface.publish("service/checkin", json.dumps(payload))
+        self.comm_interface.check_in_status("start")
         self.comm_interface.publish("robot/cameraActive", "1")
-        self.comm_interface.publish("robot/audioActive", "1")
         pass
 
     def update(self):
-        pass
+        if self.comm_interface.behaviourCompletionStatus["check_in"]:
+            self.logger.info("Check-in process is complete")
+            return True
+        # Check for errors in the services and pause or restart the check-in process
+        time.sleep(1)
+        return False
 
     def end(self):
         self.logger.info("Exiting check-in process")
-        payload = {
-            "message": "end",
-        }
-        self.comm_interface.publish("service/checkin", json.dumps(payload))
+        self.comm_interface.check_in_status("end")
         self.comm_interface.publish("robot/cameraActive", "0")
-        self.comm_interface.publish("robot/audioActive", "0")
         pass
 
 class AutonomousBhaviour(Leaf):
@@ -162,6 +159,7 @@ class BehaviorBranch:
         self.behaviors = []
         self.all_services_available = False
         self.behaviour_running = False
+        self.logger = logging.getLogger(self.__class__.__name__)
 
     def add_behavior(self, behavior_class):
         behavior = behavior_class(self.communication_interface)
@@ -222,7 +220,6 @@ class BehaviorTree:
             'check_in': False,
             'configurations': False
         }
-        self.previousBehaviourCompletionStatus = None
         self.branches = {}
 
         # Service names to control
@@ -318,17 +315,14 @@ class BehaviorTree:
 
     def manage_behavior(self):
         """Activate or deactivate a specific behavior in the current branch"""
-        behaviourIsRunning = self.current_branch.behaviour_running
+        behaviourIsRunning = self.current_branch.behaviour_running # Check if behaviour branch is running
         behaviourCompletionStatus = self.communication_interface.get_behaviour_completion_status()
-        behaviourIsComplete = behaviourCompletionStatus[self.current_branch.name]
-        previousBehaviourIsComplete = self.previousBehaviourCompletionStatus[self.current_branch.name] if self.previousBehaviourCompletionStatus else None
+        behaviourIsComplete = behaviourCompletionStatus[self.current_branch.name] # Check if behaviour is complete
 
         if behaviourIsRunning == False and behaviourIsComplete == False:
-            self.current_branch.activate_behavior()
-        elif behaviourIsRunning and behaviourIsComplete and previousBehaviourIsComplete != behaviourIsComplete:
+            self.current_branch.activate_behavior() # Activate the current branch if it's not running and not complete
+        elif behaviourIsRunning and behaviourIsComplete: # Deactivate the current branch if it's running and complete
             self.logger.info(f"Current branch is: {self.current_branch.name} and the behaviour is complete")
             self.current_branch.deactivate_behavior()
             self.transition_to_branch(self.behaviours[0])
-            self.logger.info(f"Transitioned to reminder branch")
             self.set_current_state('active')
-            self.previousBehaviourCompletionStatus = behaviourCompletionStatus

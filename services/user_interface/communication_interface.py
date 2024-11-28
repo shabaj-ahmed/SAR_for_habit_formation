@@ -12,17 +12,12 @@ print(f"project_root: {project_root}")
 from shared_libraries.mqtt_client_base import MQTTClientBase
 import logging
 
-
 class CommunicationInterface(MQTTClientBase):
     def __init__(self, broker_address, port):
         # Initialize QObject explicitly (no arguments are required for QObject)
         super().__init__(broker_address, port)
         self.logger = logging.getLogger(self.__class__.__name__)
 
-        self.on_message = self.on_message
-        self.message_callback = None
-        self.socketio = None
-        
         self.inputs = {
             'switch_state': False,
             'error': False,
@@ -30,40 +25,30 @@ class CommunicationInterface(MQTTClientBase):
             'cameraActive': False,
             'wifiActive': False,
         }
-        self.subscribe_to_topics()
+        self.check_in_status = False
 
-    def subscribe_to_topics(self):
-        self.subscribe("robot/switch_state", self._process_switch_state)
+        # Set up the message callbacks
+        self.message_callback = None
+        self.socketio = None
 
+        # Subscribe to topics
+        self.subscribe("check_in_status", self._process_check_in_status)
+        self.subscribe("conversation/history", self._on_message)
+        self.subscribe("robot/cameraActive", self._process_camera_active)
+        self.subscribe("audio_active", self._process_audio_active)
         self.subscribe("robot/error", self._process_error_message)
 
-        self.subscribe("robot/audioActive", self._process_audio_active)
-
-        self.subscribe("robot/cameraActive", self._process_camera_active)
-        
-        self.subscribe("conversation/history", self._on_message)
-
-    # Use QMetaObject.invokeMethod to ensure signal emission in the main thread
-    def _process_switch_state(self, client, userdata, message):
-        switch_state = message.payload.decode()
-
-    def _process_error_message(self, client, userdata, message):
-        error_message = message.payload.decode()
-
-    def _process_audio_active(self, client, userdata, message):
-        audio_active = message.payload.decode() == '1'
-        self.logger.info(f"Microphone active: {audio_active}")
-        if self.socketio:
-            self.logger.info("Emitting mic_status event to clients")
-            self.socketio.emit('mic_status', {'active': audio_active})
-
-    def _process_camera_active(self, client, userdata, message):
-        camera_active = message.payload.decode() == '1'
-        self.logger.info(f"Camera active: {camera_active}")
-        if self.socketio:
-            self.logger.info("Emitting cam_status event to clients")
-            self.socketio.emit('cam_status', {'active': camera_active})
-
+    def _process_check_in_status(self, client, userdata, message):
+        message = message.payload.decode()
+        if message == "started" or message == "running":
+            self.socketio.emit('mic_status', {'active': True})
+            self.socketio.emit('cam_status', {'active': True})
+            self.check_in_status = True
+        if message == 'completed' or message == 'end':
+            self.socketio.emit('mic_status', {'active': False})
+            self.socketio.emit('cam_status', {'active': False})
+            self.check_in_status = False
+            self.logger.info("Ending check-in")
 
     def _on_message(self, client, userdata, message):
         try:
@@ -74,26 +59,30 @@ class CommunicationInterface(MQTTClientBase):
         except json.JSONDecodeError as e:
             self.logger.error(f"Error decoding JSON payload: {e}")
 
-    # These methods will be called safely from the main thread
-    def emit_switch_state_signal(self, switch_state):
-        pass
+    def _process_camera_active(self, client, userdata, message):
+        camera_active = message.payload.decode() == '1'
+        self.logger.info(f"Camera active: {camera_active}")
+        if self.socketio:
+            self.logger.info("Emitting cam_status event to clients")
+            self.socketio.emit('cam_status', {'active': camera_active})
 
-    def emit_error_signal(self, error_message):
-        pass
+    def _process_audio_active(self, client, userdata, message):
+        audio_active = message.payload.decode() == '1'
+        self.logger.info(f"Microphone active: {audio_active}")
+        self.inputs['audioActive'] = audio_active
+        if self.socketio:
+            self.logger.info("Emitting mic_status event to clients")
+            self.socketio.emit('mic_status', {'active': audio_active})
 
-    def emit_audio_signal(self, audio_active):
-        pass
-
-    def emit_camera_signal(self, camera_active):
-        pass
-
-    def get_inputs(self):
-        return self.inputs
+    def _process_error_message(self, client, userdata, message):
+        error_message = message.payload.decode()
 
     def start_check_in(self):
-        self.publish("user/check_in", "1")
+        if self.check_in_status != True:
+            self.logger.info("Sending check-in start command")
+            self.publish("start_check_in", "1")
 
-    def publish_status(self, status, message="", details=None):
+    def publish_UI_status(self, status, message="", details=None):
         payload = {
             "status": status,
             "message": message,

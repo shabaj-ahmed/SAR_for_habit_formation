@@ -20,7 +20,7 @@ decision_tree = DecisionTree()
 
 def publish_heartbeat():
     while True:
-        communication_interface.publish_status("running")
+        communication_interface.publish_voice_assistant_status("running")
         time.sleep(30)  # Publish heartbeat every 30 seconds
 
 def process_communication_queue():
@@ -37,7 +37,7 @@ def setup_communication():
 
 def main():
     decision_tree.check_in()
-    communication_interface.publish_status("completed")
+    communication_interface.publish_voice_assistant_status("completed")
 
 if __name__ == "__main__":
     setup_logger()
@@ -59,20 +59,19 @@ if __name__ == "__main__":
                 while attempt < communication_interface.max_retries:
                     try:
                         main()
-                        communication_interface.publish_status("completed")
                         break  # Exit the loop if successful
                     except Exception as e:
                         attempt += 1
                         error_details = traceback.format_exc()
                         logger.error(f"Attempt {attempt}: {e}")
                         logger.error(error_details)
-                        communication_interface.publish_status("error", f"Attempt {attempt}: {e}", details=error_details)
+                        communication_interface.publish_voice_assistant_status("error", f"Attempt {attempt}: {e}", details=error_details)
 
                         if attempt < communication_interface.max_retries:
                             time.sleep(communication_interface.delay)
                         else:
                             logger.error("Max retries reached. Service stopped.")
-                            communication_interface.publish_status("failure", "Max retries reached. Service stopped.")
+                            communication_interface.publish_voice_assistant_status("failure", "Max retries reached. Service stopped.")
                             break
             time.sleep(1)
     except KeyboardInterrupt:

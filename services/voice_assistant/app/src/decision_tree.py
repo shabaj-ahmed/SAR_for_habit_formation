@@ -32,10 +32,13 @@ class DecisionTree:
         try:
             self.ask_questions(self.get_current_day_questions)
         except Exception as e:
-            self.logger.error(f"Error asking questions: {e}")
+            self.logger.error(f"Error asking weekday questions: {e}")
         
         # Step 3: Experience sampling questions
-        self.ask_questions(self.experience_sampling_questions)
+        try:
+            self.ask_questions(self.experience_sampling_questions)
+        except Exception as e:
+            self.logger.error(f"Error asking experience questions: {e}")
 
         # Step 4: Summarise the conversation
 
@@ -48,7 +51,8 @@ class DecisionTree:
         )
 
         # Step 6: Save the conversation to a database or file
-        # publish behaviour is completed
+        self.logger.info("Voice assistant service completed successfully.")
+        self.communication_interface.publish_voice_assistant_status("completed")
 
     # Function to determine the day and adjust the questions accordingly
     def get_current_day_questions(self, question = "", response = ""):
