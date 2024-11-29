@@ -41,6 +41,12 @@ start_services() {
     echo "Starting services..."
     for service_dir in "$SERVICES_DIR"/*/; do
         entry_point="$service_dir/app/src/main.py"
+        if "$service_dir" == "user_interface"/; then
+            export FLASK_APP=main
+            export FLASK_ENV=production
+            continue
+        fi
+
         if [ -f "$entry_point" ]; then
             echo "Starting service in $service_dir..."
             python "$entry_point" &
