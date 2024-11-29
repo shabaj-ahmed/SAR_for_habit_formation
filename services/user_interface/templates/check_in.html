@@ -73,8 +73,22 @@
             .then(response => response.json())
             .then(data => {
                 console.log('Check-In started:', data);
+                const button = document.getElementById('start-check-in-button');
+                if (button) {
+                    button.textContent = "Check-In in Progress...";
+                    button.disabled = true;
+                }
             })
             .catch(error => console.error('Error starting check-in:', error));
     });
+
+    window.socket.on('check_in_complete', function() {
+        const button = document.getElementById('start-check-in-button');
+        if (button) {
+            button.textContent = "Start Check-In";
+            button.disabled = false;
+        }
+    });
+
 </script>
 {% endblock %}

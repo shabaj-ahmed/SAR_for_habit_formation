@@ -28,17 +28,17 @@ class DecisionTree:
 
         self.logger.info("Starting the check-in process.")
 
-        # Step 2: Weekday-specific questions
-        try:
-            self.ask_questions(self.get_current_day_questions)
-        except Exception as e:
-            self.logger.error(f"Error asking weekday questions: {e}")
+        # # Step 2: Weekday-specific questions
+        # try:
+        #     self.ask_questions(self.get_current_day_questions)
+        # except Exception as e:
+        #     self.logger.error(f"Error asking weekday questions: {e}")
         
-        # Step 3: Experience sampling questions
-        try:
-            self.ask_questions(self.experience_sampling_questions)
-        except Exception as e:
-            self.logger.error(f"Error asking experience questions: {e}")
+        # # Step 3: Experience sampling questions
+        # try:
+        #     self.ask_questions(self.experience_sampling_questions)
+        # except Exception as e:
+        #     self.logger.error(f"Error asking experience questions: {e}")
 
         # Step 4: Summarise the conversation
 

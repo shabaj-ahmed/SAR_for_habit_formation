@@ -39,7 +39,8 @@ class CommunicationInterface(MQTTClientBase):
         self.subscribe("robot/error", self._process_error_message)
 
     def _process_check_in_status(self, client, userdata, message):
-        message = message.payload.decode()
+        payload = json.loads(message.payload.decode("utf-8"))
+        message = payload.get("message", "")
         if message == "started" or message == "running":
             self.socketio.emit('mic_status', {'active': True})
             self.socketio.emit('cam_status', {'active': True})
@@ -47,6 +48,7 @@ class CommunicationInterface(MQTTClientBase):
         if message == 'completed' or message == 'end':
             self.socketio.emit('mic_status', {'active': False})
             self.socketio.emit('cam_status', {'active': False})
+            self.socketio.emit('check_in_complete')
             self.check_in_status = False
             self.logger.info("Ending check-in")
 
