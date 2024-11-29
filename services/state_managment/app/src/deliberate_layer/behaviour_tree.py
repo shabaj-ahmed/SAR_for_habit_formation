@@ -37,18 +37,13 @@ class CheckIn(Leaf):
 
     def start(self):
         # Start voice assistant
-        self.logger.info("Starting check-in process")
         self.comm_interface.check_in_status("start")
         self.comm_interface.publish("robot/cameraActive", "1")
         pass
 
     def update(self):
-        if self.comm_interface.behaviourCompletionStatus["check_in"]:
-            self.logger.info("Check-in process is complete")
-            return True
         # Check for errors in the services and pause or restart the check-in process
-        time.sleep(1)
-        return False
+        pass
 
     def end(self):
         self.logger.info("Exiting check-in process")
@@ -165,20 +160,8 @@ class BehaviorBranch:
         behavior = behavior_class(self.communication_interface)
         self.behaviors.append(behavior)
 
-    def start(self):
-        """Start all behaviors in this branch"""
-        for behavior in self.behaviors:
-            behavior.start()
-
     def update(self):
         """Update all active behaviors in this branch"""
-        # Check MQTT to see if behaviour is complete
-        # If it is complete, set the behaviour_completion_status to True and end the behaviour
-
-        # Activate behaviour once all services are available
-        if self.all_services_available and self.behaviour_running is False:
-            self.activate_behavior()
-
         for behavior in self.behaviors:
             behavior.update()
 
@@ -192,8 +175,9 @@ class BehaviorBranch:
         """Activate a specific behavior by name"""
         # If all services are available, start the behavior
         for behavior in self.behaviors:
-            behavior.start()
-        self.behaviour_running = True
+            if self.behaviour_running is False:
+                behavior.start()
+                self.behaviour_running = True # Mark the behaviour as running
 
     def deactivate_behavior(self):
         """Deactivate a specific behavior by name"""
@@ -216,10 +200,6 @@ class BehaviorTree:
 
         self.current_branch = None
         self.current_state = None
-        self.previous_event = {
-            'check_in': False,
-            'configurations': False
-        }
         self.branches = {}
 
         # Service names to control
@@ -262,22 +242,29 @@ class BehaviorTree:
         """Transition to a specific branch of behaviors based on FSM state"""
         if branch_name in self.branches:
             if self.current_branch:
-                self.current_branch.end()  # Stop all behaviors in the current branch
+                self.current_branch.deactivate_behavior()  # Stop all behaviors in the current branch
             self.current_branch = self.branches[branch_name]
-            self.current_branch.start()  # Start all behaviors in the new branch
+            if branch_name == self.behaviours[0]:
+                self.communication_interface.set_behaviour_running_status(self.behaviours[0], True)
+            self.current_branch.activate_behavior()  # Start all behaviors in the new branch
             self.logger.info(f"Transitioned to {self.current_branch.name} branch")
 
     def update(self):
+        # Step 1: Check the high-level state in the finite state machine
         self.check_finite_state_machine_event_queue()
-        
-        self.check_mqtt_messages_for_user_events()
 
+        # Step 2: Check if the user has requested a behavior
+        self.check_for_user_requested_events()
+
+        # Step 3: If no behavior is running, transition to the reminder branch
         if self.current_branch == None: # Default to reminder branch
             self.transition_to_branch(self.behaviours[0])
+
         
+        # Step 4: Start and stop behaviors based on the current branch
         self.manage_behavior()
 
-        """Update all active behaviors in the current branch"""
+        # Step 5: Update all active behaviors in the current branch
         self.current_branch.update()
 
     def check_finite_state_machine_event_queue(self):
@@ -298,30 +285,30 @@ class BehaviorTree:
                     pass
                     # Handle error state if required
     
-    def check_mqtt_messages_for_user_events(self):
-        # check mqtt for new messages and update behaviors accordingly
-        event = self.communication_interface.get_user_event()
+    def check_for_user_requested_events(self):
+        ''' Check if the user has requested a behavior '''
+        behaviourRunning = self.communication_interface.get_behaviour_running_status()
         
-        if event['check_in'] and not self.previous_event['check_in']:
-            self.logger.info("Check-in event received")
+        # Transition to appropriate branch if it is not already in that branch
+        if behaviourRunning['check_in'] and self.current_branch.name != self.behaviours[1]:
+            self.logger.info(f"Check-in event received event['check_in'] = {behaviourRunning['check_in']} and self.current_branch.name = {self.current_branch.name}")
             self.transition_to_branch(self.behaviours[1])
             self.set_current_state('interacting')
-            self.previous_event = event
-        elif event['configurations'] and not self.previous_event['configurations']:
+            self.logger.info("Fulfilling user request and transitioning to check-in branch")
+        elif behaviourRunning['configurations'] and self.current_branch.name != self.behaviours[2]:
             self.logger.info("Configurations event received")
             self.transition_to_branch(self.behaviours[2])
             self.set_current_state('configuring')
-            self.previous_event = event
+            self.logger.info("Fulfilling user request and transitioning to configurations branch")
 
     def manage_behavior(self):
         """Activate or deactivate a specific behavior in the current branch"""
-        behaviourIsRunning = self.current_branch.behaviour_running # Check if behaviour branch is running
-        behaviourCompletionStatus = self.communication_interface.get_behaviour_completion_status()
-        behaviourIsComplete = behaviourCompletionStatus[self.current_branch.name] # Check if behaviour is complete
+        behaviourIsRunning = self.communication_interface.get_behaviour_running_status()[self.current_branch.name] # Check if behaviour branch is running
 
-        if behaviourIsRunning == False and behaviourIsComplete == False:
+        if behaviourIsRunning and self.current_branch.behaviour_running == False: # Activate the current branch if it's not running
+            self.logger.info(f"Current branch is: {self.current_branch.name} and the behaviour is not running")
             self.current_branch.activate_behavior() # Activate the current branch if it's not running and not complete
-        elif behaviourIsRunning and behaviourIsComplete: # Deactivate the current branch if it's running and complete
+        elif behaviourIsRunning == False and self.current_branch.behaviour_running: # Deactivate the current branch if it's running and complete
             self.logger.info(f"Current branch is: {self.current_branch.name} and the behaviour is complete")
             self.current_branch.deactivate_behavior()
             self.transition_to_branch(self.behaviours[0])

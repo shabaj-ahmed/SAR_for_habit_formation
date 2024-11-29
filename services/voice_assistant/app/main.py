@@ -20,7 +20,8 @@ decision_tree = DecisionTree()
 
 def publish_heartbeat():
     while True:
-        communication_interface.publish_voice_assistant_status("running")
+        # Publish voice assistant heartbeat
+        logger.info("voice assistant heartbeat")
         time.sleep(30)  # Publish heartbeat every 30 seconds
 
 def process_communication_queue():
@@ -34,10 +35,6 @@ def setup_communication():
         port=int(os.getenv("MQTT_BROKER_PORT"))
     )
     return interface
-
-def main():
-    decision_tree.check_in()
-    communication_interface.publish_voice_assistant_status("completed")
 
 if __name__ == "__main__":
     setup_logger()
@@ -58,7 +55,7 @@ if __name__ == "__main__":
             if communication_interface.start_command:
                 while attempt < communication_interface.max_retries:
                     try:
-                        main()
+                        decision_tree.check_in()
                         break  # Exit the loop if successful
                     except Exception as e:
                         attempt += 1

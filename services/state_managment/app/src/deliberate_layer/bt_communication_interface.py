@@ -19,11 +19,8 @@ class CommunicationInterface(MQTTClientBase):
 
         self.subscriptions = {}
 
-        self.userEvents = {
-            'check_in': False,
-            'configurations': False
-        }
-        self.behaviourCompletionStatus = {
+        # Behaviour running status used activate/deactivate certain behaviours
+        self.behaviourRunningStatus = {
             'reminder': False,
             'check_in': False,
             'configurations': False
@@ -39,10 +36,10 @@ class CommunicationInterface(MQTTClientBase):
     def _process_check_in_request(self, client, userdata, message):
         self.logger.info("Processing check in")
         if message.payload.decode() == '1':
-            self.userEvents['check_in'] = True
+            self.behaviourRunningStatus['check_in'] = True
             self.logger.info("Starting check in")
         else:
-            self.userEvents['check_in'] = False
+            self.behaviourRunningStatus['check_in'] = False
             self.logger.info("Ending check in")
     
     def _process_voice_assistant_status(self, client, userdata, message):
@@ -50,24 +47,23 @@ class CommunicationInterface(MQTTClientBase):
         message = payload.get("status", "")
         self.logger.info(f"Processing voice assistant status: {message}")
         if message == 'completed':
-            self.behaviourCompletionStatus['check_in'] = False
+            self.behaviourRunningStatus['check_in'] = False
         elif message == 'running':
-            self.behaviourCompletionStatus['check_in'] = True
+            self.behaviourRunningStatus['check_in'] = True
 
     def _process_configurations(self, client, userdata, message):
         self.logger.info("Processing configurations")
         if message.payload.decode() == '1':
-            self.userEvents['configurations'] = True
+            self.behaviourRunningStatus['configurations'] = True
         else:
-            self.userEvents['configurations'] = False
+            self.behaviourRunningStatus['configurations'] = False
 
     def _process_reminder_status(self, client, userdata, message):
         self.logger.info("Processing reminder status")
         if message.payload.decode() == 'running':
-            self.behaviourCompletionStatus['reminder'] = True
+            self.behaviourRunningStatus['reminder'] = True
         elif message.payload.decode() == 'completed':
-            self.behaviourCompletionStatus['reminder'] = False
-            self.userEvents['check_in'] = False
+            self.behaviourRunningStatus['reminder'] = False
 
     def _process_error_message(self, client, userdata, message):
         self.logger.imfo("Processing error message")
@@ -75,15 +71,16 @@ class CommunicationInterface(MQTTClientBase):
 
     def check_in_status(self, message):
         if message == "completed":
-            self.userEvents['check_in'] = True
+            self.behaviourRunningStatus['check_in'] = False # Reset check in status
         payload = {
             "message": message,
             "time": time.strftime("%Y-%m-%d %H:%M:%S")
         }
+        self.logger.info(f"Publishing check in status: {payload}")
         self.publish("check_in_status", json.dumps(payload))
 
-    def get_user_event(self):
-        return self.userEvents
-
-    def get_behaviour_completion_status(self):
-        return self.behaviourCompletionStatus
+    def get_behaviour_running_status(self):
+        return self.behaviourRunningStatus
+    
+    def set_behaviour_running_status(self, behaviour, status):
+        self.behaviourRunningStatus[behaviour] = status
