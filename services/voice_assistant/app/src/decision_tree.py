@@ -28,17 +28,17 @@ class DecisionTree:
 
         self.logger.info("Starting the check-in process.")
 
-        # # Step 2: Weekday-specific questions
-        # try:
-        #     self.ask_questions(self.get_current_day_questions)
-        # except Exception as e:
-        #     self.logger.error(f"Error asking weekday questions: {e}")
+        # Step 2: Weekday-specific questions
+        try:
+            self.ask_questions(self.get_current_day_questions)
+        except Exception as e:
+            self.logger.error(f"Error asking weekday questions: {e}")
         
-        # # Step 3: Experience sampling questions
-        # try:
-        #     self.ask_questions(self.experience_sampling_questions)
-        # except Exception as e:
-        #     self.logger.error(f"Error asking experience questions: {e}")
+        # Step 3: Experience sampling questions
+        try:
+            self.ask_questions(self.experience_sampling_questions)
+        except Exception as e:
+            self.logger.error(f"Error asking experience questions: {e}")
 
         # Step 4: Summarise the conversation
 
@@ -70,7 +70,7 @@ class DecisionTree:
             "Wednesday": "What can you improve next week?",
             "Thursday": "What strategies worked well for you?",
             "Friday": "What is your main goal for today?",
-            "Saturday": "What have you done to stay on track with your behavior change goals?",
+            "Saturday": "What have you done to stay on track with your behaviour change goals?",
             "Sunday": "What strategies helped you this week?",
         }
 
@@ -97,7 +97,7 @@ class DecisionTree:
                 question = "How can you apply these strategies in the future?"
             elif question == "What is your main goal for today?": # Friday
                 question = "What strategies will you use to achieve this goal?"
-            elif question == "What have you done to stay on track with you behaviour change goals": # Saturday
+            elif question == "What have you done to stay on track with your behaviour change goals?": # Saturday
                 question = "What will you do differently next week?"
             elif question == "What strategies helped you this week?": # Sunday
                 question = "How can you build on these strategies for next week?"
@@ -153,6 +153,10 @@ class DecisionTree:
 
             response = self._get_response(question_data["expected_format"])
 
+            # If the response is invalid, ask the same question again
+            if response == "" or response is None:
+                continue
+
             self.communication_interface.publish_message(
                 sender = "user",
                 message_type = "Response",
@@ -168,18 +172,14 @@ class DecisionTree:
     def _get_response(self, expected_format):
         response = self.sr.recognise_response(expected_format)
         if not isinstance(response, str) or not response.strip():
-            self.communication_interface.publish_status(
-                "error", "No valid response received."
-            )
+            self.logger.debug(f"Invalid response: {response}. Expected a non-empty string.")
             return ""
         if expected_format == "short":
             # Check if the response is a valid number
             try:
                 response = self._extract_number_from(response)
             except ValueError:
-                self.communication_interface.publish_status(
-                    "error", "Invalid response format. Expected a number."
-                )
+                self.logger.debug(f"Invalid response: {response}. Expected a number.")
                 return ""
         return response
 

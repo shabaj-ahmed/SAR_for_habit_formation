@@ -1,9 +1,18 @@
-from datetime import time
+import queue
+import time
 from dotenv import load_dotenv
 from pathlib import Path
 import os
-import azure.cognitiveservices.speech as speechsdk
-import time
+from google.cloud import speech
+
+import pyaudio
+import audioop
+
+# Audio recording parameters
+RATE = 16000
+CHUNK = int(RATE / 10)  # 100ms
+SILENCE_THRESHOLD = 500  # RMS threshold for silence
+SILENCE_DURATION = 5  # Silence duration in seconds
 
 # Relative path to the .env file in the config directory
 # Move up one level and into config
@@ -11,6 +20,7 @@ dotenv_path = Path('../../configurations/.env')
 
 # Load the .env file
 load_dotenv(dotenv_path=dotenv_path)
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
 
 class SpeedToText:
     def __init__(self):
@@ -19,111 +29,117 @@ class SpeedToText:
         self.service_region = os.getenv('SPEECH_REGION')
         self.communication_interface = None
 
-        # Set up the Azure STT configurations once, to avoid reconnecting each time
-        self.speech_config = speechsdk.SpeechConfig(
-            subscription=self.speech_key, region=self.service_region)
-        
-        self.audio_config = speechsdk.audio.AudioConfig(use_default_microphone=True)
-
-        # Keep a reusable SpeechRecognizer for short responses
-        self.speech_recognizer = speechsdk.SpeechRecognizer(
-            speech_config=self.speech_config, audio_config=self.audio_config
-        )
+        self.client = speech.SpeechClient()
     
     def recognise_response(self, response_type):
-        if response_type == "short":
-            return self.recognise_short_response()
-        elif response_type == "open-ended":
-            return self.speech_recognise_continuous_async_from_microphone()
-        else:
-            print("Invalid response type. Please specify either 'short' or 'open-ended'.")
-            return None
+        while True:
+            # Configure recognition settings based on the response type
+            config = self.short_response() if response_type == "short" else self.long_response()
+            streaming_config = speech.StreamingRecognitionConfig(
+                config=config,
+                interim_results=True,
+                single_utterance=False,
+            )
+            
+            transcript = ""
+            with MicrophoneStream(RATE, CHUNK) as stream:
+                audio_generator = stream.generator()
+                requests = (
+                    speech.StreamingRecognizeRequest(audio_content=content)
+                    for content in audio_generator
+                )
+                responses = self.client.streaming_recognize(streaming_config, requests)
+
+                # Process the responses
+                transcript = self.listen_print_loop(responses)
+                print(f"Captured transcript: {transcript}")
+
+            return transcript
     
-    def recognise_short_response(self):
-        print("Speak into your microphone.")
-        speech_recognition_result = self.speech_recognizer.recognize_once_async().get()
-
-        if speech_recognition_result.reason == speechsdk.ResultReason.RecognizedSpeech:
-            print(f"Recognised: {speech_recognition_result.text}")
-            return speech_recognition_result.text.strip()
-        elif speech_recognition_result.reason == speechsdk.ResultReason.NoMatch:
-            print(f"No speech could be recognised: {speech_recognition_result.no_match_details}")
-            return None
-        elif speech_recognition_result.reason == speechsdk.ResultReason.Canceled:
-            cancellation_details = speech_recognition_result.cancellation_details
-            print(f"Speech Recognition canceled: {cancellation_details.reason}")
-            if cancellation_details.reason == speechsdk.CancellationReason.Error:
-                print(f"Error details: {cancellation_details.error_details}")
-            return None
-        
-    def speech_recognise_continuous_async_from_microphone(self):
-        """performs continuous speech recognition asynchronously with input from microphone"""
-        speech_recogniser = speechsdk.SpeechRecognizer(
-            speech_config=self.speech_config, audio_config=self.audio_config)
-
-        first_response_received = False
-        done = False
-        all_results = []
-        silence_start_time = None
-        initial_silence_timeout = 10
-        within_response_timeout = 3
-
-        def recognising_cb(evt: speechsdk.SpeechRecognitionEventArgs):
-            # print('RECOGNISING: {}'.format(evt))
-            # all_results.append(evt.result.text)
-            nonlocal silence_start_time
-            # Reset silence start time when recognising speech
-            nonlocal first_response_received
-            first_response_received = True
-            silence_start_time = time.time()
-            self.communication_interface.silance_detected()
+    def long_response(self):
+        return speech.RecognitionConfig(
+            encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
+            sample_rate_hertz=RATE,
+            language_code="en-US",
+        )
 
 
-        def recognised_cb(evt: speechsdk.SpeechRecognitionEventArgs):
-            # print('recogniseD: {}'.format(evt))
-            all_results.append(evt.result.text)
-            nonlocal silence_start_time
-            # Reset silence start time when recognising speech
-            silence_start_time = time.time()
-            self.communication_interface.silance_detected()
+    def short_response(self):
+        return speech.RecognitionConfig(
+            encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
+            sample_rate_hertz=RATE,
+            language_code="en-US",
+            speech_contexts=[speech.SpeechContext(phrases=["yes", "no", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"])],
+        )
+    
+    def listen_print_loop(self, responses):
+        """Processes server responses and captures transcripts."""
+        transcript = ""
+        print(f"Entered listen_print_loop and transcript is {transcript}")
+        for response in responses:
+            if not response.results:
+                continue
 
-
-        def stop_cb(evt: speechsdk.SessionEventArgs):
-            """callback that signals to stop continuous recognition"""
-            # print('CLOSING on {}'.format(evt))
-
-        # Connect callbacks to the events fired by the speech recogniser
-        speech_recogniser.recognizing.connect(recognising_cb)
-        speech_recogniser.recognized.connect(recognised_cb)
-        speech_recogniser.session_stopped.connect(stop_cb)
-        speech_recogniser.canceled.connect(stop_cb)
-
-        # Perform recognition. `start_continuous_recognition_async asynchronously initiates continuous recognition operation,
-        # Other tasks can be performed on this thread while recognition starts...
-        # wait on result_future.get() to know when initialization is done.
-        # Call stop_continuous_recognition_async() to stop recognition.
-        speech_recogniser.start_continuous_recognition()
-
-        # Initialize silence tracking
-        silence_start_time = time.time()
-        self.communication_interface.silance_detected()
-
-        while not done:
-            current_time = time.time()
-
-            if not first_response_received:
-                # Check for initial silence timeout
-                if current_time - silence_start_time > initial_silence_timeout:
-                    print(
-                        f"Initial silence timeout reached. No speech detected in the past {initial_silence_timeout} seconds.")
-                    break
+            result = response.results[0]
+            if not result.alternatives:
+                continue
+            
+            # Append interim results to the transcript
+            if result.is_final:
+                transcript += result.alternatives[0].transcript + " "
+                print(f"Final result: {result.alternatives[0].transcript}")
             else:
-                # Check for end silence timeout
-                if current_time - silence_start_time > within_response_timeout:
-                    print(
-                        f"End silence timeout of {within_response_timeout} seconds reached. Stopping recognition.")
-                    break
+                print(f"Interim result: {result.alternatives[0].transcript}", end="\r")
 
-        speech_recogniser.stop_continuous_recognition()
+        return transcript.strip()
 
-        return ' '.join(all_results)
+class MicrophoneStream:
+    """Opens a recording stream as a generator yielding the audio chunks."""
+
+    def __init__(self, rate=RATE, chunk=CHUNK):
+        self._rate = rate
+        self._chunk = chunk
+        self._buff = queue.Queue()
+        self.closed = True
+
+    def __enter__(self):
+        self._audio_interface = pyaudio.PyAudio()
+        self._audio_stream = self._audio_interface.open(
+            format=pyaudio.paInt16,
+            channels=1,
+            rate=self._rate,
+            input=True,
+            frames_per_buffer=self._chunk,
+            stream_callback=self._fill_buffer,
+        )
+        self.closed = False
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self._audio_stream.stop_stream()
+        self._audio_stream.close()
+        self.closed = True
+        self._buff.put(None)
+        self._audio_interface.terminate()
+
+    def _fill_buffer(self, in_data, frame_count, time_info, status_flags):
+        self._buff.put(in_data)
+        return None, pyaudio.paContinue
+
+    def generator(self):
+        """Generate audio chunks and detect silence."""
+        silence_start = time.time()
+        while not self.closed:
+            chunk = self._buff.get()
+            if chunk is None:
+                return
+            yield chunk
+
+            # Detect silence by measuring RMS
+            rms = audioop.rms(chunk, 2)
+            if rms < SILENCE_THRESHOLD:
+                if time.time() - silence_start >= SILENCE_DURATION:
+                    # self.communication_interface.silance_detected()
+                    self.closed = True
+            else:
+                silence_start = time.time()  # Reset silence timer if sound is detected
