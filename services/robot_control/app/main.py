@@ -24,7 +24,7 @@ import json
 import sys
 import time
 from enum import Enum
-from lib import flask_helpers
+from src import flask_helpers
 
 import anki_vector
 from anki_vector import util
