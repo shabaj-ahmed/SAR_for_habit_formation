@@ -49,6 +49,7 @@ class VectorRobotController:
         # self.robot.behavior.turn_towards_face()
 
     def disengage_user(self):
+        self.robot.connection.request_control()
         self.robot.behavior.drive_on_charger()
 
     def say_text(self, text):
@@ -68,10 +69,22 @@ class VectorRobotController:
     def toggle_autonomous_behavior(self, enable=True):
         self.robot.behavior.enable_all_reactions(enable)
 
-    def set_eye_colour(self, hue, saturation):
+    def set_eye_colour(self, colour):
+        colours = {
+            "orange": (0.05, 0.95),
+            "yellow": (0.11, 1.00),
+            "lime": (0.21, 1.00),
+            "sapphire": (0.57, 1.00),
+            "purple": (0.83, 0.76),
+            "green": (0.25, 1.00),
+        }
+
+        selected_colour = colours.get(colour, colours["orange"])
+
         self.robot.behavior.set_head_angle(degrees(45.0))
         self.robot.behavior.set_lift_height(0.0)
-        self.robot.behavior.set_eye_color(hue, saturation)
+        
+        self.robot.behavior.set_eye_color(hue=selected_colour[0], saturation=selected_colour[1])
     
     def set_volume(self, volume):
         self.robot.audio.set_master_volume(volume)
@@ -104,8 +117,8 @@ class VectorRobotController:
 
 def publish_heartbeat():
     while True:
-        # Publish voice assistant heartbeat
-        logger.info("voice assistant heartbeat")
+        # Publish robot controller heartbeat
+        logger.info("Robot controller heartbeat")
         time.sleep(30)  # Publish heartbeat every 30 seconds
 
 if __name__ == '__main__':
