@@ -1,18 +1,39 @@
+.settings-container {
+    text-align: center;
+    padding: 2rem;
+    margin: 1rem;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: #333;
+}
+
+p {
+    font-size: 1rem;
+    margin-bottom: 2rem;
+    color: #555;
+}
+
 #custom-radios div {
     display: inline-block;
-  }
+}
 
-  #custom-radios input[type="radio"] {
-    display: none;
-  }
+#custom-radios input[type="radio"] {
+    display: none; 
+}
 
-  #custom-radios input[type="radio"] + label {
+#custom-radios input[type="radio"] + label {
     color: #333;
     font-family: Arial, sans-serif;
     font-size: 14px;
-  }
+}
 
-  #custom-radios input[type="radio"] + label span {
+#custom-radios input[type="radio"] + label span {
     display: inline-block;
     width: 40px;
     height: 40px;
@@ -26,43 +47,84 @@
     background-position: center;
     text-align: center;
     line-height: 44px;
-  }
+}
 
-  #custom-radios input[type="radio"] + label span img {
+#custom-radios input[type="radio"] + label span img {
     opacity: 0;
     transition: all 0.3s ease;
-  }
+}
 
-  #custom-radios #green + label span {
+#custom-radios #green + label span {
     background-color: #2ecc71;
-  }
+}
 
-  #custom-radios #sapphire + label span {
+#custom-radios #sapphire + label span {
     background-color: #3498db;
-  }
+}
 
-  #custom-radios #yellow + label span {
+#custom-radios #yellow + label span {
     background-color: #f1c40f;
-  }
+}
 
-  #custom-radios #red + label span {
+#custom-radios #red + label span {
     background-color: #e74c3c;
-  }
+}
 
-  #custom-radios #orange + label span {
+#custom-radios #orange + label span {
     background-color: #FFA500;
-  }
+}
 
-  #custom-radios #purple + label span {
+#custom-radios #purple + label span {
     background-color: #800080;
-  }
+}
 
-  #custom-radios input[type="radio"]:checked + label span img {
+#custom-radios input[type="radio"]:checked + label span img {
     opacity: 1;
-  }
+}
 
-  .radios-container {
+.radios-container {
     display: flex;
     justify-content: center;
     width: 100%; /* Ensures the container spans the full width */
-  }
+}
+
+.volume-settings {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.volume-buttons {
+    display: flex;
+    justify-content: space-around;
+    gap: 1rem;
+    width: 100%;
+}
+
+.volume-option {
+    padding: 0.5rem 1.5rem;
+    font-size: 1rem;
+    border: 2px solid #007BFF;
+    border-radius: 5px;
+    cursor: pointer;
+    background-color: #007BFF;
+    color: white;
+    transition: all 0.3s;
+}
+
+.volume-option:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+}
+
+.volume-option:disabled {
+    background-color: #cccccc;
+    border-color: #aaaaaa;
+    color: #666666;
+    cursor: not-allowed;
+}
+
+.volume-option.clicked {
+    background-color: #0046d5;
+    border-color: #0036a5;
+}

@@ -1,135 +1,157 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h4>Choose a LED colour</h4>
+<div class="settings-container">
+<h4>Choose a eye colour</h4>
 <p>
-  The robot has LED lights that can display different colors. Select a
-  colour that you think looks good from the following options:
+    Select a colour that you think looks good from the following options:
 </p>
-"orange": (0.05, 0.95),
-"lime": (0.21, 1.00),
 
 <div class="radios-container">
-  <div id="custom-radios">
-    <div>
-      <input
-        type="radio"
-        class="custom-radio"
-        id="green"
-        name="colour"
-        value="green"
-      />
-      <label for="green">
-        <span>
-          <img src="./static/check.svg" alt="Checked Icon" />
-        </span>
-      </label>
+    <div id="custom-radios">
+        <div>
+            <input type="radio" class="custom-radio" id="green" name="colour" value="green" />
+            <label for="green">
+                <span>
+                    <img src="./static/check.svg" alt="Checked Icon" />
+                </span>
+            </label>
+        </div>
+
+        <div>
+            <input type="radio" class="custom-radio" id="sapphire" name="colour" value="sapphire" />
+            <label for="sapphire">
+                <span>
+                    <img src="./static/check.svg" alt="Checked Icon" />
+                </span>
+            </label>
+        </div>
+
+        <div>
+            <input type="radio" class="custom-radio" id="yellow" name="colour" value="yellow" />
+            <label for="yellow">
+                <span>
+                    <img src="./static/check.svg" alt="Checked Icon" />
+                </span>
+            </label>
+        </div>
+
+        <div>
+            <input type="radio" class="custom-radio" id="red" name="colour" value="red" />
+            <label for="red">
+                <span>
+                    <img src="./static/check.svg" alt="Checked Icon" />
+                </span>
+            </label>
+        </div>
+
+        <div>
+            <input type="radio" class="custom-radio" id="purple" name="colour" value="purple" />
+            <label for="purple">
+                <span>
+                    <img src="./static/check.svg" alt="Checked Icon" />
+                </span>
+            </label>
+        </div>
+
+        <div>
+            <input type="radio" class="custom-radio" id="orange" name="colour" value="orange" />
+            <label for="orange">
+                <span>
+                    <img src="./static/check.svg" alt="Checked Icon" />
+                </span>
+            </label>
+
+        </div>
     </div>
+</div>
 
-    <div>
-      <input
-        type="radio"
-        class="custom-radio"
-        id="sapphire"
-        name="colour"
-        value="sapphire"
-      />
-      <label for="sapphire2">
-        <span>
-          <img src="./static/check.svg" alt="Checked Icon" />
-        </span>
-      </label>
+<h4>Set a voice volume</h4>
+<p>
+    The robot has a number of different volumes. Listen to each
+    sample and select one that you think will sound good.
+</p>
+<div class="volume-settings">
+    <div class="volume-buttons">
+        <button 
+            type="button" 
+            class="volume-option {{ 'clicked' if volume_button_states['quiet'] else '' }}" 
+            data-volume="quiet" 
+            {{ 'disabled' if volume_button_states['quiet'] else '' }}>
+            Quiet
+        </button>
+        <button 
+            type="button" 
+            class="volume-option {{ 'clicked' if volume_button_states['default'] else '' }}" 
+            data-volume="default" 
+            {{ 'disabled' if volume_button_states['default'] else '' }}>
+            Default
+        </button>
+        <button 
+            type="button" 
+            class="volume-option {{ 'clicked' if volume_button_states['loud'] else '' }}" 
+            data-volume="loud" 
+            {{ 'disabled' if volume_button_states['loud'] else '' }}>
+            Loud
+        </button>
     </div>
-
-    <div>
-      <input
-        type="radio"
-        class="custom-radio"
-        id="yellow"
-        name="colour"
-        value="yellow"
-      />
-      <label for="yellow">
-        <span>
-          <img src="./static/check.svg" alt="Checked Icon" />
-        </span>
-      </label>
-    </div>
-
-    <div>
-      <input
-        type="radio"
-        class="custom-radio"
-        id="red"
-        name="colour"
-        value="red"
-      />
-      <label for="red">
-        <span>
-          <img src="./static/check.svg" alt="Checked Icon" />
-        </span>
-      </label>
-    </div>
-
-
-    <div>
-      <input
-        type="radio"
-        class="custom-radio"
-        id="purple"
-        name="colour"
-        value="purple"
-      />
-      <label for="purple">
-        <span>
-          <img src="./static/check.svg" alt="Checked Icon" />
-        </span>
-      </label>
-    </div>
-
-    <div>
-      <input
-        type="radio"
-        class="custom-radio"
-        id="orange"
-        name="colour"
-        value="orange"
-      />
-      <label for="orange">
-        <span>
-          <img src="./static/check.svg" alt="Checked Icon" />
-        </span>
-      </label>
-
-  </div>
+</div>
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script>
-      $(document).ready(function () {
+<script>
+    $(document).ready(function () {
         // This function is called when any of the radio buttons is changed
         $('input[type="radio"].custom-radio').change(function () {
-          // 'this' refers to the radio button that was changed
-          var colorValue = $(this).val(); // Get the value of the radio button
+            // 'this' refers to the radio button that was changed
+            var colorValue = $(this).val(); // Get the value of the radio button
 
-          // Make an AJAX request to the Flask route
-          $.ajax({
-            url: "/colour/" + colorValue,
-            type: "GET",
-            success: function (response) {
-              // This function is called when the server responds successfully
-              // Handle the response
-              console.log(response);
-            },
-            error: function (error) {
-              // This function is called when the server responds with an error
-              console.log(error);
-            },
-          });
+            // Make an AJAX request to the Flask route
+            $.ajax({
+                url: "/colour/" + colorValue,
+                type: "GET",
+                success: function (response) {
+                    // This function is called when the server responds successfully
+                    // Handle the response
+                    console.log(response);
+                },
+                error: function (error) {
+                    // This function is called when the server responds with an error
+                    console.log(error);
+                },
+            });
         });
-      });
-    </script>
+
+
+        $(".volume-option").click(function (event) {
+            event.preventDefault();
+            var button = $(this);
+            var volumeLevel = button.data("volume");
+
+            $.ajax({
+                url: "/volume/" + volumeLevel,
+                type: "GET",
+                success: function (response) {
+                    $(".volume-option").each(function () {
+                        var btn = $(this);
+                        var btnVolume = btn.data("volume");
+                        if (btnVolume === volumeLevel) {
+                            btn.addClass("clicked");
+                            btn.prop("disabled", true);
+                        } else {
+                            btn.removeClass("clicked");
+                            btn.prop("disabled", false);
+                        }
+                    });
+                },
+                error: function (error) {
+                    console.log("Error setting volume:", error);
+                },
+            });
+        });
+    });
+</script>
 
 {% endblock %}

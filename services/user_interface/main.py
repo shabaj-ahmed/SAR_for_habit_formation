@@ -32,6 +32,12 @@ communication_interface = CommunicationInterface(
 
 communication_interface.socketio = socketio
 
+volume_button_states = {
+    'quiet': False,
+    'default': False,
+    'loud': False,
+}
+
 def publish_heartbeat():
     while True:
         communication_interface.publish_UI_status("running")
@@ -71,13 +77,26 @@ def history():
 
 @app.route('/settings')
 def settings():
-    return render_template('settings.html')
+    return render_template('settings.html', volume_button_states=volume_button_states)
 
 @app.route('/colour/<secected_colour>')
 def colour_button_click(secected_colour):
-    
+
     # Send colour chage command to robot
     communication_interface.change_colour(secected_colour)
+    return jsonify({'status': 'success'})
+
+@app.route('/volume/<button_name>')
+def volume_button_click(button_name):
+    if button_name in volume_button_states:
+        # Set the state of all buttons to False
+        for key in volume_button_states:
+            volume_button_states[key] = False
+        # Only set the state of the clicked button to True
+        volume_button_states[button_name] = True
+        logger.info(f"Volume button clicked: {button_name}")
+        # Call the function in robot_controller
+        communication_interface.change_volume(button_name)
     return jsonify({'status': 'success'})
 
 @app.route('/profile')

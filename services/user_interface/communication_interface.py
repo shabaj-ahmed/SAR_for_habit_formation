@@ -94,6 +94,10 @@ class CommunicationInterface(MQTTClientBase):
     def change_colour(self, selected_colour):
         self.logger.info(f"Sending colour change command: {selected_colour}")
         self.publish("robot_colour", selected_colour)
+    
+    def change_volume(self, volume):
+        self.logger.info(f"Sending volume change command: {volume}")
+        self.publish("robot_volume", volume)
 
     def publish_UI_status(self, status, message="", details=None):
         payload = {
