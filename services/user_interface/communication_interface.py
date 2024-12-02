@@ -37,6 +37,10 @@ class CommunicationInterface(MQTTClientBase):
         self.camera_active_topic = "robot/cameraActive"
         self.audio_active_topic = "audio_active"
         self.robot_error_topic = "robot/error"
+        self.robot_volume_topic = "robot_volume"
+        self.user_interface_status_topic = "UI_status"
+        self.start_check_in_topic = "start_check_in"
+        self.robot_colour_topic = "robot_colour"
 
         # Subscribe to topics
         self.subscribe(self.check_in_status_topic, self._process_check_in_status)
@@ -89,15 +93,15 @@ class CommunicationInterface(MQTTClientBase):
     def start_check_in(self):
         if self.check_in_status != True:
             self.logger.info("Sending check-in start command")
-            self.publish("start_check_in", "1")
+            self.publish(self.start_check_in_topic, "1")
     
     def change_colour(self, selected_colour):
         self.logger.info(f"Sending colour change command: {selected_colour}")
-        self.publish("robot_colour", selected_colour)
+        self.publish(self.robot_colour_topic, selected_colour)
     
     def change_volume(self, volume):
         self.logger.info(f"Sending volume change command: {volume}")
-        self.publish("robot_volume", volume)
+        self.publish(self.robot_volume_topic, volume)
 
     def publish_UI_status(self, status, message="", details=None):
         payload = {
@@ -106,4 +110,4 @@ class CommunicationInterface(MQTTClientBase):
             "details": details,
             "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
         }
-        self.publish("UI_status", json.dumps(payload))
+        self.publish(self.user_interface_status_topic, json.dumps(payload))
