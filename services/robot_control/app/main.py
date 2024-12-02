@@ -77,6 +77,7 @@ class VectorRobotController:
             "sapphire": (0.57, 1.00),
             "purple": (0.83, 0.76),
             "green": (0.25, 1.00),
+            "red": (0.00, 1.00),    
         }
 
         selected_colour = colours.get(colour, colours["orange"])
