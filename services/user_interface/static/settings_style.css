@@ -1,0 +1,76 @@
+#custom-radios div {
+    display: inline-block;
+  }
+
+  #custom-radios input[type="radio"] {
+    display: none;
+  }
+
+  #custom-radios input[type="radio"] + label {
+    color: #333;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+  }
+
+  #custom-radios input[type="radio"] + label span {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    margin: -1px 4px 0 0;
+    vertical-align: middle;
+    cursor: pointer;
+    border-radius: 50%;
+    border: 2px solid #ffffff;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.33);
+    background-repeat: no-repeat;
+    background-position: center;
+    text-align: center;
+    line-height: 44px;
+  }
+
+  #custom-radios input[type="radio"] + label span img {
+    opacity: 0;
+    transition: all 0.3s ease;
+  }
+
+  #custom-radios #colour-1 + label span {
+    background-color: #2ecc71;
+  }
+
+  #custom-radios #colour-2 + label span {
+    background-color: #3498db;
+  }
+
+  #custom-radios #colour-3 + label span {
+    background-color: #f1c40f;
+  }
+
+  #custom-radios #colour-4 + label span {
+    background-color: #e74c3c;
+  }
+
+  #custom-radios #colour-5 + label span {
+    background-color: #40e0d0;
+  }
+
+  #custom-radios #colour-6 + label span {
+    background-color: #ffc0cb;
+  }
+
+  /* #custom-radios #colour-7 + label span {
+    background-color: #800080;
+  } */
+
+  #custom-radios #colour-8 + label span {
+    background-color: #ffffff;
+  }
+
+  #custom-radios input[type="radio"]:checked + label span img {
+    opacity: 1;
+  }
+
+  .radios-container {
+    display: flex;
+    justify-content: center;
+    width: 100%; /* Ensures the container spans the full width */
+  }

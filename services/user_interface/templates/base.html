@@ -6,6 +6,7 @@
     <title>{{ title|default("My App") }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='chat.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='settings_style.css') }}">
     <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
 </head>
 <body>
@@ -16,6 +17,7 @@
         <a href="{{ url_for('home') }}">Home</a>
         <a href="{{ url_for('check_in') }}">Check-In</a>
         <a href="{{ url_for('history') }}">History</a>
+        <a href="{{ url_for('settings') }}">Settings</a>
     </div>
 
     <!-- Main Content -->

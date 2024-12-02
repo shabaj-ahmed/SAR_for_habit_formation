@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h4>Choose a LED colour</h4>
+<p>
+  The robot has LED lights that can display different colors. Select a
+  colour that you think looks good from the following options:
+</p>
+
+<div class="radios-container">
+  <div id="custom-radios">
+    <div>
+      <input
+        type="radio"
+        class="custom-radio"
+        id="colour-1"
+        name="colour"
+        value="green"
+      />
+      <label for="colour-1">
+        <span>
+          <img src="./static/check.svg" alt="Checked Icon" />
+        </span>
+      </label>
+    </div>
+
+    <div>
+      <input
+        type="radio"
+        class="custom-radio"
+        id="colour-2"
+        name="colour"
+        value="blue"
+      />
+      <label for="colour-2">
+        <span>
+          <img src="./static/check.svg" alt="Checked Icon" />
+        </span>
+      </label>
+    </div>
+
+    <div>
+      <input
+        type="radio"
+        class="custom-radio"
+        id="colour-3"
+        name="colour"
+        value="yellow"
+      />
+      <label for="colour-3">
+        <span>
+          <img src="./static/check.svg" alt="Checked Icon" />
+        </span>
+      </label>
+    </div>
+
+    <div>
+      <input
+        type="radio"
+        class="custom-radio"
+        id="colour-4"
+        name="colour"
+        value="red"
+      />
+      <label for="colour-4">
+        <span>
+          <img src="./static/check.svg" alt="Checked Icon" />
+        </span>
+      </label>
+    </div>
+
+    <div>
+      <input
+        type="radio"
+        class="custom-radio"
+        id="colour-5"
+        name="colour"
+        value="cyan"
+      />
+      <label for="colour-5">
+        <span>
+          <img src="./static/check.svg" alt="Checked Icon" />
+        </span>
+      </label>
+    </div>
+
+    <div>
+      <input
+        type="radio"
+        class="custom-radio"
+        id="colour-6"
+        name="colour"
+        value="magenta"
+      />
+      <label for="colour-6">
+        <span>
+          <img src="./static/check.svg" alt="Checked Icon" />
+        </span>
+      </label>
+    </div>
+
+    <!-- <div>
+      <input
+        type="radio"
+        class="custom-radio"
+        id="colour-7"
+        name="colour"
+        value="purple"
+      />
+      <label for="colour-7">
+        <span>
+          <img src="./static/check.svg" alt="Checked Icon" />
+        </span>
+      </label>
+    </div> -->
+
+    <div>
+      <input
+        type="radio"
+        class="custom-radio"
+        id="colour-8"
+        name="colour"
+        value="white"
+        checked
+      />
+      <label for="colour-8">
+        <span>
+          <img src="./static/check.svg" alt="Checked Icon" />
+        </span>
+      </label>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+      $(document).ready(function () {
+        // This function is called when any of the radio buttons is changed
+        $('input[type="radio"].custom-radio').change(function () {
+          // 'this' refers to the radio button that was changed
+          var colorValue = $(this).val(); // Get the value of the radio button
+
+          // Make an AJAX request to the Flask route
+          $.ajax({
+            url: "/colour/" + colorValue, // Assuming 'colorValue' is the part of the URL you want
+            type: "GET",
+            success: function (response) {
+              // This function is called when the server responds successfully
+              // Handle the response
+              console.log(response);
+            },
+            error: function (error) {
+              // This function is called when the server responds with an error
+              console.log(error);
+            },
+          });
+        });
+      });
+    </script>
+
+{% endblock %}

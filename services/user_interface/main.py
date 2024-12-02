@@ -69,6 +69,10 @@ def check_in():
 def history():
     return render_template('history.html')
 
+@app.route('/settings')
+def settings():
+    return render_template('settings.html')
+
 @app.route('/profile')
 def profile():
     return render_template('profile.html')
