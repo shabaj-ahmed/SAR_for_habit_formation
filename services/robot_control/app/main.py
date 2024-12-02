@@ -88,7 +88,15 @@ class VectorRobotController:
         self.robot.behavior.set_eye_color(hue=selected_colour[0], saturation=selected_colour[1])
     
     def set_volume(self, volume):
-        self.robot.audio.set_master_volume(volume)
+        RobotVolumeLevel = {
+            "quiet": 0,
+            "medium_low": 1,
+            "default": 2,
+            "medium_high": 3,
+            "loud": 4,
+        }
+        
+        self.robot.audio.set_master_volume(RobotVolumeLevel[volume])
 
     def capture_camera_frame(self):
         """Captures a single image frame from the robot's camera."""
@@ -153,4 +161,3 @@ if __name__ == '__main__':
         sys.exit("A connection error occurred: %s" % e)
     finally:
         controller.disconnect_robot()
-

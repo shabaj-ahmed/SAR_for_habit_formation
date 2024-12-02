@@ -59,8 +59,7 @@ class CommunicationInterface(MQTTClientBase):
     
     def _handle_volume_command(self, client, userdata, message):
         try:
-            payload = json.loads(message.payload.decode("utf-8"))
-            volume = payload.get("volume", 0)
+            volume = message.payload.decode("utf-8")
             self.logger.info(f"Volume command received: {volume}")
             if volume:
                 self.robot_controller.set_volume(volume)
