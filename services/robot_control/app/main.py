@@ -11,6 +11,7 @@ import os
 import anki_vector
 from anki_vector import util
 from anki_vector import annotate
+from anki_vector.util import degrees
 
 import logging
 
@@ -42,6 +43,14 @@ class VectorRobotController:
         if self.robot:
             self.robot.disconnect()
 
+    def engage_user(self):
+        self.robot.behavior.drive_off_charger()
+        self.robot.behavior.find_faces()
+        # self.robot.behavior.turn_towards_face()
+
+    def disengage_user(self):
+        self.robot.behavior.drive_on_charger()
+
     def say_text(self, text):
         self.robot.behavior.say_text(text)
 
@@ -58,6 +67,14 @@ class VectorRobotController:
 
     def toggle_autonomous_behavior(self, enable=True):
         self.robot.behavior.enable_all_reactions(enable)
+
+    def set_eye_colour(self, hue, saturation):
+        self.robot.behavior.set_head_angle(degrees(45.0))
+        self.robot.behavior.set_lift_height(0.0)
+        self.robot.behavior.set_eye_color(hue, saturation)
+    
+    def set_volume(self, volume):
+        self.robot.audio.set_master_volume(volume)
 
     def capture_camera_frame(self):
         """Captures a single image frame from the robot's camera."""

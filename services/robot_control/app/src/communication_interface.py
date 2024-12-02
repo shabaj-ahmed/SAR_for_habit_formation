@@ -25,7 +25,9 @@ class CommunicationInterface(MQTTClientBase):
         # Topics and configuration
         self.robot_status = "robot_status"
         self.check_in_status_topic = "robot/check_in_status"
-        self.tts_topic = "onversation/history"
+        self.robot_volume = "robot_volume"
+        self.robot_colour = "robot_colour"
+        self.tts_topic = "conversation/history"
         self.animation_topic = "robot/animation"
         self.behavior_topic = "robot/behavior"
         self.activate_camera_topic = "robot/activate_camera"
@@ -33,6 +35,8 @@ class CommunicationInterface(MQTTClientBase):
 
         # Subscribe to necessary topics
         self.subscribe(self.check_in_status_topic, self._handle_start_command)
+        self.subscribe(self.robot_volume, self._handle_volume_command)
+        self.subscribe(self.robot_colour, self._handle_colour_command)
         self.subscribe(self.tts_topic, self._handle_tts_command)
         self.subscribe(self.animation_topic, self._handle_animation_command)
         self.subscribe(self.behavior_topic, self._handle_behavior_command)
@@ -44,6 +48,7 @@ class CommunicationInterface(MQTTClientBase):
             message = payload.get("message", "")
             self.logger.info(f"message = {message}")
             if message == "start" or message == "running":
+                self.robot_controller.drive
                 # Wake up the robot
                 pass
             elif message == "completed" or message == "end":
@@ -52,11 +57,32 @@ class CommunicationInterface(MQTTClientBase):
         except json.JSONDecodeError:
             self.logger.error("Invalid JSON payload. Using default retry parameters.")
     
+    def _handle_volume_command(self, client, userdata, message):
+        try:
+            payload = json.loads(message.payload.decode("utf-8"))
+            volume = payload.get("volume", 0)
+            self.logger.info(f"Volume command received: {volume}")
+            if volume:
+                self.robot_controller.set_volume(volume)
+        except json.JSONDecodeError:
+            self.logger.error("Invalid JSON payload for volume command.")
+    
+    def _handle_colour_command(self, client, userdata, message):
+        try:
+            payload = json.loads(message.payload.decode("utf-8"))
+            hue = payload.get("hue", "")
+            saturation = payload.get("saturation", "")
+            self.logger.info(f"Colour command received: hue={hue}, saturation={saturation}")
+            if hue and saturation:
+                self.robot_controller.set_eye_colour(hue, saturation)
+        except json.JSONDecodeError:
+            self.logger.error("Invalid JSON payload for colour command.")
+    
     def _handle_tts_command(self, client, userdata, message):
         try:
             payload = json.loads(message.payload.decode("utf-8"))
-            text = payload.get("text", "")
-            self.logger.info(f"TTS command received: {text}")
+            text = payload.get("content", "")
+            self.logger.info(f"environment variable {text}")
             if text:
                 self.robot_controller.say_text(text)
         except json.JSONDecodeError:
