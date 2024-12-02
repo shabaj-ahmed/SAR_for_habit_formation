@@ -79,9 +79,10 @@ class CommunicationInterface(MQTTClientBase):
     def _handle_tts_command(self, client, userdata, message):
         try:
             payload = json.loads(message.payload.decode("utf-8"))
+            sender = payload.get("sender", "")
             text = payload.get("content", "")
             self.logger.info(f"environment variable {text}")
-            if text:
+            if sender == "robot":
                 self.robot_controller.say_text(text)
         except json.JSONDecodeError:
             self.logger.error("Invalid JSON payload for TTS command.")

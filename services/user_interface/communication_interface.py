@@ -31,12 +31,19 @@ class CommunicationInterface(MQTTClientBase):
         self.message_callback = None
         self.socketio = None
 
+        # Topic names
+        self.check_in_status_topic = "check_in_status"
+        self.conversation_history_topic = "conversation/history"
+        self.camera_active_topic = "robot/cameraActive"
+        self.audio_active_topic = "audio_active"
+        self.robot_error_topic = "robot/error"
+
         # Subscribe to topics
-        self.subscribe("check_in_status", self._process_check_in_status)
-        self.subscribe("conversation/history", self._on_message)
-        self.subscribe("robot/cameraActive", self._process_camera_active)
-        self.subscribe("audio_active", self._process_audio_active)
-        self.subscribe("robot/error", self._process_error_message)
+        self.subscribe(self.check_in_status_topic, self._process_check_in_status)
+        self.subscribe(self.conversation_history_topic, self._on_message)
+        self.subscribe(self.camera_active_topic, self._process_camera_active)
+        self.subscribe(self.audio_active_topic, self._process_audio_active)
+        self.subscribe(self.robot_error_topic, self._process_error_message)
 
     def _process_check_in_status(self, client, userdata, message):
         payload = json.loads(message.payload.decode("utf-8"))
@@ -55,7 +62,7 @@ class CommunicationInterface(MQTTClientBase):
     def _on_message(self, client, userdata, message):
         try:
             payload = json.loads(message.payload.decode("utf-8"))
-            self.logger.info(f"Message received on 'conversation/history, payload: {payload}")
+            self.logger.info(f"Message received on '{self.conversation_history_topic}, payload: {payload}")
             if self.message_callback:
                 self.message_callback(payload)
         except json.JSONDecodeError as e:
