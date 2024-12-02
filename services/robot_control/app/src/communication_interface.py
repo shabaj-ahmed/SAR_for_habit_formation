@@ -68,13 +68,11 @@ class CommunicationInterface(MQTTClientBase):
             self.logger.error("Invalid JSON payload for volume command.")
     
     def _handle_colour_command(self, client, userdata, message):
+        selected_colour = message.payload.decode()
         try:
-            payload = json.loads(message.payload.decode("utf-8"))
-            hue = payload.get("hue", "")
-            saturation = payload.get("saturation", "")
-            self.logger.info(f"Colour command received: hue={hue}, saturation={saturation}")
-            if hue and saturation:
-                self.robot_controller.set_eye_colour(hue, saturation)
+            self.logger.info(f"Colour received: {selected_colour}")
+            if selected_colour:
+                self.robot_controller.set_eye_colour(selected_colour)
         except json.JSONDecodeError:
             self.logger.error("Invalid JSON payload for colour command.")
     

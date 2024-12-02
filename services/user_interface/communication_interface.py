@@ -83,6 +83,10 @@ class CommunicationInterface(MQTTClientBase):
         if self.check_in_status != True:
             self.logger.info("Sending check-in start command")
             self.publish("start_check_in", "1")
+    
+    def change_colour(self, selected_colour):
+        self.logger.info(f"Sending colour change command: {selected_colour}")
+        self.publish("robot_colour", selected_colour)
 
     def publish_UI_status(self, status, message="", details=None):
         payload = {

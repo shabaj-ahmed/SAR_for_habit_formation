@@ -73,6 +73,13 @@ def history():
 def settings():
     return render_template('settings.html')
 
+@app.route('/colour/<secected_colour>')
+def colour_button_click(secected_colour):
+    
+    # Send colour chage command to robot
+    communication_interface.change_colour(secected_colour)
+    return jsonify({'status': 'success'})
+
 @app.route('/profile')
 def profile():
     return render_template('profile.html')
