@@ -12,9 +12,9 @@
 /* Chat Container */
 .chat-container {
     flex: 1; /* Expand to fill available space */
-    max-height: calc(100vh - 100px); /* Ensure it does not exceed the viewport (adjust for margins) */
     display: flex;
     flex-direction: column;
+    max-height: calc(100vh - 100px); /* Ensure it does not exceed the viewport (adjust for margins) */
     background-color: white;
     border-radius: 15px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
@@ -24,6 +24,7 @@
 /* Messages Area */
 .messages {
     flex: 1; /* Allow it to grow and take available vertical space */
+    max-height: 100%; /* Maintain a fixed height within the parent container */
     overflow-y: auto; /* Enable vertical scrolling */
     padding: 15px;
     background-color: #f9f9f9;
