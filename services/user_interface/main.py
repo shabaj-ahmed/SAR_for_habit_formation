@@ -37,6 +37,10 @@ volume_button_states = {
     'default': False,
     'loud': False,
 }
+voice_button_states = {
+    'robotic': False,
+    'human': False,
+}
 
 def publish_heartbeat():
     while True:
@@ -77,7 +81,7 @@ def history():
 
 @app.route('/settings')
 def settings():
-    return render_template('settings.html', volume_button_states=volume_button_states)
+    return render_template('settings.html', volume_button_states=volume_button_states, voice_button_states=voice_button_states)
 
 @app.route('/colour/<secected_colour>')
 def colour_button_click(secected_colour):
