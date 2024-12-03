@@ -12,6 +12,7 @@ body, html {
     margin: 0;
     padding: 0;
     height: 100%;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
     font-family: var(--font-family);
@@ -21,7 +22,7 @@ body, html {
     flex: 1;
     display: flex;
     flex-direction: column;
-    height: 100%;
+    height: calc(100vh - 50px);;
 }
 
 #content {
@@ -32,6 +33,8 @@ body, html {
 
 /* Header */
 #notification-bar {
+    height: 50px;
+    flex-shrink: 0;
     display: flex;
     justify-content: space-between;
     background-color: var(--secondary-color);

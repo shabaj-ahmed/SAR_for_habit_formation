@@ -1,6 +1,6 @@
 /* Wrapper for the entire chat area */
 .chat-wrapper {
-    height: 100vh; /* Full viewport height */
+    height: 100%; /* Full viewport height */
     display: flex;
     flex-direction: column;
     background-color: #f0f0f0;

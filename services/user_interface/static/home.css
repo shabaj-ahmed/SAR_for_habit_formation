@@ -4,10 +4,10 @@
     flex-direction: column;
     justify-content: space-between;
     align-items: center;
-    height: 100vh; /* Full viewport height */
+    height: 100%;
     margin: 0;
-    padding: 2rem;
-    gap: 2rem;
+    padding: 0;
+    gap: 1rem;
     text-align: center;
 }
 
