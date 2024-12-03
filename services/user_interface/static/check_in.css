@@ -1,36 +1,37 @@
 /* Wrapper for the entire chat area */
 .chat-wrapper {
-    height: 100%; /* Full viewport height */
+    height: 100%; /* Fill the remaining height within #main */
     display: flex;
     flex-direction: column;
     background-color: #f0f0f0;
     padding: 20px;
     box-sizing: border-box;
-    overflow: hidden; /* Prevent content from overflowing */
+    overflow: hidden; /* Prevent overflow outside wrapper */
 }
 
 /* Chat Container */
 .chat-container {
-    flex: 1;
+    flex: 1; /* Expand to fill available space */
+    max-height: calc(100vh - 100px); /* Ensure it does not exceed the viewport (adjust for margins) */
     display: flex;
     flex-direction: column;
     background-color: white;
     border-radius: 15px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
+    overflow: hidden; /* Ensure children don't overflow container */
 }
 
 /* Messages Area */
 .messages {
-    flex: 1 1 auto; /* Allow flex-grow and flex-shrink */
-    min-height: 0; /* Critical to prevent overflow */
-    overflow-y: auto; /* Enable scrolling */
+    flex: 1; /* Allow it to grow and take available vertical space */
+    overflow-y: auto; /* Enable vertical scrolling */
     padding: 15px;
     background-color: #f9f9f9;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 10px; /* Add spacing between messages */
     box-sizing: border-box;
+    scroll-behavior: smooth; /* Smooth scrolling */
 }
 
 /* Received Messages */
@@ -40,7 +41,7 @@
     border-radius: 10px;
     padding: 10px;
     max-width: 70%;
-    word-wrap: break-word;
+    word-wrap: break-word; /* Prevent long words from breaking layout */
     box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
 }
 
@@ -67,7 +68,7 @@
 
 /* Chat Controls */
 .chat-controls {
-    flex-shrink: 0;
+    flex-shrink: 0; /* Prevent shrinking */
     padding: 10px;
     background-color: #fff;
     border-top: 1px solid #ccc;

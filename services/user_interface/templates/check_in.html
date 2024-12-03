@@ -9,6 +9,70 @@
     <div class="chat-container">
         <div id="messages" class="messages">
             <p id="no-messages" style="text-align: center; color: #999;">No messages yet...</p>
+            <div class="outgoing-message">
+                <p>test1</p>
+                <span class="time">${time}</span>
+            </div>
+            <div class="received-message">
+                <p>test1</p>
+                <span class="time">${time}</span>
+            </div>
+            <div class="outgoing-message">
+                <p>test2</p>
+                <span class="time">${time}</span>
+            </div>
+            <div class="received-message">
+                <p>test2</p>
+                <span class="time">${time}</span>
+            </div>
+            <div class="outgoing-message">
+                <p>test3</p>
+                <span class="time">${time}</span>
+            </div>
+            <div class="received-message">
+                <p>test3</p>
+                <span class="time">${time}</span>
+            </div>
+            <div class="outgoing-message">
+                <p>test4</p>
+                <span class="time">${time}</span>
+            </div>
+            <div class="received-message">
+                <p>test4</p>
+                <span class="time">${time}</span>
+            </div>
+            <div class="outgoing-message">
+                <p>test5</p>
+                <span class="time">${time}</span>
+            </div>
+            <div class="received-message">
+                <p>tes5</p>
+                <span class="time">${time}</span>
+            </div>
+            <div class="outgoing-message">
+                <p>test6</p>
+                <span class="time">${time}</span>
+            </div>
+            <div class="received-message">
+                <p>test6</p>
+                <span class="time">${time}</span>
+            </div>
+            <div class="outgoing-message">
+                <p>test7</p>
+                <span class="time">${time}</span>
+            </div>
+            <div class="received-message">
+                <p>test7</p>
+                <span class="time">${time}</span>
+            </div>
+            <div class="outgoing-message">
+                <p>test8</p>
+                <span class="time">${time}</span>
+            </div>
+            <div class="received-message">
+                <p>test8</p>
+                <span class="time">${time}</span>
+            </div>
         </div>
         <div class="chat-controls">
             <button id="start-check-in-button">Start Check-In</button>
@@ -32,7 +96,7 @@
             <span class="time">${time}</span>
         `;
         messages.appendChild(receivedChat);
-        messages.scrollTop = messages.scrollHeight; // Auto-scroll to the bottom
+        scrollToBottom(); // Auto-scroll to the bottom
     }
 
     // Function to create and append an outgoing message
@@ -48,7 +112,12 @@
             <span class="time">${time}</span>
         `;
         messages.appendChild(outgoingChat);
-        messages.scrollTop = messages.scrollHeight; // Auto-scroll to the bottom
+        scrollToBottom(); // Auto-scroll to the bottom
+    }
+
+    function scrollToBottom() {
+        const messages = document.getElementById('messages');
+        messages.scrollTop = messages.scrollHeight; // Scroll to the bottom
     }
 
     // Load chat history on connection
@@ -93,6 +162,39 @@
             button.disabled = false;
         }
     });
+
+    // Enable click-and-drag scrolling for the messages container
+    const messages = document.getElementById('messages');
+
+    let isDragging = false;
+    let startY = 0; // Initial Y position of the pointer
+    let scrollTop = 0; // Initial scroll position of the container
+
+    messages.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        startY = e.pageY - messages.offsetTop;
+        scrollTop = messages.scrollTop;
+        messages.style.cursor = 'grabbing'; // Change cursor to grabbing
+    });
+
+    messages.addEventListener('mouseleave', () => {
+        isDragging = false;
+        messages.style.cursor = 'default'; // Reset cursor
+    });
+
+    messages.addEventListener('mouseup', () => {
+        isDragging = false;
+        messages.style.cursor = 'default'; // Reset cursor
+    });
+
+    messages.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        e.preventDefault();
+        const y = e.pageY - messages.offsetTop;
+        const walk = (y - startY) * 2; // Adjust scroll speed
+        messages.scrollTop = scrollTop - walk;
+    });
+
 
 </script>
 {% endblock %}
