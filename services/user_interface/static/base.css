@@ -62,9 +62,9 @@ body, html {
 }
 
 .sidenav a {
-    padding: 8px 32px;
+    padding: 8px 40px;
     text-decoration: none;
-    font-size: 25px;
+    font-size: 50px;
     color: #818181;
     display: block;
     transition: color var(--transition-duration);
@@ -78,7 +78,7 @@ body, html {
     position: absolute;
     top: 0;
     right: 25px;
-    font-size: 36px;
+    font-size: 50px;
 }
 
 /* Responsive */
