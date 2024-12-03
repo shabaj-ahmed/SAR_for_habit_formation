@@ -1,12 +1,22 @@
 /* General Settings Container */
 .settings-container {
     text-align: center;
-    padding: 2rem;
-    margin: 1rem auto; /* Center the container horizontally */
-    max-width: 800px; /* Limit the container width for better readability */
+    padding: 2rem 1rem; /* Vertical and horizontal padding */
+    margin: 1rem auto; /* Space between containers */
+    width: calc(100% - 2rem); /* Full width minus padding to avoid touching the edges */
+    max-width: 1200px; /* Set a maximum width for large screens */
     background: white;
-    border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 10px; /* Rounded corners for visual separation */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
+    box-sizing: border-box; /* Include padding in width calculation */
+}
+
+/* Ensure the settings container adjusts for smaller screens */
+@media (max-width: 600px) {
+    .settings-container {
+        padding: 1.5rem; /* Reduce padding on smaller screens */
+        width: calc(100% - 1rem); /* Reduce side gaps on smaller screens */
+    }
 }
 
 /* Headers */
