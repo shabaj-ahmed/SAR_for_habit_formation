@@ -250,19 +250,26 @@
 
         const value = document.querySelector("#value");
         const input = document.querySelector("#myRange");
+
+        // Update the displayed value
         value.textContent = input.value;
+
         input.addEventListener("input", (event) => {
-            brightness_level = event.target.value;
+            const brightness_level = event.target.value;
+
             $.ajax({
-                    url: "/brightness/" + brightness_level,
-                    type: "GET",
-                    success: function (response) {
-                        value.textContent = brightness_level;
-                    },
-                    error: function (error) {
-                        console.log("Error setting volume:", error);
-                    },
-                });
+                url: "/brightness/" + brightness_level,
+                type: "GET",
+                success: function (response) {
+                    // Update the displayed value on success
+                    value.textContent = brightness_level;
+                    console.log(response); // Optional: Log the success response
+                },
+                error: function (error) {
+                    // Log any error in the console
+                    console.log("Error setting brightness:", error);
+                },
+            });
         });
     });
 </script>

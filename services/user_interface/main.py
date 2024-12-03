@@ -104,11 +104,23 @@ def volume_button_click(button_name):
         communication_interface.change_volume(button_name)
     return jsonify({'status': 'success'})
 
-@app.route('/brightness/<brightness_value>')
+@app.route('/brightness/<int:brightness_value>')
 def brightness_slider_change(brightness_value):
     # Map the brightness value from range 1-100 to 1-255
-    mapped_value = int(1 + (brightness_value - 1) * 254 / 99)
-    subprocess.run(f'echo {mapped_value} | sudo tee /sys/class/backlight/6-0045/brightness', shell=True)
+    mapped_value = int(1 + (int(brightness_value) - 1) * 254 / 99)
+    # logger.info(f"Brightness slider changed: {brightness_value}")
+    try:
+        # Update the brightness using the mapped value
+        subprocess.run(
+            f'echo {mapped_value} | sudo tee /sys/class/backlight/6-0045/brightness',
+            shell=True,
+            check=True
+        )
+        # Return a success response
+        return f"Brightness successfully set to {mapped_value}", 200
+    except subprocess.CalledProcessError as e:
+        # Return an error response if the command fails
+        return f"Failed to set brightness: {e}", 500
 
 @app.route('/profile')
 def profile():
