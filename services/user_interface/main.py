@@ -8,6 +8,7 @@ from custom_logging.logging_config import setup_logger
 import os
 from dotenv import load_dotenv
 from pathlib import Path
+import subprocess
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
@@ -102,6 +103,12 @@ def volume_button_click(button_name):
         # Call the function in robot_controller
         communication_interface.change_volume(button_name)
     return jsonify({'status': 'success'})
+
+@app.route('/brightness/<brightness_value>')
+def brightness_slider_change(brightness_value):
+    # Map the brightness value from range 1-100 to 1-255
+    mapped_value = int(1 + (brightness_value - 1) * 254 / 99)
+    subprocess.run(f'echo {mapped_value} | sudo tee /sys/class/backlight/6-0045/brightness', shell=True)
 
 @app.route('/profile')
 def profile():
