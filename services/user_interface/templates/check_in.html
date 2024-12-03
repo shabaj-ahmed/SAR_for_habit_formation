@@ -1,5 +1,9 @@
 {% extends "base.html" %}
 
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='chat.css') }}">
+{% endblock %}
+
 {% block content %}
 <div class="chat-wrapper">
     <div class="chat-container">

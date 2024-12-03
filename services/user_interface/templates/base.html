@@ -4,10 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title|default("My App") }}</title>
+    
+    <!-- Global Styles -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='chat.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='settings_style.css') }}">
-    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    
+    <!-- Page-Specific Styles -->
+    {% block styles %}
+    {% endblock %}
+
 </head>
 <body>
 
@@ -38,7 +42,8 @@
         </div>
     </div>
 
-    <!-- JavaScript -->
+    <!-- Global Scripts -->
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
     <script>
         function openNav() {
             document.getElementById("mySidenav").style.width = "250px";
@@ -90,6 +95,8 @@
             }
         });
     </script>
+
+    <!-- Global Scripts -->
     {% block scripts %}
     {% endblock %}
 </body>

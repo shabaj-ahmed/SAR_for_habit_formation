@@ -1,36 +1,51 @@
+/* General Settings Container */
 .settings-container {
     text-align: center;
     padding: 2rem;
-    margin: 1rem;
+    margin: 1rem auto; /* Center the container horizontally */
+    max-width: 800px; /* Limit the container width for better readability */
     background: white;
     border-radius: 10px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-h1 {
-    font-size: 2rem;
+/* Headers */
+.settings-container h4 {
+    font-size: 1.5rem;
     margin-bottom: 1rem;
     color: #333;
 }
 
-p {
+.settings-container p {
     font-size: 1rem;
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
     color: #555;
 }
 
+/* Radios Container */
+.radios-container {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap; /* Allow wrapping for smaller screens */
+    gap: 1rem; /* Add spacing between radio buttons */
+    width: 100%;
+    margin-bottom: 2rem;
+}
+
+/* Custom Radios */
 #custom-radios div {
     display: inline-block;
 }
 
 #custom-radios input[type="radio"] {
-    display: none; 
+    display: none; /* Hide the radio input */
 }
 
 #custom-radios input[type="radio"] + label {
     color: #333;
     font-family: Arial, sans-serif;
     font-size: 14px;
+    cursor: pointer;
 }
 
 #custom-radios input[type="radio"] + label span {
@@ -47,58 +62,49 @@ p {
     background-position: center;
     text-align: center;
     line-height: 44px;
+    transition: box-shadow 0.3s ease, transform 0.2s ease;
 }
 
+/* Color Options */
+#custom-radios #green + label span { background-color: #2ecc71; }
+#custom-radios #sapphire + label span { background-color: #3498db; }
+#custom-radios #yellow + label span { background-color: #f1c40f; }
+#custom-radios #red + label span { background-color: #e74c3c; }
+#custom-radios #orange + label span { background-color: #FFA500; }
+#custom-radios #purple + label span { background-color: #800080; }
+
+/* Checked State */
+#custom-radios input[type="radio"]:checked + label span {
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.6);
+    transform: scale(1.1); /* Slightly enlarge the checked option */
+}
+
+/* Default state: Hide the image */
 #custom-radios input[type="radio"] + label span img {
     opacity: 0;
-    transition: all 0.3s ease;
+    visibility: hidden; /* Ensures the image is not interactive when hidden */
+    transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
-#custom-radios #green + label span {
-    background-color: #2ecc71;
-}
-
-#custom-radios #sapphire + label span {
-    background-color: #3498db;
-}
-
-#custom-radios #yellow + label span {
-    background-color: #f1c40f;
-}
-
-#custom-radios #red + label span {
-    background-color: #e74c3c;
-}
-
-#custom-radios #orange + label span {
-    background-color: #FFA500;
-}
-
-#custom-radios #purple + label span {
-    background-color: #800080;
-}
-
+/* Checked state: Show the image */
 #custom-radios input[type="radio"]:checked + label span img {
     opacity: 1;
+    visibility: visible; /* Image becomes visible */
 }
 
-.radios-container {
-    display: flex;
-    justify-content: center;
-    width: 100%; /* Ensures the container spans the full width */
-}
-
+/* Volume Settings */
 .volume-settings {
     display: flex;
     flex-direction: column;
     align-items: center;
+    gap: 1rem; /* Add spacing between elements */
 }
 
 .volume-buttons {
     display: flex;
-    justify-content: space-around;
-    gap: 1rem;
-    width: 100%;
+    justify-content: center;
+    gap: 1rem; /* Space between buttons */
+    flex-wrap: wrap; /* Wrap buttons for smaller screens */
 }
 
 .volume-option {
@@ -127,4 +133,21 @@ p {
 .volume-option.clicked {
     background-color: #0046d5;
     border-color: #0036a5;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 600px) {
+    .settings-container {
+        padding: 1.5rem;
+    }
+
+    .radios-container {
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .volume-buttons {
+        flex-direction: column;
+    }
 }

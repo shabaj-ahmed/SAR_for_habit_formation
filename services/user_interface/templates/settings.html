@@ -1,5 +1,9 @@
 {% extends "base.html" %}
 
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='settings_style.css') }}">
+{% endblock %}
+
 {% block content %}
 <div class="settings-container">
 <h4>Choose a eye colour</h4>
