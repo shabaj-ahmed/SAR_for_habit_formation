@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='history.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="title">History</h1>
+    <div class="history-container">
+        <div class="history-item">
+            <span class="number">1.</span>
+            <span class="date-time">
+                <span class="date">XX/XX/20XX</span> - <span class="time">XX:XX</span>
+            </span>
+        </div>
+        <div class="history-item">
+            <span class="number">2.</span>
+            <span class="date-time">
+                <span class="date">XX/XX/20XX</span> - <span class="time">XX:XX</span>
+            </span>
+        </div>
+        <div class="history-item">
+            <span class="number">3.</span>
+            <span class="date-time">
+                <span class="date">XX/XX/20XX</span> - <span class="time">XX:XX</span>
+            </span>
+        </div>
+    </div>
+</div>
+{% endblock %}

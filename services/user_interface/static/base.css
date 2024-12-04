@@ -1,0 +1,110 @@
+/* Variables */
+:root {
+    --primary-color: #111;
+    --secondary-color: #ddd;
+    --highlight-color: #f1f1f1;
+    --font-family: "Lato", sans-serif;
+    --transition-duration: 0.3s;
+}
+
+/* Layout */
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    font-family: var(--font-family);
+    user-select: none;
+}
+
+#main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 50px);;
+}
+
+#content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header */
+#notification-bar {
+    height: 50px;
+    flex-shrink: 0;
+    display: flex;
+    justify-content: space-between;
+    background-color: var(--secondary-color);
+    padding: 10px;
+}
+
+#indicators img {
+    width: 24px;
+    height: 24px;
+    margin-left: 10px;
+}
+
+/* Side Navigation */
+.sidenav {
+    height: 100%;
+    width: 0;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: var(--primary-color);
+    overflow-x: hidden;
+    transition: width var(--transition-duration);
+    padding-top: 60px;
+}
+
+.sidenav a {
+    padding: 8px 40px;
+    text-decoration: none;
+    font-size: 50px;
+    color: #818181;
+    display: block;
+    transition: color var(--transition-duration);
+}
+
+.sidenav a:hover {
+    color: var(--highlight-color);
+}
+
+.sidenav .closebtn {
+    position: absolute;
+    top: 0;
+    right: 25px;
+    font-size: 50px;
+}
+
+/* Responsive */
+@media screen and (max-height: 450px) {
+    .sidenav {
+        padding-top: 15px;
+    }
+    .sidenav a {
+        font-size: 18px;
+    }
+}
+
+/* Components */
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100vh;
+    text-align: center;
+}
+
+.date-time {
+    display: flex;
+    gap: 1rem;
+}
+
+.date, .time {
+    margin: 0;
+}

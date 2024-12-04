@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='home.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="title">Implementation intention</h1>
+    <div class="row">
+        <div class="check-in">
+            <p>Check in:</p>
+            <div class="date-time">
+                <p class="date">XX/XX/20XX</p>
+                <p class="time">XX:XX</p>
+            </div>
+        </div>
+        <div class="days-remaining">
+            <p>Days remaining: XX</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,221 @@
+/* General Settings Container */
+.settings-container {
+    text-align: center;
+    padding: 2rem 1rem; /* Vertical and horizontal padding */
+    margin: 1rem auto; /* Space between containers */
+    width: calc(100% - 2rem); /* Full width minus padding to avoid touching the edges */
+    max-width: 1200px; /* Set a maximum width for large screens */
+    background: white;
+    border-radius: 10px; /* Rounded corners for visual separation */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
+    box-sizing: border-box; /* Include padding in width calculation */
+}
+
+/* Ensure the settings container adjusts for smaller screens */
+@media (max-width: 600px) {
+    .settings-container {
+        padding: 1.5rem; /* Reduce padding on smaller screens */
+        width: calc(100% - 1rem); /* Reduce side gaps on smaller screens */
+    }
+}
+
+/* Headers */
+.settings-container h4 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: #333;
+}
+
+.settings-container p {
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+    color: #555;
+}
+
+/* Radios Container */
+.radios-container {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap; /* Allow wrapping for smaller screens */
+    gap: 1rem; /* Add spacing between radio buttons */
+    width: 100%;
+    margin-bottom: 2rem;
+}
+
+/* Custom Radios */
+#custom-radios div {
+    display: inline-block;
+}
+
+#custom-radios input[type="radio"] {
+    display: none; /* Hide the radio input */
+}
+
+#custom-radios input[type="radio"] + label {
+    color: #333;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+#custom-radios input[type="radio"] + label span {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    margin: -1px 4px 0 0;
+    vertical-align: middle;
+    cursor: pointer;
+    border-radius: 50%;
+    border: 2px solid #ffffff;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.33);
+    background-repeat: no-repeat;
+    background-position: center;
+    text-align: center;
+    line-height: 44px;
+    transition: box-shadow 0.3s ease, transform 0.2s ease;
+}
+
+/* Color Options */
+#custom-radios #green + label span { background-color: #2ecc71; }
+#custom-radios #sapphire + label span { background-color: #3498db; }
+#custom-radios #yellow + label span { background-color: #f1c40f; }
+#custom-radios #red + label span { background-color: #e74c3c; }
+#custom-radios #orange + label span { background-color: #FFA500; }
+#custom-radios #purple + label span { background-color: #800080; }
+
+/* Checked State */
+#custom-radios input[type="radio"]:checked + label span {
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.6);
+    transform: scale(1.1); /* Slightly enlarge the checked option */
+}
+
+/* Default state: Hide the image */
+#custom-radios input[type="radio"] + label span img {
+    opacity: 0;
+    visibility: hidden; /* Ensures the image is not interactive when hidden */
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+/* Checked state: Show the image */
+#custom-radios input[type="radio"]:checked + label span img {
+    opacity: 1;
+    visibility: visible; /* Image becomes visible */
+}
+
+/* Volume Settings */
+.volume-settings {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem; /* Add spacing between elements */
+}
+
+.volume-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem; /* Space between buttons */
+    flex-wrap: wrap; /* Wrap buttons for smaller screens */
+}
+
+/* Common button style */
+.settings-button {
+    padding: 0.5rem 1.5rem;
+    font-size: 1rem;
+    border: 2px solid #007BFF;
+    border-radius: 5px;
+    cursor: pointer;
+    background-color: #007BFF;
+    color: white;
+    transition: all 0.3s;
+}
+
+/* Hover effect for all buttons */
+.settings-button:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+}
+
+/* Disabled state for buttons */
+.settings-button:disabled {
+    background-color: #cccccc;
+    border-color: #aaaaaa;
+    color: #666666;
+    cursor: not-allowed;
+}
+
+/* Active or selected state for buttons */
+.settings-button.clicked {
+    background-color: #0046d5;
+    border-color: #0036a5;
+}
+
+/* Focus state for better accessibility */
+.settings-button:focus {
+    outline: 2px solid #0056b3;
+    outline-offset: 2px;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 600px) {
+    .settings-container {
+        padding: 1.5rem;
+    }
+
+    .radios-container {
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .volume-buttons {
+        flex-direction: column;
+    }
+}
+
+/* Container for the toggle */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+}
+
+/* Hide default checkbox */
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+/* The track */
+.toggle {
+    position: absolute;
+    cursor: pointer;
+    background-color: #ccc;
+    border-radius: 24px;
+    width: 100%;
+    height: 100%;
+    transition: background-color 0.3s;
+}
+
+/* The circular slider */
+.toggle::before {
+    content: "";
+    position: absolute;
+    height: 20px;
+    width: 20px;
+    left: 4px;
+    bottom: 2px;
+    background-color: white;
+    border-radius: 50%;
+    transition: transform 0.3s;
+}
+
+/* Toggled state */
+.toggle-switch input:checked+.toggle {
+    background-color: #4caf50;
+}
+
+.toggle-switch input:checked+.toggle::before {
+    transform: translateX(26px);
+}

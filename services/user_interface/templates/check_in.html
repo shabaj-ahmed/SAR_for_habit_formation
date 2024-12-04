@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='check_in.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="chat-wrapper">
+    <div class="chat-container">
+        <div id="messages" class="messages">
+            <p id="no-messages" style="text-align: center; color: #999;">No messages yet...</p>
+        </div>
+        <div class="chat-controls">
+            <button id="start-check-in-button">Start Check-In</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Function to create and append a received message
+    function appendReceivedMessage(content, time) {
+        const messages = document.getElementById('messages');
+        const noMessages = document.getElementById('no-messages');
+        if (noMessages) noMessages.remove(); // Remove placeholder if it exists
+
+        const receivedChat = document.createElement('div');
+        receivedChat.classList.add('received-message'); // Apply received message styling
+        receivedChat.innerHTML = `
+            <p>${content}</p>
+            <span class="time">${time}</span>
+        `;
+        messages.appendChild(receivedChat);
+        scrollToBottom(); // Auto-scroll to the bottom
+    }
+
+    // Function to create and append an outgoing message
+    function appendOutgoingMessage(content, time) {
+        const messages = document.getElementById('messages');
+        const noMessages = document.getElementById('no-messages');
+        if (noMessages) noMessages.remove(); // Remove placeholder if it exists
+
+        const outgoingChat = document.createElement('div');
+        outgoingChat.classList.add('outgoing-message'); // Apply outgoing message styling
+        outgoingChat.innerHTML = `
+            <p>${content}</p>
+            <span class="time">${time}</span>
+        `;
+        messages.appendChild(outgoingChat);
+        scrollToBottom(); // Auto-scroll to the bottom
+    }
+
+    function scrollToBottom() {
+        const messages = document.getElementById('messages');
+        messages.scrollTop = messages.scrollHeight; // Scroll to the bottom
+    }
+
+    // Load chat history on connection
+    window.socket.on('chat_history', function(history) {
+        history.forEach(message => {
+            if (message.sender === 'robot') {
+                appendReceivedMessage(message.content, message.time);
+            } else {
+                appendOutgoingMessage(message.content, message.time);
+            }
+        });
+    });
+
+    // Listen for new messages
+    window.socket.on('new_message', function(message) {
+        if (message.sender === 'robot') {
+            appendReceivedMessage(message.content, message.time);
+        } else {
+            appendOutgoingMessage(message.content, message.time);
+        }
+    });
+
+    // Handle "Start Check-In" button click
+    document.getElementById('start-check-in-button').addEventListener('click', function() {
+        fetch('/start_check_in', { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Check-In started:', data);
+                const button = document.getElementById('start-check-in-button');
+                if (button) {
+                    button.textContent = "Check-In in Progress...";
+                    button.disabled = true;
+                }
+            })
+            .catch(error => console.error('Error starting check-in:', error));
+    });
+
+    window.socket.on('check_in_complete', function() {
+        const button = document.getElementById('start-check-in-button');
+        if (button) {
+            button.textContent = "Start Check-In";
+            button.disabled = false;
+        }
+    });
+
+    // Enable click-and-drag scrolling for the messages container
+    const messages = document.getElementById('messages');
+
+    let isDragging = false;
+    let startY = 0; // Initial Y position of the pointer
+    let scrollTop = 0; // Initial scroll position of the container
+
+    messages.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        startY = e.pageY - messages.offsetTop;
+        scrollTop = messages.scrollTop;
+        messages.style.cursor = 'grabbing'; // Change cursor to grabbing
+    });
+
+    messages.addEventListener('mouseleave', () => {
+        isDragging = false;
+        messages.style.cursor = 'default'; // Reset cursor
+    });
+
+    messages.addEventListener('mouseup', () => {
+        isDragging = false;
+        messages.style.cursor = 'default'; // Reset cursor
+    });
+
+    messages.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        e.preventDefault();
+        const y = e.pageY - messages.offsetTop;
+        const walk = (y - startY) * 2; // Adjust scroll speed
+        messages.scrollTop = scrollTop - walk;
+    });
+
+
+</script>
+{% endblock %}

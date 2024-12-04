@@ -1,0 +1,71 @@
+/* General Container Styling */
+.container {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    height: 100%; /* Ensure it fits within the parent */
+    margin: 0;
+    padding: 1rem;
+    gap: 2rem;
+    text-align: center;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Title Styling */
+.title {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+}
+
+/* History Container */
+.history-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem; /* Space between items */
+    width: 100%;
+    max-width: 600px; /* Optional: Limit the container width */
+}
+
+/* History Item (Tile) */
+.history-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    background-color: var(--secondary-color);
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, background-color 0.2s;
+    color: var(--primary-color);
+    font-size: 1.2rem;
+    gap: 1rem; /* Space between number and text */
+}
+
+/* Hover Effect for History Item */
+.history-item:hover {
+    transform: scale(1.02);
+    background-color: var(--highlight-color);
+    cursor: pointer;
+}
+
+/* Number Styling */
+.number {
+    font-weight: bold;
+    font-size: 1.5rem;
+    color: var(--primary-color);
+}
+
+/* Date and Time Styling */
+.date-time {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: normal;
+}
+
+.date, .time {
+    margin: 0;
+}
