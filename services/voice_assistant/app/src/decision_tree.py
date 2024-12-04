@@ -20,7 +20,6 @@ class DecisionTree:
 
         # Step 1: Send greeting
         self.communication_interface.publish_robot_speech(
-            sender = "robot",
             message_type = "greeting",
             content = "Hello! Welcome to your daily check-in."
         )
@@ -45,7 +44,6 @@ class DecisionTree:
 
         # Step 5: Wish participants farewell
         self.communication_interface.publish_robot_speech(
-            sender = "robot",
             message_type = "farewell",
             content = "Thank you for checking in. Have a great day!"
         )
@@ -145,7 +143,6 @@ class DecisionTree:
         question_data = next_question()
         while question_data:
             self.communication_interface.publish_robot_speech(
-                sender = "robot",
                 message_type = "question",
                 content = question_data["question"]
             )
@@ -158,7 +155,6 @@ class DecisionTree:
                 continue
 
             self.communication_interface.publish_user_response(
-                sender = "user",
                 message_type = "Response",
                 content = response
             )

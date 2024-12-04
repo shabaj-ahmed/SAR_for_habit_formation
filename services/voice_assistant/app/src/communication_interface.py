@@ -54,9 +54,9 @@ class CommunicationInterface(MQTTClientBase):
         # Forwards the robot speech to the conversation history
         self._thread_safe_publish(self.conversation_history_topic, message.payload.decode("utf-8"))
 
-    def publish_robot_speech(self, sender, content, message_type="response"):
+    def publish_robot_speech(self, content, message_type="response"):
         message = {
-            "sender": sender,
+            "sender": "robot",
             "message_type": message_type,
             "content": content
         }
@@ -64,9 +64,9 @@ class CommunicationInterface(MQTTClientBase):
         # This is what the robot should say
         self._thread_safe_publish(self.robot_speech_topic, json_message)
 
-    def publish_user_response(self, sender, content, message_type="response"):
+    def publish_user_response(self, content, message_type="response"):
         message = {
-            "sender": sender,
+            "sender": "user",
             "message_type": message_type,
             "content": content
         }

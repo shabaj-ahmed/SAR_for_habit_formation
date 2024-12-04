@@ -11,8 +11,9 @@ import audioop
 # Audio recording parameters
 RATE = 16000
 CHUNK = int(RATE / 10)  # 100ms
-SILENCE_THRESHOLD = 500  # RMS threshold for silence
-SILENCE_DURATION = 5  # Silence duration in seconds
+SILENCE_THRESHOLD = 450  # RMS threshold for silence (This value was arbitrarily chosen based on testing)
+INITIAL_SILENCE_DURATION = 15 # Silence duration in seconds
+SILENCE_DURATION = 4  # Silence duration in seconds
 
 # Relative path to the .env file in the config directory
 # Move up one level and into config
@@ -126,9 +127,14 @@ class MicrophoneStream:
         self._buff.put(in_data)
         return None, pyaudio.paContinue
 
+
     def generator(self):
-        """Generate audio chunks and detect silence."""
+        """Generate audio chunks and detect silence.
+        Waits {INITIAL_SILENCE_DURATION} seconds for the user to start speaking.
+        Once the user starts talking, if the user is silent for {SILENCE_DURATION}, the conversation will end.
+        """
         silence_start = time.time()
+        initial_silence = True
         while not self.closed:
             chunk = self._buff.get()
             if chunk is None:
@@ -137,9 +143,20 @@ class MicrophoneStream:
 
             # Detect silence by measuring RMS
             rms = audioop.rms(chunk, 2)
-            if rms < SILENCE_THRESHOLD:
-                if time.time() - silence_start >= SILENCE_DURATION:
-                    # self.communication_interface.silance_detected()
-                    self.closed = True
+            if initial_silence:
+                if rms < SILENCE_THRESHOLD:
+                    if time.time() - silence_start >= INITIAL_SILENCE_DURATION:
+                        print("No response detected within initial silence duration.")
+                        self.closed = True
+                else:
+                    print("User started speaking.")
+                    initial_silence = False
+                    silence_start = time.time()  # Reset silence timer for post-speaking silence detection
             else:
-                silence_start = time.time()  # Reset silence timer if sound is detected
+                if rms < SILENCE_THRESHOLD:
+                    if time.time() - silence_start >= SILENCE_DURATION:
+                        print("Silence detected after response. Ending recording.")
+                        self.closed = True
+                else:
+                    silence_start = time.time()  # Reset silence timer when sound is detected
+                    print("Sound detected.")
