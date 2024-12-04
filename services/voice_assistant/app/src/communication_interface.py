@@ -64,7 +64,7 @@ class CommunicationInterface(MQTTClientBase):
         # This is what the robot should say
         self._thread_safe_publish(self.robot_speech_topic, json_message)
 
-    def publish_user_speech(self, sender, content, message_type="response"):
+    def publish_user_response(self, sender, content, message_type="response"):
         message = {
             "sender": sender,
             "message_type": message_type,

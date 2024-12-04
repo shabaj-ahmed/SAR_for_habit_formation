@@ -86,7 +86,7 @@ class CommunicationInterface(MQTTClientBase):
             self.logger.info(f"environment variable {text}")
             if sender == "robot":
                 self.robot_controller.say_text(text)
-                self.publish(self.conversation_history_topic, text)
+                self.publish(self.conversation_history_topic, json.dumps(payload))
         except json.JSONDecodeError:
             self.logger.error("Invalid JSON payload for TTS command.")
     
