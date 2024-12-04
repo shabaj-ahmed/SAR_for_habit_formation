@@ -22,16 +22,19 @@ class CommunicationInterface(MQTTClientBase):
         self.start_command = False
         self.is_streaming = False
 
-        # Topics and configuration
-        self.robot_status = "robot_status"
+        # Subscription topics
         self.check_in_status_topic = "robot/check_in_status"
         self.robot_volume = "robot_volume"
         self.robot_colour = "robot_colour"
-        self.tts_topic = "conversation/history"
+        self.tts_topic = "voice_assistant/robot_speech"
         self.animation_topic = "robot/animation"
         self.behavior_topic = "robot/behavior"
         self.activate_camera_topic = "robot/activate_camera"
+
+        # Publish topics
+        self.conversation_history_topic = "conversation/history"
         self.video_topic = "robot/video_feed"
+        self.robot_status = "robot_status"
 
         # Subscribe to necessary topics
         self.subscribe(self.check_in_status_topic, self._handle_start_command)
@@ -83,6 +86,7 @@ class CommunicationInterface(MQTTClientBase):
             self.logger.info(f"environment variable {text}")
             if sender == "robot":
                 self.robot_controller.say_text(text)
+                self.publish(self.conversation_history_topic, text)
         except json.JSONDecodeError:
             self.logger.error("Invalid JSON payload for TTS command.")
     

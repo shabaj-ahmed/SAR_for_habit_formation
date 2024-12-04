@@ -19,7 +19,7 @@ class DecisionTree:
         self.logger.info("Communication interface is set and ready to use.")
 
         # Step 1: Send greeting
-        self.communication_interface.publish_message(
+        self.communication_interface.publish_robot_speech(
             sender = "robot",
             message_type = "greeting",
             content = "Hello! Welcome to your daily check-in."
@@ -44,7 +44,7 @@ class DecisionTree:
 
 
         # Step 5: Wish participants farewell
-        self.communication_interface.publish_message(
+        self.communication_interface.publish_robot_speech(
             sender = "robot",
             message_type = "farewell",
             content = "Thank you for checking in. Have a great day!"
@@ -144,7 +144,7 @@ class DecisionTree:
     def ask_questions(self, next_question):
         question_data = next_question()
         while question_data:
-            self.communication_interface.publish_message(
+            self.communication_interface.publish_robot_speech(
                 sender = "robot",
                 message_type = "question",
                 content = question_data["question"]
@@ -157,7 +157,7 @@ class DecisionTree:
             if response == "" or response is None:
                 continue
 
-            self.communication_interface.publish_message(
+            self.communication_interface.publish_user_response(
                 sender = "user",
                 message_type = "Response",
                 content = response
