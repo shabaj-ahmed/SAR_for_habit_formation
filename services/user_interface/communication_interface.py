@@ -31,19 +31,23 @@ class CommunicationInterface(MQTTClientBase):
         self.message_callback = None
         self.socketio = None
 
-        # Topic names
+        # Subscription topics
         self.check_in_status_topic = "check_in_status"
+        self.silence_detected_topic = "voice_assistant/silence_detected"
         self.conversation_history_topic = "conversation/history"
         self.camera_active_topic = "robot/cameraActive"
         self.audio_active_topic = "audio_active"
         self.robot_error_topic = "robot/error"
-        self.robot_volume_topic = "robot_volume"
-        self.user_interface_status_topic = "UI_status"
+
+        # Publish topics
         self.start_check_in_topic = "start_check_in"
+        self.user_interface_status_topic = "UI_status"
+        self.robot_volume_topic = "robot_volume"
         self.robot_colour_topic = "robot_colour"
 
         # Subscribe to topics
         self.subscribe(self.check_in_status_topic, self._process_check_in_status)
+        self.subscribe(self.silence_detected_topic, self._process_silence_detected)
         self.subscribe(self.conversation_history_topic, self._on_message)
         self.subscribe(self.camera_active_topic, self._process_camera_active)
         self.subscribe(self.audio_active_topic, self._process_audio_active)
@@ -62,6 +66,11 @@ class CommunicationInterface(MQTTClientBase):
             self.socketio.emit('check_in_complete')
             self.check_in_status = False
             self.logger.info("Ending check-in")
+
+    def _process_silence_detected(self, client, userdata, message):
+        duration = message.payload.decode()
+        self.logger.info(f"Silence detected: {duration}")
+        self.socketio.emit('silence_detected', {'duration': duration})
 
     def _on_message(self, client, userdata, message):
         try:

@@ -31,7 +31,7 @@ class CommunicationInterface(MQTTClientBase):
         self.conversation_history_topic = "conversation/history"
         self.robot_speech_topic = "voice_assistant/robot_speech"
         self.voice_assistant_status_topic = "voice_assistant_status"
-        self.silance_detected_topic = "voice_assistant/silance_detected"
+        self.silance_detected_topic = "voice_assistant/silence_detected"
 
         # subscribe to topics
         self.subscribe(self.check_in_status_topic, self._handle_start_command)
@@ -62,7 +62,7 @@ class CommunicationInterface(MQTTClientBase):
         }
         json_message = json.dumps(message)
         # This is what the robot should say
-        self._thread_safe_publish(self.robot_speech_topic, json_message)
+        self._thread_safe_publish(self.conversation_history_topic, json_message)
 
     def publish_user_response(self, content, message_type="response"):
         message = {
@@ -73,7 +73,6 @@ class CommunicationInterface(MQTTClientBase):
         json_message = json.dumps(message)
         # This is what the user said
         self._thread_safe_publish(self.conversation_history_topic, json_message)
-        
     
     def publish_voice_assistant_status(self, status, message="", details=None):
         if status == "completed":
@@ -86,9 +85,15 @@ class CommunicationInterface(MQTTClientBase):
         }
         self.publish(self.voice_assistant_status_topic, json.dumps(payload))
     
-    def silance_detected(self):
-        ''' Publish silence detected message to allow the UI to to show the user that the voice assistant will capture what they said '''
-        self.publish(self.silance_detected_topic, "1")
+    def publish_silance_detected(self, duration):
+        '''
+        Publish silence detected message to allow the UI to to show the user that the voice assistant will capture what they said
+
+        Args:
+            duration (int): The duration of the silence
+        '''
+        logging.info(f"Silence detected. Duration: {duration}")
+        self.publish(self.silance_detected_topic, duration)
     
     def _thread_safe_publish(self, topic, message):
         self.logger.info(f"Thread safe publish: {topic}, {message}")

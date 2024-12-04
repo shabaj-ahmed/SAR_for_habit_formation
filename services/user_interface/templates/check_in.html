@@ -10,8 +10,12 @@
         <div id="messages" class="messages">
             <p id="no-messages" style="text-align: center; color: #999;">No messages yet...</p>
         </div>
+        <div id="myProgress">
+            <div id="myBar"></div>
+        </div>
         <div class="chat-controls">
             <button id="start-check-in-button">Start Check-In</button>
+            <br>
         </div>
     </div>
 </div>
@@ -19,6 +23,53 @@
 
 {% block scripts %}
 <script>
+    let animationId = null; // To store the current animation frame ID
+
+    window.socket.on('silence_detected', function (data) {
+        const duration = parseFloat(data.duration); // Get the duration in seconds
+        if (isNaN(duration) || duration < 0) {
+            console.error("Invalid duration received:", duration);
+            return;
+        }
+
+        const elem = document.getElementById("myBar");
+        if (!elem) {
+            console.error("Element #myBar not found");
+            return;
+        }
+
+        // Reset the progress bar and stop the current animation if a new request comes in
+        if (animationId) {
+            cancelAnimationFrame(animationId); // Stop the current animation
+            animationId = null;
+            elem.style.transform = `scaleX(0)`; // Reset progress bar
+        }
+
+        if (duration === 0) {
+            console.warn("User is talking, resetting progress bar immediately.");
+            return; // Exit early, no animation is needed
+        }
+
+        let startTime = Date.now(); // Record the animation start time
+        const totalTime = duration * 1000; // Convert duration to milliseconds
+
+        function frame() {
+            const elapsedTime = Date.now() - startTime;
+            const progress = Math.min(elapsedTime / totalTime, 1); // Calculate progress (clamp to 1)
+
+            elem.style.transform = `scaleX(${progress})`; // Update transform to match progress
+
+            if (progress < 1) {
+                animationId = requestAnimationFrame(frame); // Continue animation
+            } else {
+                animationId = null; // Clear animation ID when complete
+            }
+        }
+
+        // Start the animation
+        animationId = requestAnimationFrame(frame);
+    });
+
     // Function to create and append a received message
     function appendReceivedMessage(content, time) {
         const messages = document.getElementById('messages');

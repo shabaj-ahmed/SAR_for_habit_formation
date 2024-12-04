@@ -89,3 +89,22 @@
 .chat-controls button:hover {
     background-color: #45a049;
 }
+
+#myProgress {
+    width: 100%;
+    background-color: #ddd;
+    position: relative;
+    overflow: hidden;
+    height: 10px; /* Ensure container has height */
+}
+
+#myBar {
+    width: 100%; /* Full width for scaling */
+    height: 100%; /* Match the container height */
+    background-color: #04AA6D;
+    position: absolute;
+    left: 0; /* Align to the left */
+    transform-origin: center center; /* Scale from center */
+    transform: scaleX(0); /* Start hidden */
+    transition: transform 0.1s ease-out; /* Smooth animation */
+}
