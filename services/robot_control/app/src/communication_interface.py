@@ -19,11 +19,11 @@ class CommunicationInterface(MQTTClientBase):
         self.logger = logging.getLogger(self.__class__.__name__)
 
         self.robot_controller = robot_controller
-        self.start_command = False
+        self.start_command = ""
         self.is_streaming = False
 
         # Subscription topics
-        self.check_in_status_topic = "check_in_status"
+        self.service_control_cmd = "robot_control_control_cmd"
         self.robot_volume = "robot_volume"
         self.robot_colour = "robot_colour"
         self.tts_topic = "voice_assistant/robot_speech"
@@ -33,11 +33,12 @@ class CommunicationInterface(MQTTClientBase):
 
         # Publish topics
         self.conversation_history_topic = "conversation/history"
+        self.camera_active_topic = "robot/cameraActive"
         self.video_topic = "robot/video_feed"
         self.robot_status = "robot_status"
 
         # Subscribe to necessary topics
-        self.subscribe(self.check_in_status_topic, self._handle_start_command)
+        self.subscribe(self.service_control_cmd, self._handle_start_command)
         self.subscribe(self.robot_volume, self._handle_volume_command)
         self.subscribe(self.robot_colour, self._handle_colour_command)
         self.subscribe(self.tts_topic, self._handle_tts_command)
@@ -51,15 +52,19 @@ class CommunicationInterface(MQTTClientBase):
         # TODO: Once setup is complete, send a running message to the state machine
         try:
             payload = json.loads(message.payload.decode("utf-8"))
-            message = payload.get("message", "")
-            self.logger.info(f"message = {message}")
-            if message == "start" or message == "running":
+            message = payload.get("cmd", "")
+            self.logger.info(f"Robot controller received the command = {message}")
+            self.start_command = message
+            if message == "set_up":
                 logging.info("Engaging user")
                 self.robot_controller.drive_off_charger()
-                self.robot_controller.find_face()
+                self.publish_robot_status("ready",)
                 logging.info("User engaged")
+            elif message == "start":
+                self.publish_robot_status("running")
             elif message == "completed" or message == "end":
                 self.robot_controller.disengage_user()
+                self.publish_robot_status("completed")
         except json.JSONDecodeError:
             self.logger.error("Invalid JSON payload. Using default retry parameters.")
     
@@ -146,7 +151,15 @@ class CommunicationInterface(MQTTClientBase):
                     break
     
     def publish_robot_status(self, status, message="", details=None):
+        logging.info(f"Publishing robot status: {status}")
+        if status == "running":
+            self.publish(self.camera_active_topic, "1")
+        if status == "completed":
+            self.command = False
+            self.publish(self.camera_active_topic, "0")
+        
         payload = {
+            "service_name": "robot_control",
             "status": status,
             "message": message,
             "details": details,

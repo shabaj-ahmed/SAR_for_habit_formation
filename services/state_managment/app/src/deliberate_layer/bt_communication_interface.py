@@ -26,30 +26,61 @@ class CommunicationInterface(MQTTClientBase):
             'configurations': False
         }
 
+        self.serviceStatus = {
+            'user_interface': "",
+            'voice_assistant': "",
+            'robot_control': "",
+            'task_manager': "",
+        }
+
+        # Subscription topics
+        self.start_check_in_topic = "start_check_in"
+        self.task_manager_status_topic = "task_manager_status"
+        self.task_manager_heartbeat_topic = "task_manager_heartbeat"
+        self.voice_assistant_status_topic = "voice_assistant_status"
+        self.voice_assistant_heartbeat_topic = "voice_assistant_heartbeat"
+        self.robot_controller_status_topic = "robot_status"
+        self.robot_controller_heartbeat_topic = "robot_controller_heartbeat"
+        self.user_interface_status_topic = "user_interface_status"
+        self.user_interface_heartbeat_topic = "user_interface_heartbeat"
+        self.configure_topic = "configure"
+        self.reminder_topic = "reminder" # replace with task manager
+        self.service_error_topic = "service_error"
+
+        # Publish topics
+        self.service_control_command_topic = lambda service_name : service_name + "_control_cmd"
+
         # Subscribe to topics with custom handlers
-        self.subscribe("start_check_in", self._process_check_in_request)
-        self.subscribe("voice_assistant_status", self._process_voice_assistant_status)
-        self.subscribe("configure", self._process_configurations)
-        self.subscribe("reminder", self._process_reminder_status)
-        self.subscribe("service_error", self._process_error_message)
+        self.subscribe(self.start_check_in_topic, self._process_check_in_request)
+        self.subscribe(self.voice_assistant_status_topic, self._process_service_status)
+        # self.subscribe(self.voice_assistant_heartbeat_topic, self._process_heartbeat)
+        self.subscribe(self.robot_controller_status_topic, self._process_service_status)
+        # self.subscribe(self.robot_controller_status_topic, self._process_heartbeat)
+        self.subscribe(self.user_interface_status_topic, self._process_service_status)
+        # self.subscribe(self.user_interface_status_topic, self._process_heartbeat)
+        self.subscribe(self.task_manager_status_topic, self._process_service_status)
+        # self.subscribe(self.task_manager_heartbeat_topic, self._process_heartbeat)
+        self.subscribe(self.configure_topic, self._process_configurations)
+        self.subscribe(self.reminder_topic, self._process_reminder_status)
+        self.subscribe(self.service_error_topic, self._process_error_message)
 
     def _process_check_in_request(self, client, userdata, message):
         self.logger.info("Processing check in")
         if message.payload.decode() == '1':
             self.behaviourRunningStatus['check_in'] = True
+            # Transition to check in branch
             self.logger.info("Starting check in")
         else:
+            # Transition to reminder branch
             self.behaviourRunningStatus['check_in'] = False
             self.logger.info("Ending check in")
-    
-    def _process_voice_assistant_status(self, client, userdata, message):
+
+    def _process_service_status(self, client, uesrdata, message):
         payload = json.loads(message.payload.decode("utf-8"))
-        message = payload.get("status", "")
-        self.logger.info(f"Processing voice assistant status: {message}")
-        if message == 'completed':
-            self.behaviourRunningStatus['check_in'] = False
-        elif message == 'running':
-            self.behaviourRunningStatus['check_in'] = True
+        service = payload.get("service_name", "")
+        status = payload.get("status", "")
+        self.logger.info(f"Processing service: {service} with status: {status}")
+        self.serviceStatus[service] = status
 
     def _process_configurations(self, client, userdata, message):
         self.logger.info("Processing configurations")
@@ -69,15 +100,18 @@ class CommunicationInterface(MQTTClientBase):
         self.logger.imfo("Processing error message")
         self.criticalEvents['error'] = message.payload.decode()
 
-    def check_in_status(self, message):
-        if message == "completed":
-            self.behaviourRunningStatus['check_in'] = False # Reset check in status
+    def behaviour_controller(self, service_name, cmd):
         payload = {
-            "message": message,
+            "service_name": service_name,
+            "cmd": cmd,
             "time": time.strftime("%Y-%m-%d %H:%M:%S")
         }
-        self.logger.info(f"Publishing check in status: {payload}")
-        self.publish("check_in_status", json.dumps(payload))
+        self.logger.info(f"Publishing service control command to {self.service_control_command_topic(service_name)} with command: {cmd}")
+        self.publish(self.service_control_command_topic(service_name), json.dumps(payload))
+
+    def get_service_status(self, service_name):
+        print(f"Service_name: {service_name} and status: {self.serviceStatus[service_name]}")
+        return self.serviceStatus[service_name]
 
     def get_behaviour_running_status(self):
         return self.behaviourRunningStatus

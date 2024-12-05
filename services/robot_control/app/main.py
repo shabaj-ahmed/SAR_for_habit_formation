@@ -165,5 +165,4 @@ if __name__ == '__main__':
         video_thread.join()
     except anki_vector.exceptions.VectorConnectionException as e:
         sys.exit("A connection error occurred: %s" % e)
-    finally:
         controller.disconnect_robot()

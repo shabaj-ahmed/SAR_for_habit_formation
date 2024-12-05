@@ -32,7 +32,7 @@ class CommunicationInterface(MQTTClientBase):
         self.socketio = None
 
         # Subscription topics
-        self.check_in_status_topic = "check_in_status"
+        self.user_interface_control_cmd_topic = "user_interface_control_cmd"
         self.silence_detected_topic = "voice_assistant/silence_detected"
         self.conversation_history_topic = "conversation/history"
         self.camera_active_topic = "robot/cameraActive"
@@ -46,23 +46,19 @@ class CommunicationInterface(MQTTClientBase):
         self.robot_colour_topic = "robot_colour"
 
         # Subscribe to topics
-        self.subscribe(self.check_in_status_topic, self._process_check_in_status)
+        self.subscribe(self.user_interface_control_cmd_topic, self._process_control_command)
         self.subscribe(self.silence_detected_topic, self._process_silence_detected)
         self.subscribe(self.conversation_history_topic, self._on_message)
         self.subscribe(self.camera_active_topic, self._process_camera_active)
         self.subscribe(self.audio_active_topic, self._process_audio_active)
         self.subscribe(self.robot_error_topic, self._process_error_message)
 
-    def _process_check_in_status(self, client, userdata, message):
+    def _process_control_command(self, client, userdata, message):
         payload = json.loads(message.payload.decode("utf-8"))
-        message = payload.get("message", "")
-        if message == "started" or message == "running":
-            self.socketio.emit('mic_status', {'active': True})
-            self.socketio.emit('cam_status', {'active': True})
+        cmd = payload.get("cmd", "")
+        if cmd == "set_up" or cmd == "start":
             self.check_in_status = True
-        if message == 'completed' or message == 'end':
-            self.socketio.emit('mic_status', {'active': False})
-            self.socketio.emit('cam_status', {'active': False})
+        if cmd == 'end':
             self.socketio.emit('check_in_complete')
             self.check_in_status = False
             self.logger.info("Ending check-in")

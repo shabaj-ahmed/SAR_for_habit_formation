@@ -22,6 +22,7 @@ def publish_heartbeat():
     while True:
         # Publish voice assistant heartbeat
         logger.info("voice assistant heartbeat")
+        communication_interface.publish_voice_assistant_heartbeat()
         time.sleep(30)  # Publish heartbeat every 30 seconds
 
 def process_communication_queue():
@@ -52,7 +53,7 @@ if __name__ == "__main__":
     try:
         while True:
             attempt = 0
-            if communication_interface.start_command:
+            if communication_interface.command != "":
                 while attempt < communication_interface.max_retries:
                     try:
                         decision_tree.check_in()

@@ -17,36 +17,39 @@ class CommunicationInterface(MQTTClientBase):
         super().__init__(broker_address, port)
         self.logger = logging.getLogger(self.__class__.__name__)
 
-        self.start_command = False
+        self.command = ""
         self.max_retries = 5
         self.delay = 10
 
         self.message_queue = queue.Queue()
 
         # Subscription topics
-        self.check_in_status_topic = "check_in_status"
+        self.control_cmd = "voice_assistant_control_cmd"
 
         # Publish topics
-        self.audio_active_topic = "audio_active"
+        self.voice_assistant_status_topic = "voice_assistant_status"
+        self.vocie_assistant_hearbeat_topic = "voice_assistant_heartbeat"
         self.conversation_history_topic = "conversation/history"
         self.robot_speech_topic = "voice_assistant/robot_speech"
-        self.voice_assistant_status_topic = "voice_assistant_status"
         self.silance_detected_topic = "voice_assistant/silence_detected"
+        self.audio_active_topic = "audio_active"
 
         # subscribe to topics
-        self.subscribe(self.check_in_status_topic, self._handle_start_command)
+        self.subscribe(self.control_cmd, self._handle_command)
     
-    def _handle_start_command(self, client, userdata, message):
+    def _handle_command(self, client, userdata, message):
+        
         try:
             payload = json.loads(message.payload.decode("utf-8"))
-            message = payload.get("message", "")
-            self.logger.info(f"message = {message}")
-            if message == "start" or message == "running":
-                self.start_command = True
-                self.publish(self.audio_active_topic, "1")
-            elif message == "completed" or message == "end":
-                self.start_command = False
-                self.publish(self.audio_active_topic, "0")
+            cmd = payload.get("cmd", "")
+            logging.info(f"vocie assistant received the command: {cmd}")
+            self.logger.info(f"cmd = {cmd}")
+            if cmd == "end":
+                self.command = ""
+            elif cmd == "set_up" or cmd == "start":
+                self.command = cmd
+            else:
+                self.command = ""
         except json.JSONDecodeError:
             self.logger.error("Invalid JSON payload. Using default retry parameters.")
     
@@ -75,15 +78,27 @@ class CommunicationInterface(MQTTClientBase):
         self._thread_safe_publish(self.conversation_history_topic, json_message)
     
     def publish_voice_assistant_status(self, status, message="", details=None):
+        if status == "running":
+            self.publish(self.audio_active_topic, "1")
         if status == "completed":
-            self.start_command = False
+            self.command = False
+            self.publish(self.audio_active_topic, "0")
+        
         payload = {
+            "service_name": "voice_assistant",
             "status": status,
             "message": message,
             "details": details,
             "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
         }
         self.publish(self.voice_assistant_status_topic, json.dumps(payload))
+
+    def publish_voice_assistant_heartbeat(self):
+        payload = {
+            "service_name": "voice_assistant",
+            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+        }
+        self.publish(self.vocie_assistant_hearbeat_topic, json.dumps(payload))
     
     def publish_silance_detected(self, duration):
         '''

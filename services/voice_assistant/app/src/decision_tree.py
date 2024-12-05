@@ -11,13 +11,23 @@ class DecisionTree:
         self.sr = SpeedToText()
         self.communication_interface = None
 
-    def check_in(self):
+    def set_up(self):
         self.sr.communication_interface = self.communication_interface
         if not self.communication_interface:
             self.logger.debug("Communication interface is not set!")
             return
         self.logger.info("Communication interface is set and ready to use.")
+        self.communication_interface.publish_voice_assistant_status("ready")
 
+        # Wait for the start command
+        while not self.communication_interface.command == "start":
+            time.sleep(1)
+        
+        self.communication_interface.publish_voice_assistant_status("running")
+    
+    def check_in(self):
+        self.set_up()
+        
         # Step 1: Send greeting
         self.communication_interface.publish_robot_speech(
             message_type = "greeting",
@@ -38,7 +48,7 @@ class DecisionTree:
             self.ask_questions(self.experience_sampling_questions)
         except Exception as e:
             self.logger.error(f"Error asking experience questions: {e}")
-
+        
         # Step 4: Summarise the conversation
 
 
