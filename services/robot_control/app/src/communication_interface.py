@@ -23,7 +23,7 @@ class CommunicationInterface(MQTTClientBase):
         self.is_streaming = False
 
         # Subscription topics
-        self.check_in_status_topic = "robot/check_in_status"
+        self.check_in_status_topic = "check_in_status"
         self.robot_volume = "robot_volume"
         self.robot_colour = "robot_colour"
         self.tts_topic = "voice_assistant/robot_speech"
@@ -46,17 +46,20 @@ class CommunicationInterface(MQTTClientBase):
         self.subscribe(self.activate_camera_topic, self._process_camera_active)
     
     def _handle_start_command(self, client, userdata, message):
+        # TODO: Set up the robot to engage the user
+        # TODO: Send a setting up message to the state machine
+        # TODO: Once setup is complete, send a running message to the state machine
         try:
             payload = json.loads(message.payload.decode("utf-8"))
             message = payload.get("message", "")
             self.logger.info(f"message = {message}")
             if message == "start" or message == "running":
-                self.robot_controller.drive
-                # Wake up the robot
-                pass
+                logging.info("Engaging user")
+                self.robot_controller.drive_off_charger()
+                self.robot_controller.find_face()
+                logging.info("User engaged")
             elif message == "completed" or message == "end":
-                # request to go to charger
-                pass
+                self.robot_controller.disengage_user()
         except json.JSONDecodeError:
             self.logger.error("Invalid JSON payload. Using default retry parameters.")
     

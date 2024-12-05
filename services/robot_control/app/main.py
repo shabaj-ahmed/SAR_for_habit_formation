@@ -43,13 +43,18 @@ class VectorRobotController:
         if self.robot:
             self.robot.disconnect()
 
-    def engage_user(self):
+    def drive_off_charger(self):
+        # self.robot.connection.request_control()
         self.robot.behavior.drive_off_charger()
+
+    def find_face(self):
+        # Ask user where are they
+        self.robot.behavior.say_text("where are you")
         self.robot.behavior.find_faces()
+        # Let the user know you see them
         # self.robot.behavior.turn_towards_face()
 
     def disengage_user(self):
-        self.robot.connection.request_control()
         self.robot.behavior.drive_on_charger()
 
     def say_text(self, text):
@@ -61,6 +66,10 @@ class VectorRobotController:
 
     def play_animation(self, animation_name):
         """Plays a specified animation by name."""
+        # self.robot.conn.request_control()
+        # print(self.robot.conn.requires_behavior_control) # Will print True
+        # self.robot.anim.play_animation_trigger('GreetAfterLongTime')
+        # self.robot.conn.release_control()
         if animation_name in self.robot.anim.anim_list:
             self.robot.anim.play_animation(animation_name)
         else:
@@ -103,10 +112,7 @@ class VectorRobotController:
         if self.robot.camera.latest_image:
             return self.robot.camera.latest_image.raw_image
         else:
-            raise RuntimeError("Camera feed not available.")
-
-    def return_to_charger(self):
-        self.robot.behavior.drive_on_charger()
+            raise RuntimeError("Camera feed not available.")        
 
     def drive(self, forward_speed=50, turn_speed=0):
         """

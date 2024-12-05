@@ -62,7 +62,7 @@ class CommunicationInterface(MQTTClientBase):
         }
         json_message = json.dumps(message)
         # This is what the robot should say
-        self._thread_safe_publish(self.conversation_history_topic, json_message)
+        self._thread_safe_publish(self.robot_speech_topic, json_message)
 
     def publish_user_response(self, content, message_type="response"):
         message = {
