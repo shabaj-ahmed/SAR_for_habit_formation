@@ -215,7 +215,7 @@ class BehaviorTree:
         self.branches = {}
 
         # Service names to control
-        self.behaviours =["reminder","check_in", "configurations"]
+        self.behaviours =["reminder","check_in", "configuring"]
 
         # Dictionary to track acknowledgment status
         self.behaviour_branch_status = {behaviour: False for behaviour in self.behaviours}
@@ -258,6 +258,7 @@ class BehaviorTree:
                 self.communication_interface.set_behaviour_running_status(self.behaviours[0], True)
             self.current_branch.activate_behaviour()  # Start all behaviours in the new branch
             self.logger.info(f"Transitioned to {self.current_branch.name} branch")
+            self.behaviour_tree_event_queue.put({"state": branch_name})
 
     def update(self):
         """Update the behaviour tree"""

@@ -12,3 +12,10 @@ from shared_libraries.mqtt_client_base import MQTTClientBase
 class CommunicationInterface(MQTTClientBase):
     def __init__(self, broker_address, port):
         super().__init__(broker_address, port)
+
+        # Publish topics
+        self.fsm_state_topic = "fsm/state"
+
+    def publish_fsm_state(self, state):
+        self.publish(self.fsm_state_topic, state)
+
