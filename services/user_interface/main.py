@@ -15,7 +15,7 @@ app.config['SECRET_KEY'] = 'your_secret_key'
 socketio = SocketIO(app)
 
 # Load environment variables
-dotenv_path = Path('../configurations/.env')
+dotenv_path = Path('../../configurations/.env')
 load_dotenv(dotenv_path=dotenv_path)
 
 # Setup logger

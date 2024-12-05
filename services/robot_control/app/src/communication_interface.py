@@ -8,7 +8,7 @@ import logging
 
 # Add the project root directory to sys.path
 current_dir = os.path.dirname(os.path.abspath(__file__))
-project_root = os.path.abspath(os.path.join(current_dir, "../../../../"))
+project_root = os.path.abspath(os.path.join(current_dir, "../../../../../"))
 sys.path.insert(0, project_root)
 
 from services.shared_libraries.mqtt_client_base import MQTTClientBase
@@ -38,7 +38,7 @@ class CommunicationInterface(MQTTClientBase):
         self.robot_status = "robot_status"
 
         # Subscribe to necessary topics
-        self.subscribe(self.service_control_cmd, self._handle_start_command)
+        self.subscribe(self.service_control_cmd, self._handle_control_command)
         self.subscribe(self.robot_volume, self._handle_volume_command)
         self.subscribe(self.robot_colour, self._handle_colour_command)
         self.subscribe(self.tts_topic, self._handle_tts_command)
@@ -46,10 +46,7 @@ class CommunicationInterface(MQTTClientBase):
         self.subscribe(self.behavior_topic, self._handle_behavior_command)
         self.subscribe(self.activate_camera_topic, self._process_camera_active)
     
-    def _handle_start_command(self, client, userdata, message):
-        # TODO: Set up the robot to engage the user
-        # TODO: Send a setting up message to the state machine
-        # TODO: Once setup is complete, send a running message to the state machine
+    def _handle_control_command(self, client, userdata, message):
         try:
             payload = json.loads(message.payload.decode("utf-8"))
             message = payload.get("cmd", "")
@@ -62,7 +59,7 @@ class CommunicationInterface(MQTTClientBase):
                 logging.info("User engaged")
             elif message == "start":
                 self.publish_robot_status("running")
-            elif message == "completed" or message == "end":
+            elif message == "end":
                 self.robot_controller.disengage_user()
                 self.publish_robot_status("completed")
         except json.JSONDecodeError:
@@ -152,10 +149,9 @@ class CommunicationInterface(MQTTClientBase):
     
     def publish_robot_status(self, status, message="", details=None):
         logging.info(f"Publishing robot status: {status}")
-        if status == "running":
+        if status == "set_up":
             self.publish(self.camera_active_topic, "1")
         if status == "completed":
-            self.command = False
             self.publish(self.camera_active_topic, "0")
         
         payload = {
