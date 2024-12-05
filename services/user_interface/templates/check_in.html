@@ -42,7 +42,7 @@
         if (animationId) {
             cancelAnimationFrame(animationId); // Stop the current animation
             animationId = null;
-            elem.style.transform = `scaleX(0)`; // Reset progress bar
+            elem.style.transform = `scaleX(1)`; // Reset progress bar
         }
 
         if (duration === 0) {
@@ -55,11 +55,11 @@
 
         function frame() {
             const elapsedTime = Date.now() - startTime;
-            const progress = Math.min(elapsedTime / totalTime, 1); // Calculate progress (clamp to 1)
+            const progress = 1 - Math.min(elapsedTime / totalTime, 1); // Calculate progress (clamp to 1)
 
             elem.style.transform = `scaleX(${progress})`; // Update transform to match progress
 
-            if (progress < 1) {
+            if (progress > 0) {
                 animationId = requestAnimationFrame(frame); // Continue animation
             } else {
                 animationId = null; // Clear animation ID when complete
@@ -181,7 +181,6 @@
         const walk = (y - startY) * 2; // Adjust scroll speed
         messages.scrollTop = scrollTop - walk;
     });
-
 
 </script>
 {% endblock %}
