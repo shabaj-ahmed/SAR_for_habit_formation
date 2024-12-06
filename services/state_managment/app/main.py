@@ -4,8 +4,14 @@ from queue import Queue
 from src.reactive_layer.reactive_layer import ReactiveLayer
 import src.deliberate_layer.finite_state_machine as fsm
 from src.deliberate_layer.behaviour_tree import BehaviorTree
-from app.custom_logging.logging_config import setup_logger
 import logging
+import os
+import sys
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.abspath(os.path.join(current_dir, "../../../../"))
+sys.path.insert(0, project_root)
+from shared_libraries.logging_config import setup_logger
 
 setup_logger()
 
