@@ -10,7 +10,7 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.abspath(os.path.join(current_dir, "../../../../"))
 sys.path.insert(0, project_root)
 
-from services.shared_libraries.mqtt_client_base import MQTTClientBase
+from shared_libraries.mqtt_client_base import MQTTClientBase
 
 class CommunicationInterface(MQTTClientBase):
     def __init__(self, broker_address, port):
@@ -33,6 +33,7 @@ class CommunicationInterface(MQTTClientBase):
         self.robot_speech_topic = "voice_assistant/robot_speech"
         self.silance_detected_topic = "voice_assistant/silence_detected"
         self.audio_active_topic = "audio_active"
+        self.check_in_controls_topic = "check_in_controller"
 
         # subscribe to topics
         self.subscribe(self.control_cmd, self._handle_command)
@@ -109,6 +110,10 @@ class CommunicationInterface(MQTTClientBase):
         '''
         logging.info(f"Silence detected. Duration: {duration}")
         self.publish(self.silance_detected_topic, duration)
+
+    def end_check_in(self):
+        logging.infor("Voice assistant ending check in process")
+        self.publish(self.check_in_controls_topic, "0")
     
     def _thread_safe_publish(self, topic, message):
         self.logger.info(f"Thread safe publish: {topic}, {message}")

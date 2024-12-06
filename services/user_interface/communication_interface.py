@@ -5,7 +5,7 @@ import time
 
 # Add the project root directory to sys.path
 current_dir = os.path.dirname(os.path.abspath(__file__))
-project_root = os.path.abspath(os.path.join(current_dir, "../"))
+project_root = os.path.abspath(os.path.join(current_dir, "../../"))
 sys.path.insert(0, project_root)
 print(f"project_root: {project_root}")
 
@@ -40,7 +40,7 @@ class CommunicationInterface(MQTTClientBase):
         self.robot_error_topic = "robot/error"
 
         # Publish topics
-        self.start_check_in_topic = "start_check_in"
+        self.check_in_controls_topic = "check_in_controller"
         self.user_interface_status_topic = "UI_status"
         self.robot_volume_topic = "robot_volume"
         self.robot_colour_topic = "robot_colour"
@@ -98,7 +98,7 @@ class CommunicationInterface(MQTTClientBase):
     def start_check_in(self):
         if self.check_in_status != True:
             self.logger.info("Sending check-in start command")
-            self.publish(self.start_check_in_topic, "1")
+            self.publish(self.check_in_controls_topic, "1")
     
     def change_colour(self, selected_colour):
         self.logger.info(f"Sending colour change command: {selected_colour}")

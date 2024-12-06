@@ -61,6 +61,7 @@ class DecisionTree:
         # Step 6: Save the conversation to a database or file
         self.logger.info("Voice assistant service completed successfully.")
         self.communication_interface.publish_voice_assistant_status("completed")
+        self.communication_interface.end_check_in()
 
     # Function to determine the day and adjust the questions accordingly
     def get_current_day_questions(self, question = "", response = ""):
