@@ -34,7 +34,7 @@ class CommunicationInterface(MQTTClientBase):
         }
 
         # Subscription topics
-        self.start_check_in_topic = "start_check_in"
+        self.check_in_controls_topic = "check_in_controller"
         self.task_manager_status_topic = "task_manager_status"
         self.task_manager_heartbeat_topic = "task_manager_heartbeat"
         self.voice_assistant_status_topic = "voice_assistant_status"
@@ -51,7 +51,7 @@ class CommunicationInterface(MQTTClientBase):
         self.service_control_command_topic = lambda service_name : service_name + "_control_cmd"
 
         # Subscribe to topics with custom handlers
-        self.subscribe(self.start_check_in_topic, self._process_check_in_request)
+        self.subscribe(self.check_in_controls_topic, self._process_check_in_request)
         self.subscribe(self.voice_assistant_status_topic, self._process_service_status)
         # self.subscribe(self.voice_assistant_heartbeat_topic, self._process_heartbeat)
         self.subscribe(self.robot_controller_status_topic, self._process_service_status)
@@ -71,8 +71,8 @@ class CommunicationInterface(MQTTClientBase):
             # Transition to check in branch
             self.logger.info("Starting check in")
         else:
-            # Transition to reminder branch
-            self.behaviourRunningStatus['check_in'] = False
+            for behaviour in self.behaviourRunningStatus:
+                self.behaviourRunningStatus[behaviour] = False
             self.logger.info("Ending check in")
 
     def _process_service_status(self, client, uesrdata, message):
