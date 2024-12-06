@@ -322,6 +322,5 @@ class BehaviorTree:
             self.current_branch.activate_behaviour() # Activate the current branch if it's not running and not complete
         elif behaviourIsRunning == False and self.current_branch.behaviour_running: # Deactivate the current branch if it's running and complete
             self.logger.info(f"Current branch is: {self.current_branch.name} and the behaviour is complete")
-            self.current_branch.deactivate_behaviour()
             self.transition_to_branch(self.behaviours[0])
             self.set_current_state('active')

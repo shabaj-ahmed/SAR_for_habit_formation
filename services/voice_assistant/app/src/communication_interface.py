@@ -112,7 +112,7 @@ class CommunicationInterface(MQTTClientBase):
         self.publish(self.silance_detected_topic, duration)
 
     def end_check_in(self):
-        logging.infor("Voice assistant ending check in process")
+        logging.info("Voice assistant ending check in process")
         self.publish(self.check_in_controls_topic, "0")
     
     def _thread_safe_publish(self, topic, message):

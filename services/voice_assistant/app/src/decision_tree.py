@@ -51,12 +51,13 @@ class DecisionTree:
         
         # Step 4: Summarise the conversation
 
-
         # Step 5: Wish participants farewell
         self.communication_interface.publish_robot_speech(
             message_type = "farewell",
             content = "Thank you for checking in. Have a great day!"
         )
+
+        time.sleep(0.2)
 
         # Step 6: Save the conversation to a database or file
         self.logger.info("Voice assistant service completed successfully.")

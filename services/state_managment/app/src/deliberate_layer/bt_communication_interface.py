@@ -110,7 +110,6 @@ class CommunicationInterface(MQTTClientBase):
         self.publish(self.service_control_command_topic(service_name), json.dumps(payload))
 
     def get_service_status(self, service_name):
-        print(f"Service_name: {service_name} and status: {self.serviceStatus[service_name]}")
         return self.serviceStatus[service_name]
 
     def get_behaviour_running_status(self):

@@ -11,7 +11,7 @@ import audioop
 # Audio recording parameters
 RATE = 16000
 CHUNK = int(RATE / 10)  # 100ms
-SILENCE_THRESHOLD = 400  # RMS threshold for silence (This value was arbitrarily chosen based on testing)
+SILENCE_THRESHOLD = 450  # RMS threshold for silence (This value was arbitrarily chosen based on testing)
 INITIAL_SILENCE_DURATION = 15 # Silence duration in seconds
 SILENCE_DURATION = 4  # Silence duration in seconds
 
