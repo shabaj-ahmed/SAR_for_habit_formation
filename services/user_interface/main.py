@@ -12,6 +12,7 @@ import subprocess
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
+start_up = True
 socketio = SocketIO(app)
 
 # Load environment variables
@@ -45,7 +46,7 @@ voice_button_states = {
 
 def publish_heartbeat():
     while True:
-        communication_interface.publish_UI_status("running")
+        # Publish heartbeat
         time.sleep(30)  # Publish heartbeat every 30 seconds
 
 # Start heartbeat thread
@@ -70,11 +71,14 @@ communication_interface.message_callback = on_mqtt_message
 
 @app.route('/')
 def home():
+    communication_interface.publish_UI_status("Awake")
+    if start_up:
+        return render_template('system_boot_up.html')
     return render_template('home.html')
 
 @app.route('/check_in')
 def check_in():
-    return render_template('check_in.html')
+    return render_template('check_in.html', chat_history=chat_history)
 
 @app.route('/history')
 def history():
@@ -132,12 +136,6 @@ def start_check_in():
     communication_interface.start_check_in()
     return jsonify({'status': 'success', 'message': 'Check-In command sent'})
 # Asynchronous response returning true but the message channel closed before response received
-
-@socketio.on('connect')
-def handle_connect():
-    logger.info('Client connected')
-    # Send chat history to the newly connected client
-    emit('chat_history', chat_history)
 
 @socketio.on('disconnect')
 def handle_disconnect():

@@ -32,6 +32,7 @@ class CommunicationInterface(MQTTClientBase):
         self.socketio = None
 
         # Subscription topics
+        self.service_status_topic = "service_status"
         self.user_interface_control_cmd_topic = "user_interface_control_cmd"
         self.silence_detected_topic = "voice_assistant/silence_detected"
         self.conversation_history_topic = "conversation/history"
@@ -48,6 +49,7 @@ class CommunicationInterface(MQTTClientBase):
         self.check_in_controls_topic = "check_in_controller"
 
         # Subscribe to topics
+        self.subscribe(self.service_status_topic, self._service_status)
         self.subscribe(self.check_in_controls_topic, self._process_check_in_commands)
         self.subscribe(self.user_interface_control_cmd_topic, self._process_control_command)
         self.subscribe(self.silence_detected_topic, self._process_silence_detected)
@@ -55,6 +57,11 @@ class CommunicationInterface(MQTTClientBase):
         self.subscribe(self.camera_active_topic, self._process_camera_active)
         self.subscribe(self.audio_active_topic, self._process_audio_active)
         self.subscribe(self.robot_error_topic, self._process_error_message)
+
+    def _service_status(self, client, userdata, message):
+        serviceStatus = json.loads(message.payload.decode("utf-8"))
+        # self.logger.info(f"Service status dictionary: {serviceStatus}")
+        self.socketio.emit('service_status', serviceStatus)
 
     def _process_check_in_commands(self, client, userdata, message):
         if message.payload.decode() == '1':

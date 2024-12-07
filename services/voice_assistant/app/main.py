@@ -49,6 +49,8 @@ if __name__ == "__main__":
     
     decision_tree.communication_interface = communication_interface
 
+    communication_interface.publish_voice_assistant_status("Awake")
+
     # Keep the program running to listen for commands
     try:
         while True:

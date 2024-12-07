@@ -47,6 +47,7 @@ class CommunicationInterface(MQTTClientBase):
         self.service_error_topic = "service_error"
 
         # Publish topics
+        self.service_status_topic = "service_status"
         self.service_control_command_topic = lambda service_name : service_name + "_control_cmd"
 
         # Subscriber and publisher topics
@@ -102,6 +103,9 @@ class CommunicationInterface(MQTTClientBase):
         self.logger.imfo("Processing error message")
         self.criticalEvents['error'] = message.payload.decode()
 
+    def publish_service_status(self):
+        self.publish(self.service_status_topic, json.dumps(self.serviceStatus))
+
     def behaviour_controller(self, service_name, cmd):
         payload = {
             "service_name": service_name,
@@ -115,8 +119,8 @@ class CommunicationInterface(MQTTClientBase):
         logging.info("Ending check-in")
         self.publish(self.check_in_controls_topic, "0")
 
-    def get_service_status(self, service_name):
-        return self.serviceStatus[service_name]
+    def get_service_status(self,):
+        return self.serviceStatus
 
     def get_behaviour_running_status(self):
         return self.behaviourRunningStatus

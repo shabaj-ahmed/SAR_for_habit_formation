@@ -232,7 +232,7 @@ class BehaviorBranch:
         while True:
             waiting = False
             for service in self.services:
-                serviceStatus = self.communication_interface.get_service_status(service.name)
+                serviceStatus = self.communication_interface.get_service_status()[service.name]
                 if serviceStatus != "ready":
                     waiting = True
                 time.sleep(0.2)
@@ -262,6 +262,8 @@ class BehaviorBranch:
 class BehaviorTree:
     def __init__(self, finite_state_machine_event_queue, behaviour_tree_event_queue):
         self.logger = logging.getLogger(self.__class__.__name__)
+        self.first_run = True
+        self.all_services_running = False
 
         self.communication_interface = CommunicationInterface(
             broker_address = str(os.getenv('MQTT_BROKER_ADDRESS')),
@@ -326,17 +328,19 @@ class BehaviorTree:
 
     def update(self):
         """Update the behaviour tree"""
-        # Step 1: Check the high-level state in the finite state machine
+        # Step 1: Check if all services are running
+        self.check_if_all_services_are_running()
+
+        # Step 2: Check the high-level state in the finite state machine
         self.check_finite_state_machine_event_queue()
 
-        # Step 2: Check if the user has requested a behaviour
+        # Step 3: Check if the user has requested a behaviour
         self.check_for_user_requested_events()
 
-        # Step 3: If no behaviour is running, transition to the reminder branch
+        # Step 4: If no behaviour is running, transition to the reminder branch
         if self.current_branch == None: # Default to reminder branch
             self.transition_to_branch(self.behaviours[0])
 
-        
         # Step 4: Start and stop behaviours based on the current branch
         self.manage_behaviour()
 
@@ -361,6 +365,27 @@ class BehaviorTree:
                     pass
                     # Handle error state if required
     
+    def check_if_all_services_are_running(self):
+        while self.first_run:
+            self.all_services_running = True
+            services = self.communication_interface.get_service_status()
+            print(f"services = {services}, type = {type(services)}")
+            for service in services:
+                print(type(service))
+                print(f"service = {service} and status = {services[service]}")
+                if services[service] != "Awake":
+                    self.all_services_running = False
+
+            if self.all_services_running:
+                self.first_run = False
+                for service in services:
+                    self.communication_interface.behaviour_controller(service.name, "standby")
+                break
+
+            self.communication_interface.publish_service_status()
+
+            time.sleep(0.2)
+
     def check_for_user_requested_events(self):
         ''' Check if the user has requested a behaviour '''
         behaviourRunning = self.communication_interface.get_behaviour_running_status()

@@ -218,6 +218,8 @@ if __name__ == '__main__':
             robot_controller=controller
         )
 
+        communication_interface.publish_robot_status("Awake")
+
         heart_beat_thread = threading.Thread(target=publish_heartbeat, daemon=True)
         heart_beat_thread.start()
         # video_thread = threading.Thread(target=communication_interface.video_stream)
