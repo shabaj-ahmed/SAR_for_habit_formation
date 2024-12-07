@@ -40,12 +40,15 @@ class CommunicationInterface(MQTTClientBase):
         self.robot_error_topic = "robot/error"
 
         # Publish topics
-        self.check_in_controls_topic = "check_in_controller"
-        self.user_interface_status_topic = "UI_status"
+        self.user_interface_status_topic = "user_interface_status"
         self.robot_volume_topic = "robot_volume"
         self.robot_colour_topic = "robot_colour"
 
+        # Subscriber and publisher topics
+        self.check_in_controls_topic = "check_in_controller"
+
         # Subscribe to topics
+        self.subscribe(self.check_in_controls_topic, self._process_check_in_commands)
         self.subscribe(self.user_interface_control_cmd_topic, self._process_control_command)
         self.subscribe(self.silence_detected_topic, self._process_silence_detected)
         self.subscribe(self.conversation_history_topic, self._on_message)
@@ -53,15 +56,34 @@ class CommunicationInterface(MQTTClientBase):
         self.subscribe(self.audio_active_topic, self._process_audio_active)
         self.subscribe(self.robot_error_topic, self._process_error_message)
 
-    def _process_control_command(self, client, userdata, message):
-        payload = json.loads(message.payload.decode("utf-8"))
-        cmd = payload.get("cmd", "")
-        if cmd == "set_up" or cmd == "start":
+    def _process_check_in_commands(self, client, userdata, message):
+        if message.payload.decode() == '1':
+            self.logger.info("Starting check-in")
             self.check_in_status = True
-        if cmd == 'end':
+        elif message.payload.decode() == '0':
+            self.logger.info("Ending check-in")
             self.socketio.emit('check_in_complete')
             self.check_in_status = False
-            self.logger.info("Ending check-in")
+
+    def _process_control_command(self, client, userdata, message):
+        try:
+            payload = json.loads(message.payload.decode("utf-8"))
+            message = payload.get("cmd", "")
+            self.logger.info(f"User Interface received the command = {message}")
+            self.start_command = message
+            if message == "set_up":
+                # Check to see if the screen is turned on
+                logging.info("UI publishing ready")
+                self.publish_UI_status("ready")
+            elif message == "start":
+                logging.info("UI publishing that it is running")
+                self.publish_UI_status("running")
+            elif message == "end":
+                # put the screen in stand-by or go to home page
+                # self.robot_controller.disengage_user()
+                self.publish_UI_status("completed")
+        except json.JSONDecodeError:
+            self.logger.error("Invalid JSON payload. Using default retry parameters.")
 
     def _process_silence_detected(self, client, userdata, message):
         duration = message.payload.decode()
@@ -110,6 +132,7 @@ class CommunicationInterface(MQTTClientBase):
 
     def publish_UI_status(self, status, message="", details=None):
         payload = {
+            "service_name": "user_interface",
             "status": status,
             "message": message,
             "details": details,

@@ -15,10 +15,17 @@ load_dotenv(dotenv_path=dotenv_path)
 
 # Behaviour tree leaf nodes
 class Leaf:
-    def __init__(self, communication_interface=None, priority='critical'):
+    def __init__(self, communication_interface=None, priority='critical', branch_name=""):
+        '''
+        A subclass with the critical variables and methods for running the service that need to be created for the behaviour tree to operate
+
+        args:
+
+        '''
         self.comm_interface = communication_interface
         self.name = None
         self.priority = priority
+        self.branch = branch_name
     
     def set_up(self):
         pass
@@ -35,9 +42,40 @@ class Leaf:
 
 # For each behaviour mark the services that are critical to the behaviour to previent transition to another state while behaviour is running
 
-class voice_assistant(Leaf):
-    def __init__(self, communication_interface=None, priority='critical'):
-        super().__init__(communication_interface, priority)
+class UserInterface(Leaf):
+    '''
+    The user interface is always active in each of the branches of the behaviour tree
+    The behaviour tree controls the response of the user interface when different behaviours are running
+    '''
+    def __init__(self, communication_interface=None, priority='critical', branch_name=''):
+        super().__init__(communication_interface, priority, branch_name)
+        self.logger = logging.getLogger(self.__class__.__name__)
+        self.name = "user_interface"
+
+    def set_up(self):
+        self.logger.info("Setting up user interface")
+        self.comm_interface.behaviour_controller(self.name, "set_up")
+        pass
+
+    def start(self):
+        self.logger.info("Starting user interface")
+        self.comm_interface.behaviour_controller(self.name, "start")
+        pass
+
+    def update(self):
+        pass
+
+    def end(self):
+        self.logger.info("Stopping behaviour in user interface")
+        if self.branch == "check_in":
+            self.comm_interface.end_check_in()
+            pass
+        self.comm_interface.behaviour_controller(self.name, "end")
+        pass
+
+class VoiceAssistant(Leaf):
+    def __init__(self, communication_interface=None, priority='critical', branch_name=''):
+        super().__init__(communication_interface, priority, branch_name)
         self.logger = logging.getLogger(self.__class__.__name__)
         self.name = "voice_assistant"
 
@@ -58,9 +96,9 @@ class voice_assistant(Leaf):
         self.comm_interface.behaviour_controller(self.name, "end")
         pass
 
-class robot_controller(Leaf):
-    def __init__(self, communication_interface=None, priority='critical'):
-        super().__init__(communication_interface, priority)
+class RobotController(Leaf):
+    def __init__(self, communication_interface=None, priority='critical', branch_name=''):
+        super().__init__(communication_interface, priority, branch_name)
         self.logger = logging.getLogger(self.__class__.__name__)
         self.name = "robot_control"
 
@@ -83,8 +121,8 @@ class robot_controller(Leaf):
         pass
 
 class TaskScheduler(Leaf):
-    def __init__(self, communication_interface=None, priority='critical'):
-        super().__init__(communication_interface, priority)
+    def __init__(self, communication_interface=None, priority='critical', branch_name=''):
+        super().__init__(communication_interface, priority, branch_name)
         self.logger = logging.getLogger(self.__class__.__name__)
         self.name = "task_manager"
 
@@ -96,17 +134,27 @@ class TaskScheduler(Leaf):
             "details": "",
             "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
         }
-        self.comm_interface.publish(
-            topic="task_manager_status", 
-            message=json.dumps(payload))
+        if self.comm_interface:
+            self.comm_interface.publish(
+                topic="task_manager_status", 
+                message=json.dumps(payload))
         pass
 
     def start(self):
         # Send message to the task scheduler to start scheduling tasks
         # Send message to user interface to show scheduled tasks
         self.logger.info("Starting task scheduler")
+        payload = {
+            "service_name": "task_manager",
+            "status": "running",
+            "message": "",
+            "details": "",
+            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+        }
         if self.comm_interface:
-            self.comm_interface.publish("service/start", "Starting Task Scheduler")
+            self.comm_interface.publish(
+                topic="task_manager_status", 
+                message=json.dumps(payload))
         pass
 
     def update(self):
@@ -114,14 +162,23 @@ class TaskScheduler(Leaf):
 
     def end(self):
         self.logger.info("Exiting task scheduler")
+        payload = {
+            "service_name": "task_manager",
+            "status": "end",
+            "message": "",
+            "details": "",
+            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+        }
         if self.comm_interface:
-            self.comm_interface.publish("service/end", "Stopping Task Scheduler")
+            self.comm_interface.publish(
+                topic="task_manager_status", 
+                message=json.dumps(payload))
         pass
 
 
 class Configurations(Leaf):
-    def __init__(self, communication_interface=None, priority='critical'):
-        super().__init__(communication_interface, priority)
+    def __init__(self, communication_interface=None, priority='critical', branch_name=''):
+        super().__init__(communication_interface, priority, branch_name)
         self.logger = logging.getLogger(self.__class__.__name__)
 
     def set_up(self):
@@ -144,34 +201,38 @@ class BehaviorBranch:
     """Represents a branch of behaviours accessible during a specific FSM state."""
 
     def __init__(self, name, communication_interface,):
-        self.name = name
+        self.branch_name = name
         self.communication_interface = communication_interface
         self.services = []
         self.all_services_available = False
         self.behaviour_running = False
         self.logger = logging.getLogger(self.__class__.__name__)
 
-    def add_behaviour(self, behaviour_class, priority='critical'):
-        behaviour = behaviour_class(self.communication_interface, priority)
-        
+    def add_service(self, behaviour_class, priority='critical'):
+        behaviour = behaviour_class(
+            communication_interface = self.communication_interface,
+            priority = priority,
+            branch_name = self.branch_name
+            )
         self.services.append(behaviour)
 
     def activate_behaviour(self):
         """Activate a specific behaviour by name"""
         # If all services are available, start the behaviour
-        logging.info(f"Activating {self.name} branch")
+        logging.info(f"Activating {self.branch_name} branch")
         for service in self.services:
+            logging.info(f"{service.name} is in the {self.branch_name} behaviour branch" )
             if self.behaviour_running is False:
                 service.set_up()
         
-        logging.info(f"Waiting for services to be available for {self.name} branch")
+        logging.info(f"Waiting for services to be available for {self.branch_name} branch")
+
         # Wait until all services are available
         waiting = True
         while True:
             waiting = False
             for service in self.services:
                 serviceStatus = self.communication_interface.get_service_status(service.name)
-                print(f"{service.name} has a service status: {serviceStatus}")
                 if serviceStatus != "ready":
                     waiting = True
                 time.sleep(0.2)
@@ -181,7 +242,7 @@ class BehaviorBranch:
         for service in self.services:
             if self.behaviour_running is False:
                 service.start()
-        
+        logging.info(f"{self.branch_name} branch has started")
         self.behaviour_running = True # Mark the behaviour as running
 
     def update(self):
@@ -222,18 +283,21 @@ class BehaviorTree:
 
         # Reminder
         self.reminder_branch = BehaviorBranch(self.behaviours[0], self.communication_interface)
-        self.reminder_branch.add_behaviour(TaskScheduler)
+        self.reminder_branch.add_service(UserInterface)
+        self.reminder_branch.add_service(TaskScheduler)
         self.add_branch(self.behaviours[0], self.reminder_branch)
 
         # Check-in
         self.check_in_dialog_branch = BehaviorBranch(self.behaviours[1], self.communication_interface)
-        self.check_in_dialog_branch.add_behaviour(voice_assistant)
-        self.check_in_dialog_branch.add_behaviour(robot_controller, priority="optional")
+        self.reminder_branch.add_service(UserInterface)
+        self.check_in_dialog_branch.add_service(VoiceAssistant)
+        self.check_in_dialog_branch.add_service(RobotController, priority="optional")
         self.add_branch(self.behaviours[1], self.check_in_dialog_branch)
 
         # Configuration
         self.configurations_branch = BehaviorBranch(self.behaviours[2], self.communication_interface)
-        self.configurations_branch.add_behaviour(Configurations)
+        self.reminder_branch.add_service(UserInterface)
+        self.configurations_branch.add_service(Configurations)
         self.add_branch(self.behaviours[2], self.configurations_branch)
 
     def set_current_state(self, state):
@@ -243,7 +307,7 @@ class BehaviorTree:
         return self.current_state
     
     def get_current_branch(self):
-        return self.current_branch.name if self.current_branch else None
+        return self.current_branch.branch_name if self.current_branch else None
 
     def add_branch(self, branch_name, branch):
         self.branches[branch_name] = branch
@@ -257,7 +321,7 @@ class BehaviorTree:
             if branch_name == self.behaviours[0]:
                 self.communication_interface.set_behaviour_running_status(self.behaviours[0], True)
             self.current_branch.activate_behaviour()  # Start all behaviours in the new branch
-            self.logger.info(f"Transitioned to {self.current_branch.name} branch")
+            self.logger.info(f"Transitioned to {self.current_branch.branch_name} branch")
             self.behaviour_tree_event_queue.put({"state": branch_name})
 
     def update(self):
@@ -302,12 +366,12 @@ class BehaviorTree:
         behaviourRunning = self.communication_interface.get_behaviour_running_status()
 
         # Transition to appropriate branch if it is not already in that branch
-        if behaviourRunning['check_in'] and self.current_branch.name != self.behaviours[1]:
-            self.logger.info(f"Check-in event received event['check_in'] = {behaviourRunning['check_in']} and self.current_branch.name = {self.current_branch.name}")
+        if behaviourRunning['check_in'] and self.current_branch.branch_name != self.behaviours[1]:
+            self.logger.info(f"Check-in event received event['check_in'] = {behaviourRunning['check_in']} and self.current_branch.branch_name = {self.current_branch.branch_name}")
             self.transition_to_branch(self.behaviours[1])
             self.set_current_state('interacting')
             self.logger.info("Fulfilled user request and transitioning to check-in branch")
-        elif behaviourRunning['configurations'] and self.current_branch.name != self.behaviours[2]:
+        elif behaviourRunning['configurations'] and self.current_branch.branch_name != self.behaviours[2]:
             self.logger.info("Configurations event received")
             self.transition_to_branch(self.behaviours[2])
             self.set_current_state('configuring')
@@ -315,12 +379,12 @@ class BehaviorTree:
 
     def manage_behaviour(self):
         """Activate or deactivate a specific behaviour in the current branch"""
-        behaviourIsRunning = self.communication_interface.get_behaviour_running_status()[self.current_branch.name] # Check if behaviour branch is running
+        behaviourIsRunning = self.communication_interface.get_behaviour_running_status()[self.current_branch.branch_name] # Check if behaviour branch is running
 
         if behaviourIsRunning and self.current_branch.behaviour_running == False: # Activate the current branch if it's not running
-            self.logger.info(f"Current branch is: {self.current_branch.name} and the behaviour is not running")
+            self.logger.info(f"Current branch is: {self.current_branch.branch_name} and the behaviour is not running")
             self.current_branch.activate_behaviour() # Activate the current branch if it's not running and not complete
         elif behaviourIsRunning == False and self.current_branch.behaviour_running: # Deactivate the current branch if it's running and complete
-            self.logger.info(f"Current branch is: {self.current_branch.name} and the behaviour is complete")
+            self.logger.info(f"Current branch is: {self.current_branch.branch_name} and the behaviour is complete")
             self.transition_to_branch(self.behaviours[0])
             self.set_current_state('active')

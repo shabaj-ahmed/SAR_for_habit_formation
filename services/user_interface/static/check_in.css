@@ -37,6 +37,8 @@
 
 /* Received Messages */
 .received-message {
+    font-size: 24px;
+    line-height: 1.5;
     align-self: flex-start;
     background-color: #efefef;
     border-radius: 10px;
@@ -48,6 +50,8 @@
 
 /* Outgoing Messages */
 .outgoing-message {
+    font-size: 24px;
+    line-height: 1.5;
     align-self: flex-end;
     background: linear-gradient(45deg, #ee087f, #DD2A7B, #9858ac, #8134AF, #515BD4);
     color: white;

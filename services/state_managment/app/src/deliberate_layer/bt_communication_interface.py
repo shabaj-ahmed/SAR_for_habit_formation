@@ -34,7 +34,6 @@ class CommunicationInterface(MQTTClientBase):
         }
 
         # Subscription topics
-        self.check_in_controls_topic = "check_in_controller"
         self.task_manager_status_topic = "task_manager_status"
         self.task_manager_heartbeat_topic = "task_manager_heartbeat"
         self.voice_assistant_status_topic = "voice_assistant_status"
@@ -49,6 +48,9 @@ class CommunicationInterface(MQTTClientBase):
 
         # Publish topics
         self.service_control_command_topic = lambda service_name : service_name + "_control_cmd"
+
+        # Subscriber and publisher topics
+        self.check_in_controls_topic = "check_in_controller"
 
         # Subscribe to topics with custom handlers
         self.subscribe(self.check_in_controls_topic, self._process_check_in_request)
@@ -108,6 +110,10 @@ class CommunicationInterface(MQTTClientBase):
         }
         self.logger.info(f"Publishing service control command to {self.service_control_command_topic(service_name)} with command: {cmd}")
         self.publish(self.service_control_command_topic(service_name), json.dumps(payload))
+
+    def end_check_in(self):
+        logging.info("Ending check-in")
+        self.publish(self.check_in_controls_topic, "0")
 
     def get_service_status(self, service_name):
         return self.serviceStatus[service_name]
