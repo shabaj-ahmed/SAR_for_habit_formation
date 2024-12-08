@@ -76,13 +76,14 @@ export_env_variables() {
 start_services() {
     echo "Starting services..."
     for service_dir in "$SERVICES_DIR"/*; do
-        entry_point="$service_dir/app/main.py"
-        if "$service_dir" == "user_interface"; then
+
+        if [ "$service_dir" == "$SERVICES_DIR/user_interface" ]; then
             export FLASK_APP=main
             export FLASK_ENV=production
 
             flask run --host=0.0.0.0 &
             flask_pid=$!  # Capture Flask process PID
+            echo "Flask started with PID $flask_pid. Logs available at flask.log."
             sleep 2  # Give Flask some time to start
 
             echo "Opening browser in full screen..."
@@ -91,6 +92,8 @@ start_services() {
 
             continue
         fi
+
+        entry_point="$service_dir/app/main.py"
 
         if [ -f "$entry_point" ]; then
             echo "Starting service in $service_dir..."
