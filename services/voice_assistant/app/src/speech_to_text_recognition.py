@@ -13,6 +13,8 @@ SILENCE_THRESHOLD = 500  # RMS threshold for silence (This value was arbitrarily
 INITIAL_SILENCE_DURATION = 15 # Silence duration in seconds
 SILENCE_DURATION = 4  # Silence duration in seconds
 
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+
 class SpeedToText:
     def __init__(self):
         # Load API keys from environment variables
