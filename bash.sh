@@ -10,6 +10,27 @@ SERVICES_DIR="$PROJECT_DIR/services" # Path to your services directory
 # MQTT broker setup
 MQTT_BROKER_SERVICE="mosquitto"
 
+# Trap SIGINT and SIGTERM to clean up properly
+cleanup() {
+    echo "Performing cleanup..."
+    echo "Stopping background processes..."
+    pkill -P $$  # Kill all child processes of this script
+    echo "Deactivating virtual environment..."
+    deactivate 2>/dev/null || true  # Deactivate the virtual environment if active
+    echo "Cleanup complete. Exiting."
+    exit 0
+}
+trap cleanup SIGINT SIGTERM
+
+# Debug: Print paths
+echo "Project Directory: $PROJECT_DIR"
+echo "Environment File: $ENV_FILE"
+echo "Script Path: $SCRIPT_PATH"
+
+# Change to the project directory
+cd "$PROJECT_DIR" || { echo "Error: Cannot change to project directory $PROJECT_DIR"; exit 1; }
+
+
 start_mqtt_broker() {
     echo "Starting MQTT broker..."
     sudo systemctl start $MQTT_BROKER_SERVICE
@@ -91,14 +112,8 @@ start_services
 
 echo "All services are running. Press [ENTER] to stop the services and exit."
 
-# Wait for the user to press [ENTER]
-read -p ""
+# Wait for user input
+read -r
 
-# Stop services gracefully
-echo "Stopping services..."
-for pid in $(jobs -p); do
-    echo "Stopping process $pid..."
-    kill $pid
-done
-
-echo "Cleanup complete. Exiting."
+# Stop all background processes
+cleanup
