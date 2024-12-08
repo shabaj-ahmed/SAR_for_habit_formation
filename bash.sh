@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define variables
-PROJECT_DIR="~/Documents/hri_study/SAR_for_habit_formation"  # CHANGE THIS TO THE ROOT OF THE PROJECT DIRECTORY
+PROJECT_DIR="/home/pi/Documents/hri_study/SAR_for_habit_formation"  # CHANGE THIS TO THE ROOT OF THE PROJECT DIRECTORY
 VENV_DIR="$PROJECT_DIR/.venv"         # Path to your virtual environment
 REQUIREMENTS_FILE="$PROJECT_DIR/requirements.txt"
 ENV_FILE="$PROJECT_DIR/configurations/.env"
@@ -84,7 +84,7 @@ activate_virtualenv
 install_requirements
 
 # Step 4:
-export_env_variables()
+export_env_variables
 
 # Step 5:
 start_services
