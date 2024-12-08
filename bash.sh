@@ -78,7 +78,7 @@ start_services() {
     for service_dir in "$SERVICES_DIR"/*; do
 
         if [ "$service_dir" == "$SERVICES_DIR/user_interface" ]; then
-            export FLASK_APP=main
+            export FLASK_APP=services.user_interface.main
             export FLASK_ENV=production
 
             flask run --host=0.0.0.0 &
