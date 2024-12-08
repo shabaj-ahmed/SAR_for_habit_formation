@@ -81,9 +81,9 @@ start_services() {
             export FLASK_APP=main
             export FLASK_ENV=production
 
-            flask run &
+            flask run --host=0.0.0.0 &
             flask_pid=$!  # Capture Flask process PID
-            sleep 5  # Give Flask some time to start
+            sleep 2  # Give Flask some time to start
 
             echo "Opening browser in full screen..."
             $BROWSER_CMD "$FLASK_APP_URL" &
