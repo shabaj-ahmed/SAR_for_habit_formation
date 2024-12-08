@@ -58,27 +58,50 @@
         if (progressBar) progressBar.remove();
 
         const chatContainer = document.querySelector('.chat-container');
-
+        
         const chatControl = document.createElement('div');
         chatControl.classList.add('chat-controls');
         chatControl.innerHTML = `
-                    <button id="restart-checkin">Restart Check-In</button>
-                    <button id="save-checkin">Save Check-In</button>
-                `;
+        <button id="restart-checkin">Restart Check-In</button>
+        <button id="save-checkin">Save Check-In</button>
+        `;
         chatContainer.appendChild(chatControl);
         
         document.getElementById('save-checkin').addEventListener('click', function () {
             console.log('Save Check-In button clicked');
+            window.location.href = "/";
         });
-
+        
         document.getElementById('restart-checkin').addEventListener('click', function () {
             console.log('Restart Check-In button clicked');
         });
-    });
-    
-    // TODO: Have a count down in the save checking button to let users know that their response will be saved
-    // TODO: If the restart button is pressed clear the cach and send a start check in request
-    
+        
+        const countdownContainer = document.createElement('div');
+        countdownContainer.id = 'countdown-timer';
+        countdownContainer.innerHTML = `
+                    Your responses will be saved in <span id="timer">20</span> seconds.
+                `;
+        chatContainer.appendChild(countdownContainer);
+
+        const timerDisplay = document.getElementById("timer");
+        startCountdown(20, timerDisplay); 
+
+        function startCountdown(duration, display) {
+            let timer = duration, seconds;
+            const countdownInterval = setInterval(() => {
+                seconds = parseInt(timer, 10);
+
+                display.textContent = seconds;
+
+                if (--timer < 0) {
+                    clearInterval(countdownInterval);
+                    // window.location.href = "/save_check_in";
+                    window.location.href = "/";
+                    
+                }
+            }, 1000);
+        }
+    });    
 
 
 
@@ -188,19 +211,6 @@
         // Start the animation
         animationId = requestAnimationFrame(frame);
     });
-
-
-
-
-
-
-    // document.getElementById('restart checking').addEventListener('click', function () {
-
-    // });
-
-    // document.getElementById('save checking').addEventListener('click', function () {
-
-    // });
 
 
 
