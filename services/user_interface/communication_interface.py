@@ -18,6 +18,8 @@ class CommunicationInterface(MQTTClientBase):
         super().__init__(broker_address, port)
         self.logger = logging.getLogger(self.__class__.__name__)
 
+        self.service_status = "Awake" # As soon as the user interface starts, it is awake
+
         self.inputs = {
             'switch_state': False,
             'error': False,
@@ -25,6 +27,7 @@ class CommunicationInterface(MQTTClientBase):
             'cameraActive': False,
             'wifiActive': False,
         }
+        self.system_status = {}
         self.check_in_status = False
 
         # Set up the message callbacks
@@ -32,7 +35,8 @@ class CommunicationInterface(MQTTClientBase):
         self.socketio = None
 
         # Subscription topics
-        self.service_status_topic = "service_status"
+        self.service_status_requested_topic = "request/service_status"
+        self.update_system_status_topic = "publish/system_status"
         self.user_interface_control_cmd_topic = "user_interface_control_cmd"
         self.silence_detected_topic = "voice_assistant/silence_detected"
         self.conversation_history_topic = "conversation/history"
@@ -49,7 +53,8 @@ class CommunicationInterface(MQTTClientBase):
         self.check_in_controls_topic = "check_in_controller"
 
         # Subscribe to topics
-        self.subscribe(self.service_status_topic, self._service_status)
+        self.subscribe(self.service_status_requested_topic, self._respond_with_service_status)
+        self.subscribe(self.update_system_status_topic, self._update_system_status)
         self.subscribe(self.check_in_controls_topic, self._process_check_in_commands)
         self.subscribe(self.user_interface_control_cmd_topic, self._process_control_command)
         self.subscribe(self.silence_detected_topic, self._process_silence_detected)
@@ -58,10 +63,21 @@ class CommunicationInterface(MQTTClientBase):
         self.subscribe(self.audio_active_topic, self._process_audio_active)
         self.subscribe(self.robot_error_topic, self._process_error_message)
 
-    def _service_status(self, client, userdata, message):
+    def _respond_with_service_status(self, client, userdata, message):
+        self.publish_UI_status(self.service_status)
+
+    def _update_system_status(self, client, userdata, message):
         serviceStatus = json.loads(message.payload.decode("utf-8"))
         # self.logger.info(f"Service status dictionary: {serviceStatus}")
         self.socketio.emit('service_status', serviceStatus)
+        self.system_status = serviceStatus
+        still_loading = False
+        for key, value in serviceStatus.items():
+            if value != "Awake":
+                still_loading = True
+        if still_loading == False:
+            self.logger.info("Sending loading_complete event")
+            self.socketio.emit('loading_complete')
 
     def _process_check_in_commands(self, client, userdata, message):
         if message.payload.decode() == '1':
@@ -146,3 +162,8 @@ class CommunicationInterface(MQTTClientBase):
             "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
         }
         self.publish(self.user_interface_status_topic, json.dumps(payload))
+
+        self.service_status = status
+
+    def get_system_status(self):
+        return self.system_status

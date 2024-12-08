@@ -12,7 +12,7 @@ import subprocess
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
-start_up = True
+app.config['SYSTEM_IS_STILL_LOADING'] = True
 socketio = SocketIO(app)
 
 # Load environment variables
@@ -71,8 +71,13 @@ communication_interface.message_callback = on_mqtt_message
 
 @app.route('/')
 def home():
-    communication_interface.publish_UI_status("Awake")
-    if start_up:
+    serviceStatus = communication_interface.get_system_status()
+    still_loading = False
+    print(f"serviceStatus: {serviceStatus}")
+    for key, value in serviceStatus.items():
+        if value != "Awake":
+            still_loading = True
+    if still_loading or serviceStatus == {}:
         return render_template('system_boot_up.html')
     return render_template('home.html')
 

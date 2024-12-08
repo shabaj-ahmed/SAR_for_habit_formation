@@ -232,7 +232,7 @@ class BehaviorBranch:
         while True:
             waiting = False
             for service in self.services:
-                serviceStatus = self.communication_interface.get_service_status()[service.name]
+                serviceStatus = self.communication_interface.get_system_status()[service.name]
                 if serviceStatus != "ready":
                     waiting = True
                 time.sleep(0.2)
@@ -368,23 +368,21 @@ class BehaviorTree:
     def check_if_all_services_are_running(self):
         while self.first_run:
             self.all_services_running = True
-            services = self.communication_interface.get_service_status()
-            print(f"services = {services}, type = {type(services)}")
+            services = self.communication_interface.get_system_status()
+            self.communication_interface.request_service_status() # Request all services to provide their status
+            self.communication_interface.publish_system_status() # Publish the system status so services know the system health and can respond accordingly
+
+            time.sleep(0.4)
+
             for service in services:
-                print(type(service))
-                print(f"service = {service} and status = {services[service]}")
+                print(f"Service: {service} is {services[service]}")
                 if services[service] != "Awake":
                     self.all_services_running = False
-
+            
             if self.all_services_running:
+                self.logger.info("All services are running")
+                self.communication_interface.publish_system_status() # Publish the system status so services know the system health and can respond accordingly
                 self.first_run = False
-                for service in services:
-                    self.communication_interface.behaviour_controller(service.name, "standby")
-                break
-
-            self.communication_interface.publish_service_status()
-
-            time.sleep(0.2)
 
     def check_for_user_requested_events(self):
         ''' Check if the user has requested a behaviour '''

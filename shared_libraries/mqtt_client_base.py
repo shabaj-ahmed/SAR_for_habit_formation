@@ -43,7 +43,7 @@ class MQTTClientBase:
 
     def publish(self, topic, message):
         """Publish a message to a topic."""
-        result = self.mqtt_client.publish(topic, message, retain=True)
+        result = self.mqtt_client.publish(topic, message)
         if result.rc != mqtt.MQTT_ERR_SUCCESS:
             print(f"Failed to publish message to {topic}. Return code: {result.rc}")
         else:

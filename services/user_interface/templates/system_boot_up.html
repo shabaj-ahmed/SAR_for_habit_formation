@@ -71,5 +71,11 @@
             pendingServicesContainer.appendChild(listItem);
         });
     }
+
+    window.socket.on("loading_complete", () => {
+        console.log("All services are awake. Redirecting to home...");
+        window.location.href = "/";
+        
+    });
 </script>
 </html>

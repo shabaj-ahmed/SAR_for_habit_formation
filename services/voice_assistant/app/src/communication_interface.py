@@ -21,9 +21,12 @@ class CommunicationInterface(MQTTClientBase):
         self.max_retries = 5
         self.delay = 10
 
+        self.service_status = "Awake" # As soon as the voice assistant starts, it is awake
+
         self.message_queue = queue.Queue()
 
         # Subscription topics
+        self.service_status_requested_topic = "request/service_status"
         self.control_cmd = "voice_assistant_control_cmd"
 
         # Publish topics
@@ -36,7 +39,11 @@ class CommunicationInterface(MQTTClientBase):
         self.check_in_controls_topic = "check_in_controller"
 
         # subscribe to topics
+        self.subscribe(self.service_status_requested_topic, self._respond_with_service_status)
         self.subscribe(self.control_cmd, self._handle_command)
+
+    def _respond_with_service_status(self, client, userdata, message):
+        self.publish_voice_assistant_status(self.service_status)
     
     def _handle_command(self, client, userdata, message):
         
@@ -93,6 +100,8 @@ class CommunicationInterface(MQTTClientBase):
             "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
         }
         self.publish(self.voice_assistant_status_topic, json.dumps(payload))
+
+        self.service_status = status
 
     def publish_voice_assistant_heartbeat(self):
         payload = {

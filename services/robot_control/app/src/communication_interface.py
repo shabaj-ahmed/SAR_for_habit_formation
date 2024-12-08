@@ -22,7 +22,10 @@ class CommunicationInterface(MQTTClientBase):
         self.start_command = ""
         self.is_streaming = False
 
+        self.service_status = "Awake" # As soon as the robot controller starts, it is awake
+
         # Subscription topics
+        self.service_status_requested_topic = "request/service_status"
         self.service_control_cmd = "robot_control_control_cmd"
         self.robot_volume = "robot_volume"
         self.robot_colour = "robot_colour"
@@ -38,6 +41,7 @@ class CommunicationInterface(MQTTClientBase):
         self.robot_status = "robot_status"
 
         # Subscribe to necessary topics
+        self.subscribe(self.service_status_requested_topic, self._respond_with_service_status)
         self.subscribe(self.service_control_cmd, self._handle_control_command)
         self.subscribe(self.robot_volume, self._handle_volume_command)
         self.subscribe(self.robot_colour, self._handle_colour_command)
@@ -45,6 +49,9 @@ class CommunicationInterface(MQTTClientBase):
         self.subscribe(self.animation_topic, self._handle_animation_command)
         self.subscribe(self.behavior_topic, self._handle_behavior_command)
         self.subscribe(self.activate_camera_topic, self._process_camera_active)
+    
+    def _respond_with_service_status(self, client, userdata, message):
+        self.publish_robot_status(self.service_status)
     
     def _handle_control_command(self, client, userdata, message):
         try:
@@ -88,7 +95,7 @@ class CommunicationInterface(MQTTClientBase):
             payload = json.loads(message.payload.decode("utf-8"))
             sender = payload.get("sender", "")
             text = payload.get("content", "")
-            self.logger.info(f"environment variable {text}")
+            self.logger.info(f"Robot said: {text}")
             if sender == "robot":
                 self.robot_controller.say_text(text)
                 self.publish(self.conversation_history_topic, json.dumps(payload))
@@ -162,3 +169,5 @@ class CommunicationInterface(MQTTClientBase):
             "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
         }
         self.publish(self.robot_status, json.dumps(payload))
+
+        self.service_status = status
