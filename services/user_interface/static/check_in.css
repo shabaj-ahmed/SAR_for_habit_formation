@@ -34,6 +34,11 @@
     box-sizing: border-box;
     scroll-behavior: smooth; /* Smooth scrolling */
 }
+.notification-message{
+    font-size: 24pt;
+    text-align: center;
+    color: #999;
+}
 
 /* Received Messages */
 .received-message {
@@ -85,7 +90,7 @@
     color: white;
     border: none;
     padding: 10px 20px;
-    font-size: 16px;
+    font-size: 24px;
     cursor: pointer;
     border-radius: 5px;
 }

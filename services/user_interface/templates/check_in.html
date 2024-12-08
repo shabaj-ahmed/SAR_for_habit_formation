@@ -8,7 +8,7 @@
 <div class="chat-wrapper">
     <div class="chat-container">
         <div id="messages" class="messages">
-            <p id="no-messages" style="font-size: 24pt; text-align: center; color: #999;">
+            <p id="no-messages" class="notification-message">
                 Press the start check in button below to start the check in process
             </p>
         </div>
@@ -77,6 +77,7 @@
         });
         
         const countdownContainer = document.createElement('div');
+        countdownContainer.classList.add('notification-message');
         countdownContainer.id = 'countdown-timer';
         countdownContainer.innerHTML = `
                     Your responses will be saved in <span id="timer">20</span> seconds.
@@ -100,6 +101,19 @@
                     
                 }
             }, 1000);
+        }
+
+        function appendOutgoingMessage(content, time) {
+            const messages = document.getElementById('messages');
+
+            const outgoingChat = document.createElement('div');
+            outgoingChat.classList.add('outgoing-message'); // Apply outgoing message styling
+            outgoingChat.innerHTML = `
+            <p>${content}</p>
+            <span class="time">${time}</span>
+            `;    
+            messages.appendChild(outgoingChat);
+            scrollToBottom(); // Auto-scroll to the bottom
         }
     });    
 

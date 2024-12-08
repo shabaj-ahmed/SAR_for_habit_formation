@@ -16,7 +16,7 @@
     flex: 1;
     display: flex;
     justify-content: center;
-    font-size: 2rem;
+    font-size: 42pt;
     font-weight: bold;
     margin-bottom: 1rem;
     align-items: center;
@@ -35,7 +35,7 @@
 
 /* Individual Elements in the Row */
 .check-in, .days-remaining {
-    font-size: 1.5rem;
+    font-size: 32pt;
     font-weight: bold;
     display: flex;
     flex-direction: column;
@@ -53,6 +53,6 @@
 
 .date, .time {
     margin: 0;
-    font-size: 1rem;
+    font-size: 24;
     font-weight: normal;
 }
