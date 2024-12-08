@@ -53,7 +53,7 @@ export_env_variables() {
 start_services() {
     echo "Starting services..."
     for service_dir in "$SERVICES_DIR"/*; do
-        entry_point="$service_dir/app/src/main.py"
+        entry_point="$service_dir/app/main.py"
         if "$service_dir" == "user_interface"; then
             export FLASK_APP=main
             export FLASK_ENV=production
