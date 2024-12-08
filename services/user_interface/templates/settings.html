@@ -17,6 +17,7 @@
     </form>
 </div>
 
+{% if robot_enabled %}
 <div class="settings-container">
     <h2>Robot settings</h2>
     <h4>Choose a eye colour</h4>
@@ -150,6 +151,7 @@
         <span class="toggle"></span>
     </label>
 </div>
+{% endif %}
 
 <div class="settings-container">
 <h2>UI settings</h2>
@@ -159,8 +161,6 @@
   </div>
 <p>Value: <output id="value"></output></p>
 </div>
-
-
 
 {% endblock %}
 

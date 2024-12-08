@@ -96,7 +96,12 @@ def history():
 
 @app.route('/settings')
 def settings():
-    return render_template('settings.html', volume_button_states=volume_button_states, voice_button_states=voice_button_states)
+    return render_template(
+        'settings.html',
+        volume_button_states=volume_button_states,
+        voice_button_states=voice_button_states,
+        robot_enabled=os.getenv("ROBOT_ENABLED") == "True",
+    )
 
 @app.route('/colour/<secected_colour>')
 def colour_button_click(secected_colour):
