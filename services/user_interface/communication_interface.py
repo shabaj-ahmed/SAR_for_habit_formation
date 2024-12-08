@@ -18,7 +18,7 @@ class CommunicationInterface(MQTTClientBase):
         super().__init__(broker_address, port)
         self.logger = logging.getLogger(self.__class__.__name__)
 
-        self.service_status = "Awake" # As soon as the user interface starts, it is awake
+        self.service_status = "setting_up" # The UI is not active until the root page has loaded
 
         self.inputs = {
             'switch_state': False,

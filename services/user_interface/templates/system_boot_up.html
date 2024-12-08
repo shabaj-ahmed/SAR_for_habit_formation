@@ -32,6 +32,14 @@
     // Listen for updates from the server via Socket.IO
     window.socket = io();
 
+    // Notify the server when the page is fully loaded
+    window.addEventListener('load', () => {
+        setTimeout(() => {
+            console.log("UI is ready. Notifying backend...");
+            socket.emit('ui_ready');
+        }, 1000); // Delay of 1000 milliseconds (1 second)
+    });
+
     window.socket.on("service_status", (serviceStatus) => {
         console.log("Received service status:", serviceStatus);
 

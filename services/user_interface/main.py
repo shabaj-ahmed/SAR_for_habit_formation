@@ -79,6 +79,13 @@ def home():
         return render_template('system_boot_up.html')
     return render_template('home.html')
 
+@socketio.on('ui_ready')
+def handle_ui_ready():
+    logger.info("UI is ready, sending system status update...")
+
+    # Publish the UI status to the MQTT broker
+    communication_interface.publish_UI_status("Awake")
+
 @app.route('/check_in')
 def check_in():
     return render_template('check_in.html', chat_history=chat_history)
