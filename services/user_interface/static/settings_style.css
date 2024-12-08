@@ -1,3 +1,9 @@
+.settings-page {
+    height: 100vh; /* Full viewport height */
+    overflow-y: auto; /* Enable vertical scrolling */
+    cursor: grab; /* Default cursor for draggable area */
+}
+
 /* General Settings Container */
 .settings-container {
     text-align: center;
