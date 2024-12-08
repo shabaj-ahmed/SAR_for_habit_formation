@@ -159,7 +159,6 @@
         <div class="slidecontainer">
             <input type="range" min="1" max="100" value="50" step="1" class="slider" id="myRange">
         </div>
-        <p>Value: <output id="value"></output></p>
     </div>
 </div>
 
@@ -249,21 +248,17 @@
             }
         });
 
-        const value = document.querySelector("#value");
-        const input = document.querySelector("#myRange");
 
-        // Update the displayed value
-        value.textContent = input.value;
 
-        input.addEventListener("input", (event) => {
+        const slider = document.querySelector("#myRange");
+
+        slider.addEventListener("input", (event) => {
             const brightness_level = event.target.value;
 
             $.ajax({
                 url: "/brightness/" + brightness_level,
                 type: "GET",
                 success: function (response) {
-                    // Update the displayed value on success
-                    value.textContent = brightness_level;
                     console.log(response); // Optional: Log the success response
                 },
                 error: function (error) {
@@ -272,6 +267,11 @@
                 },
             });
         });
+
+
+
+
+
 
         // Enable click-and-drag scrolling for the entire page
         const settingsPage = document.querySelector(".settings-page");
