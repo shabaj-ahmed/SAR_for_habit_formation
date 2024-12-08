@@ -240,8 +240,8 @@ class BehaviorBranch:
                 break
         
         for service in self.services:
-            if self.behaviour_running is False:
-                service.start()
+            service.start()
+            time.sleep(0.4) # give service time to process the start command
         logging.info(f"{self.branch_name} branch has started")
         self.behaviour_running = True # Mark the behaviour as running
 
@@ -316,6 +316,7 @@ class BehaviorTree:
 
     def transition_to_branch(self, branch_name):
         """Transition to a specific branch of behaviours based on FSM state"""
+        self.logger.info(f"processing request to transition to {branch_name} branch")
         if branch_name in self.branches:
             if self.current_branch:
                 self.current_branch.deactivate_behaviour()  # Stop all behaviours in the current branch
@@ -325,6 +326,7 @@ class BehaviorTree:
             self.current_branch.activate_behaviour()  # Start all behaviours in the new branch
             self.logger.info(f"Transitioned to {self.current_branch.branch_name} branch")
             self.behaviour_tree_event_queue.put({"state": branch_name})
+            time.sleep(0.4) # Give the system time to process the request
 
     def update(self):
         """Update the behaviour tree"""
@@ -353,7 +355,10 @@ class BehaviorTree:
             state = self.finite_state_machine_event_queue.get()["state"]
             
             # Set current state if it's different from the existing one
-            if self.current_state != state:
+            if self.current_state in ['Sleep', 'Active'] or state in ['Sleep', 'Active']:
+                    # If the fsm transitions from sleep to active or vice versa, the branch won't change so don't transition
+                    self.set_current_state(state)
+            elif self.current_state != state:
                 self.set_current_state(state)
                 
                 # Transition based on the FSM state
