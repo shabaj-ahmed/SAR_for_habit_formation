@@ -1,15 +1,6 @@
 from .fsm_communication_interface import CommunicationInterface
-from dotenv import load_dotenv
-from pathlib import Path
 import os
 import logging
-
-# Relative path to the .env file in the config directory
-# Move up one level and into config
-dotenv_path = Path('../../../configurations/.env')
-
-# Load the .env file
-load_dotenv(dotenv_path=dotenv_path)
 
 class State:
     def enter(self):

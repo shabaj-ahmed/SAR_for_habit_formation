@@ -4,26 +4,14 @@ import time
 import threading
 import traceback
 import sys
-from dotenv import load_dotenv
-from pathlib import Path
 import os
 
 import anki_vector
-from anki_vector import util
-from anki_vector import annotate
 from anki_vector.util import degrees
 
 import logging
 
-# Relative path to the .env file in the config directory
-# Move up one level and into config
-dotenv_path = Path('../../../configurations/.env')
-
-# Load the .env file
-load_dotenv(dotenv_path=dotenv_path)
-
 # import json
-import io
 import anki_vector
 # from PIL import Image
 # import paho.mqtt.client as mqtt

@@ -6,18 +6,11 @@ from communication_interface import CommunicationInterface
 import logging
 from custom_logging.logging_config import setup_logger
 import os
-from dotenv import load_dotenv
-from pathlib import Path
 import subprocess
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your_secret_key'
 app.config['SYSTEM_IS_STILL_LOADING'] = True
 socketio = SocketIO(app)
-
-# Load environment variables
-dotenv_path = Path('../../configurations/.env')
-load_dotenv(dotenv_path=dotenv_path)
 
 # Setup logger
 setup_logger()

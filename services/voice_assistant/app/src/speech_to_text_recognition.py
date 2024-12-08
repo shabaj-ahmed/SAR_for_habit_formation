@@ -1,7 +1,5 @@
 import queue
 import time
-from dotenv import load_dotenv
-from pathlib import Path
 import os
 from google.cloud import speech
 
@@ -11,17 +9,9 @@ import audioop
 # Audio recording parameters
 RATE = 16000
 CHUNK = int(RATE / 10)  # 100ms
-SILENCE_THRESHOLD = 450  # RMS threshold for silence (This value was arbitrarily chosen based on testing)
+SILENCE_THRESHOLD = 500  # RMS threshold for silence (This value was arbitrarily chosen based on testing)
 INITIAL_SILENCE_DURATION = 15 # Silence duration in seconds
 SILENCE_DURATION = 4  # Silence duration in seconds
-
-# Relative path to the .env file in the config directory
-# Move up one level and into config
-dotenv_path = Path('../../../configurations/.env')
-
-# Load the .env file
-load_dotenv(dotenv_path=dotenv_path)
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
 
 class SpeedToText:
     def __init__(self):
@@ -76,7 +66,6 @@ class SpeedToText:
     def listen_print_loop(self, responses):
         """Processes server responses and captures transcripts."""
         transcript = ""
-        print(f"Entered listen_print_loop and transcript is {transcript}")
         for response in responses:
             if not response.results:
                 continue
@@ -137,7 +126,6 @@ class MicrophoneStream:
         silence_start = time.time()
         silence_detected = False
         initial_silence = True
-        print("Waiting for user to start speaking.")
         self.communication_interface.publish_silance_detected(INITIAL_SILENCE_DURATION)
         while not self.closed:
             chunk = self._buff.get()
@@ -150,10 +138,8 @@ class MicrophoneStream:
             if initial_silence:
                 if rms < SILENCE_THRESHOLD:
                     if time.time() - silence_start >= INITIAL_SILENCE_DURATION:
-                        print("No response detected within initial silence duration.")
                         self.closed = True
                 else:
-                    print("User started speaking.")
                     initial_silence = False
                     silence_detected = False
                     silence_start = time.time()  # Reset silence timer for post-speaking silence detection
@@ -164,10 +150,8 @@ class MicrophoneStream:
                         silence_detected = True
                         self.communication_interface.publish_silance_detected(SILENCE_DURATION)
                     if time.time() - silence_start >= SILENCE_DURATION:
-                        print("Silence detected after response. Ending recording.")
                         self.closed = True
                 else:
                     silence_start = time.time()  # Reset silence timer when sound is detected
                     self.communication_interface.publish_silance_detected(0)
                     silence_detected = False
-                    print("Sound detected.")

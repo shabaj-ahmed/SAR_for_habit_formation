@@ -40,16 +40,7 @@ try:
 except ImportError:
     sys.exit("Cannot import from PIL: Do `pip3 install --user Pillow` to install")
 
-from dotenv import load_dotenv
-from pathlib import Path
 import os
-
-# Relative path to the .env file in the config directory
-# Move up one level and into config
-dotenv_path = Path('../../configurations/.env')
-
-# Load the .env file
-load_dotenv(dotenv_path=dotenv_path)
 
 def create_default_image(image_width, image_height, do_gradient=False):
     """Create a place-holder PIL image to use until we have a live feed from Vector"""
