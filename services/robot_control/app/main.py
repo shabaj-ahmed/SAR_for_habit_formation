@@ -1,5 +1,4 @@
 from src.communication_interface import CommunicationInterface
-from custom_logging.logging_config import setup_logger
 import time
 import threading
 import traceback
@@ -15,6 +14,11 @@ import logging
 import anki_vector
 # from PIL import Image
 # import paho.mqtt.client as mqtt
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.abspath(os.path.join(current_dir, "../../../../"))
+sys.path.insert(0, project_root)
+from shared_libraries.logging_config import setup_logger
 
 MAX_RETRIES = 3
 RETRY_DELAY = 1

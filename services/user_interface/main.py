@@ -4,13 +4,18 @@ import threading
 import time
 from communication_interface import CommunicationInterface
 import logging
-from custom_logging.logging_config import setup_logger
 import os
+import sys
 import subprocess
 
 app = Flask(__name__)
 app.config['SYSTEM_IS_STILL_LOADING'] = True
 socketio = SocketIO(app)
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.abspath(os.path.join(current_dir, "../../../../"))
+sys.path.insert(0, project_root)
+from shared_libraries.logging_config import setup_logger
 
 # Setup logger
 setup_logger()
