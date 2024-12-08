@@ -6,6 +6,8 @@ VENV_DIR="$PROJECT_DIR/.venv"         # Path to your virtual environment
 REQUIREMENTS_FILE="$PROJECT_DIR/requirements.txt"
 ENV_FILE="$PROJECT_DIR/configurations/.env"
 SERVICES_DIR="$PROJECT_DIR/services" # Path to your services directory
+FLASK_APP_URL="http://127.0.0.1:5000"  # Change this if using a custom host/port
+BROWSER_CMD="chromium-browser --start-fullscreen"  # Command to open browser in full screen
 
 # MQTT broker setup
 MQTT_BROKER_SERVICE="mosquitto"
@@ -79,7 +81,14 @@ start_services() {
             export FLASK_APP=main
             export FLASK_ENV=production
 
-            flask run
+            flask run &
+            flask_pid=$!  # Capture Flask process PID
+            sleep 5  # Give Flask some time to start
+
+            echo "Opening browser in full screen..."
+            $BROWSER_CMD "$FLASK_APP_URL" &
+            browser_pid=$!  # Capture browser process PID
+
             continue
         fi
 
