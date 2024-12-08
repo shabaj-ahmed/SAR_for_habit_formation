@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, jsonify
 from flask_socketio import SocketIO, emit
 import threading
 import time
-from communication_interface import CommunicationInterface
+from .communication_interface import CommunicationInterface
 import logging
 import os
 import sys
