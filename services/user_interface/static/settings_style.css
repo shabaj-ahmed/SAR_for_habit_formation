@@ -26,14 +26,20 @@
 }
 
 /* Headers */
+.settings-container h2 {
+    font-size: 36px;
+    margin-bottom: 1rem;
+    color: #333;
+}
+
 .settings-container h4 {
-    font-size: 1.5rem;
+    font-size: 32px;
     margin-bottom: 1rem;
     color: #333;
 }
 
 .settings-container p {
-    font-size: 1rem;
+    font-size: 24px;
     margin-bottom: 1.5rem;
     color: #555;
 }
