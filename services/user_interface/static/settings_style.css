@@ -1,47 +1,152 @@
-.settings-page {
-    height: 100vh; /* Full viewport height */
-    overflow-y: auto; /* Enable vertical scrolling */
-    cursor: grab; /* Default cursor for draggable area */
+:root {
+    --primary-color: #4CAF50;
+    --secondary-color: #45a049;
+    --background-color: white;
+    --secondary_background-colour: #ddd;
+    --shadow-color: rgba(0, 0, 0, 0.6);
+    --green-color: #2ecc71;
+    --sapphire-color: #3498db;
+    --yellow-color: #f1c40f;
+    --red-color: #e74c3c;
+    --orange-color: #FFA500;
+    --purple-color: #800080;
+
+    --heading: 2rem;
+    --sub-heading: 1.5rem;
+    --font-size-sm: 14px;
 }
 
-/* General Settings Container */
+/* General Layout */
+.settings-page {
+    height: 100vh;
+    overflow-y: auto;
+    cursor: grab;
+}
+
 .settings-container {
     text-align: center;
-    padding: 2rem 1rem; /* Vertical and horizontal padding */
-    margin: 1rem auto; /* Space between containers */
-    width: calc(100% - 2rem); /* Full width minus padding to avoid touching the edges */
-    max-width: 1200px; /* Set a maximum width for large screens */
-    background: white;
-    border-radius: 10px; /* Rounded corners for visual separation */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
-    box-sizing: border-box; /* Include padding in width calculation */
+    padding: 2rem 1.5rem;
+    margin: 1rem auto;
+    max-width: 1200px;
+    background: var(--background-color);
+    border-radius: 10px;
+    box-shadow: 0 4px 6px var(--shadow-color);
+    box-sizing: border-box;
 }
 
-/* Ensure the settings container adjusts for smaller screens */
+/* Responsive Adjustments */
 @media (max-width: 600px) {
     .settings-container {
-        padding: 1.5rem; /* Reduce padding on smaller screens */
+        padding: 1.5rem;
         width: calc(100% - 1rem); /* Reduce side gaps on smaller screens */
+    }
+
+    .radios-container {
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .volume-buttons {
+        flex-direction: column;
     }
 }
 
-/* Headers */
-.settings-container h2 {
-    font-size: 36px;
-    margin-bottom: 1rem;
-    color: #333;
+/* Typography */
+h2 {
+    font-size: var(--heading);
 }
 
-.settings-container h4 {
-    font-size: 32px;
-    margin-bottom: 1rem;
-    color: #333;
+h4 {
+    font-size: var(--sub-heading);
 }
 
-.settings-container p {
-    font-size: 24px;
-    margin-bottom: 1.5rem;
-    color: #555;
+.custom-time-picker {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+/* Time Section (Hour/Minute) */
+.time-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.time-section span {
+    font-size: var(--heading);
+    font-weight: bold;
+    text-align: center;
+}
+
+/* AM/PM Toggle */
+.ampm-toggle {
+    display: flex; /* Horizontal alignment */
+    align-items: center; /* Vertical alignment */
+    gap: 40px; /* Space between toggle and text */
+}
+
+.toggle-switch {
+    display: inline-block;
+    position: relative;
+    width: 50px;
+    height: 24px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle {
+    position: absolute;
+    cursor: pointer;
+    background-color: var(--secondary_background-colour);
+    border-radius: 24px;
+    width: 100%;
+    height: 100%;
+    transition: background-color 0.3s;
+}
+
+.toggle::before {
+    content: "";
+    position: absolute;
+    height: 20px;
+    width: 20px;
+    left: 4px;
+    bottom: 2px;
+    background-color: var(--background-color);
+    border-radius: 50%;
+    transition: transform 0.3s;
+}
+
+.toggle-switch input:checked + .toggle {
+    background-color: var(--primary-color);
+}
+
+.toggle-switch input:checked + .toggle::before {
+    transform: translateX(26px);
+}
+
+/* Common button style */
+.common-button {
+    padding: 10px 20px;
+    font-size: var(--heading);
+    background-color: var(--primary-color);
+    color: var(--background-color);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.common-button:hover {
+    background-color: var(--secondary-color);
 }
 
 /* Radios Container */
@@ -64,9 +169,8 @@
 }
 
 #custom-radios input[type="radio"] + label {
-    color: #333;
     font-family: Arial, sans-serif;
-    font-size: 14px;
+    font-size: var(--font-size-sm);
     cursor: pointer;
 }
 
@@ -78,8 +182,8 @@
     vertical-align: middle;
     cursor: pointer;
     border-radius: 50%;
-    border: 2px solid #ffffff;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.33);
+    border: 2px solid var(--background-color);
+    box-shadow: 0 1px 3px 0 var(--shadow-color);
     background-repeat: no-repeat;
     background-position: center;
     text-align: center;
@@ -88,16 +192,16 @@
 }
 
 /* Color Options */
-#custom-radios #green + label span { background-color: #2ecc71; }
-#custom-radios #sapphire + label span { background-color: #3498db; }
-#custom-radios #yellow + label span { background-color: #f1c40f; }
-#custom-radios #red + label span { background-color: #e74c3c; }
-#custom-radios #orange + label span { background-color: #FFA500; }
-#custom-radios #purple + label span { background-color: #800080; }
+#custom-radios #green + label span { background-color: var(--green-color); }
+#custom-radios #sapphire + label span { background-color: var(--sapphire-color); }
+#custom-radios #yellow + label span { background-color: var(--yellow-color); }
+#custom-radios #red + label span { background-color: var(--red-color); }
+#custom-radios #orange + label span { background-color: var(--orange-color); }
+#custom-radios #purple + label span { background-color: var(--purple-color); }
 
 /* Checked State */
 #custom-radios input[type="radio"]:checked + label span {
-    box-shadow: 0 0 8px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 0 8px var(--shadow-color);
     transform: scale(1.1); /* Slightly enlarge the checked option */
 }
 
@@ -129,113 +233,6 @@
     flex-wrap: wrap; /* Wrap buttons for smaller screens */
 }
 
-/* Common button style */
-.settings-button {
-    padding: 0.5rem 1.5rem;
-    font-size: 1rem;
-    border: 2px solid #007BFF;
-    border-radius: 5px;
-    cursor: pointer;
-    background-color: #007BFF;
-    color: white;
-    transition: all 0.3s;
-}
-
-/* Hover effect for all buttons */
-.settings-button:hover {
-    background-color: #0056b3;
-    border-color: #0056b3;
-}
-
-/* Disabled state for buttons */
-.settings-button:disabled {
-    background-color: #cccccc;
-    border-color: #aaaaaa;
-    color: #666666;
-    cursor: not-allowed;
-}
-
-/* Active or selected state for buttons */
-.settings-button.clicked {
-    background-color: #0046d5;
-    border-color: #0036a5;
-}
-
-/* Focus state for better accessibility */
-.settings-button:focus {
-    outline: 2px solid #0056b3;
-    outline-offset: 2px;
-}
-
-/* Responsive Adjustments */
-@media (max-width: 600px) {
-    .settings-container {
-        padding: 1.5rem;
-    }
-
-    .radios-container {
-        flex-direction: column;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .volume-buttons {
-        flex-direction: column;
-    }
-}
-
-/* Container for the toggle */
-.toggle-switch {
-    position: relative;
-    display: inline-block;
-    width: 50px;
-    height: 24px;
-}
-
-/* Hide default checkbox */
-.toggle-switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-/* The track */
-.toggle {
-    position: absolute;
-    cursor: pointer;
-    background-color: #ccc;
-    border-radius: 24px;
-    width: 100%;
-    height: 100%;
-    transition: background-color 0.3s;
-}
-
-/* The circular slider */
-.toggle::before {
-    content: "";
-    position: absolute;
-    height: 20px;
-    width: 20px;
-    left: 4px;
-    bottom: 2px;
-    background-color: white;
-    border-radius: 50%;
-    transition: transform 0.3s;
-}
-
-/* Toggled state */
-.toggle-switch input:checked+.toggle {
-    background-color: #4caf50;
-}
-
-.toggle-switch input:checked+.toggle::before {
-    transform: translateX(26px);
-}
-
-
-
-
-
 /* Container for slider */
 .slidecontainer {
     display: flex;
@@ -252,7 +249,7 @@
     appearance: none;
     width: 80%; /* Width of the slider */
     height: 25px; /* Increase height for touch-friendly design */
-    background: #ddd; /* Track background */
+    background: var(--secondary_background-colour); /* Track background */
     border-radius: 10px; /* Rounded edges */
     outline: none; /* Remove outline */
     opacity: 0.9; /* Slight transparency */
@@ -266,29 +263,29 @@
     appearance: none;
     width: 30px; /* Thumb width */
     height: 30px; /* Thumb height */
-    background: #4CAF50; /* Thumb color */
+    background: var(--primary-color); /* Thumb color */
     border-radius: 50%; /* Circular thumb */
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2); /* Slight shadow */
+    box-shadow: 0 0 5px var(--shadow-color); /* Slight shadow */
     cursor: pointer; /* Pointer cursor on hover */
     transition: background 0.3s ease; /* Smooth color change */
 }
 
 .slider::-webkit-slider-thumb:hover {
-    background: #45a049; /* Darken thumb color on hover */
+    background: var(--secondary-color); /* Darken thumb color on hover */
 }
 
 .slider::-moz-range-thumb {
     width: 30px;
     height: 30px;
-    background: #4CAF50;
+    background: var(--primary-color);
     border-radius: 50%;
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 0 5px var(--shadow-color);
     cursor: pointer;
     transition: background 0.3s ease;
 }
 
 .slider::-moz-range-thumb:hover {
-    background: #45a049;
+    background: var(--secondary-color);
 }
 
 /* Focused styling */
@@ -298,5 +295,5 @@
 
 /* Active state for the track (when dragging) */
 .slider:active {
-    background: #ccc; /* Slightly darker track while dragging */
+    background: var(--secondary_background-colour); /* Slightly darker track while dragging */
 }
