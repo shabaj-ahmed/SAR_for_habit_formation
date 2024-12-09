@@ -1,3 +1,9 @@
+.settings-page {
+    height: 100vh; /* Full viewport height */
+    overflow-y: auto; /* Enable vertical scrolling */
+    cursor: grab; /* Default cursor for draggable area */
+}
+
 /* General Settings Container */
 .settings-container {
     text-align: center;
@@ -20,14 +26,20 @@
 }
 
 /* Headers */
+.settings-container h2 {
+    font-size: 36px;
+    margin-bottom: 1rem;
+    color: #333;
+}
+
 .settings-container h4 {
-    font-size: 1.5rem;
+    font-size: 32px;
     margin-bottom: 1rem;
     color: #333;
 }
 
 .settings-container p {
-    font-size: 1rem;
+    font-size: 24px;
     margin-bottom: 1.5rem;
     color: #555;
 }
@@ -218,4 +230,73 @@
 
 .toggle-switch input:checked+.toggle::before {
     transform: translateX(26px);
+}
+
+
+
+
+
+/* Container for slider */
+.slidecontainer {
+    display: flex;
+    align-items: center;
+    vertical-align: middle;
+    justify-content: center;
+    width: 100%; /* Full-width container */
+    margin: 20px 0; /* Add some spacing */
+}
+
+/* The slider */
+.slider {
+    -webkit-appearance: none; /* Remove default styling */
+    appearance: none;
+    width: 80%; /* Width of the slider */
+    height: 25px; /* Increase height for touch-friendly design */
+    background: #ddd; /* Track background */
+    border-radius: 10px; /* Rounded edges */
+    outline: none; /* Remove outline */
+    opacity: 0.9; /* Slight transparency */
+    transition: opacity 0.2s; /* Smooth hover effect */
+    cursor: pointer;
+}
+
+/* Thumb styling */
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none; /* Remove default styling */
+    appearance: none;
+    width: 30px; /* Thumb width */
+    height: 30px; /* Thumb height */
+    background: #4CAF50; /* Thumb color */
+    border-radius: 50%; /* Circular thumb */
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2); /* Slight shadow */
+    cursor: pointer; /* Pointer cursor on hover */
+    transition: background 0.3s ease; /* Smooth color change */
+}
+
+.slider::-webkit-slider-thumb:hover {
+    background: #45a049; /* Darken thumb color on hover */
+}
+
+.slider::-moz-range-thumb {
+    width: 30px;
+    height: 30px;
+    background: #4CAF50;
+    border-radius: 50%;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.slider::-moz-range-thumb:hover {
+    background: #45a049;
+}
+
+/* Focused styling */
+.slider:focus {
+    opacity: 1; /* Fully opaque when focused */
+}
+
+/* Active state for the track (when dragging) */
+.slider:active {
+    background: #ccc; /* Slightly darker track while dragging */
 }

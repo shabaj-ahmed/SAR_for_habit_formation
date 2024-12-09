@@ -5,162 +5,162 @@
 {% endblock %}
 
 {% block content %}
-
-<div class="settings-container">
-    <h2>User settings</h2>
-    <h4>When would you like to check in?</h4>
-    <p>Pick a time that suits you best</p>
-    <form action="/action_page.php">
-    <label for="appt">Select a time:</label>
-    <input type="time" id="appt" name="appt">
-    <input type="submit">
-    </form>
-</div>
-
-<div class="settings-container">
-    <h2>Robot settings</h2>
-    <h4>Choose a eye colour</h4>
-    <p>
-        Select a colour that you think looks good from the following options:
-    </p>
-    <div class="radios-container">
-        <div id="custom-radios">
-            <div>
-                <input type="radio" class="custom-radio" id="green" name="colour" value="green" />
-                <label for="green">
-                    <span>
-                        <img src="./static/check.svg" alt="Checked Icon" />
-                    </span>
-                </label>
-            </div>
-
-            <div>
-                <input type="radio" class="custom-radio" id="sapphire" name="colour" value="sapphire" />
-                <label for="sapphire">
-                    <span>
-                        <img src="./static/check.svg" alt="Checked Icon" />
-                    </span>
-                </label>
-            </div>
-
-            <div>
-                <input type="radio" class="custom-radio" id="yellow" name="colour" value="yellow" />
-                <label for="yellow">
-                    <span>
-                        <img src="./static/check.svg" alt="Checked Icon" />
-                    </span>
-                </label>
-            </div>
-
-            <div>
-                <input type="radio" class="custom-radio" id="red" name="colour" value="red" />
-                <label for="red">
-                    <span>
-                        <img src="./static/check.svg" alt="Checked Icon" />
-                    </span>
-                </label>
-            </div>
-
-            <div>
-                <input type="radio" class="custom-radio" id="purple" name="colour" value="purple" />
-                <label for="purple">
-                    <span>
-                        <img src="./static/check.svg" alt="Checked Icon" />
-                    </span>
-                </label>
-            </div>
-
-            <div>
-                <input type="radio" class="custom-radio" id="orange" name="colour" value="orange" />
-                <label for="orange">
-                    <span>
-                        <img src="./static/check.svg" alt="Checked Icon" />
-                    </span>
-                </label>
-
-            </div>
-        </div>
+<div class="settings-page">
+    <div class="settings-container">
+        <h2>User settings</h2>
+        <h4>When would you like to check in?</h4>
+        <p>Pick a time that suits you best</p>
+        <form action="/action_page.php">
+            <label for="appt">Select a time:</label>
+            <input type="time" id="appt" name="appt">
+            <input type="submit">
+        </form>
     </div>
 
-    <h4>Set a voice volume</h4>
-    <p>
-        The robot has a number of different volumes. Listen to each
-        sample and select one that you think will sound good.
-    </p>
-    <div class="volume-settings">
-        <div class="volume-buttons">
-            <button 
-                type="button" 
-                class="settings-button {{ 'clicked' if volume_button_states['quiet'] else '' }}" 
-                data-type="volume" 
-                data-volume="quiet" 
-                {{ 'disabled' if volume_button_states['quiet'] else '' }}>
-                Quiet
-            </button>
-            <button 
-                type="button" 
-                class="settings-button {{ 'clicked' if volume_button_states['default'] else '' }}" 
-                data-type="volume" 
-                data-volume="default" 
-                {{ 'disabled' if volume_button_states['default'] else '' }}>
-                Default
-            </button>
-            <button 
-                type="button" 
-                class="settings-button {{ 'clicked' if volume_button_states['loud'] else '' }}" 
-                data-type="volume" 
-                data-volume="loud" 
-                {{ 'disabled' if volume_button_states['loud'] else '' }}>
-                Loud
-            </button>
+    {% if robot_enabled %}
+    <div class="settings-container">
+        <h2>Robot settings</h2>
+        <h4>Choose a eye colour</h4>
+        <p>
+            Select a colour that you think looks good from the following options:
+        </p>
+        <div class="radios-container">
+            <div id="custom-radios">
+                <div>
+                    <input type="radio" class="custom-radio" id="green" name="colour" value="green" />
+                    <label for="green">
+                        <span>
+                            <img src="./static/check.svg" alt="Checked Icon" />
+                        </span>
+                    </label>
+                </div>
+
+                <div>
+                    <input type="radio" class="custom-radio" id="sapphire" name="colour" value="sapphire" />
+                    <label for="sapphire">
+                        <span>
+                            <img src="./static/check.svg" alt="Checked Icon" />
+                        </span>
+                    </label>
+                </div>
+
+                <div>
+                    <input type="radio" class="custom-radio" id="yellow" name="colour" value="yellow" />
+                    <label for="yellow">
+                        <span>
+                            <img src="./static/check.svg" alt="Checked Icon" />
+                        </span>
+                    </label>
+                </div>
+
+                <div>
+                    <input type="radio" class="custom-radio" id="red" name="colour" value="red" />
+                    <label for="red">
+                        <span>
+                            <img src="./static/check.svg" alt="Checked Icon" />
+                        </span>
+                    </label>
+                </div>
+
+                <div>
+                    <input type="radio" class="custom-radio" id="purple" name="colour" value="purple" />
+                    <label for="purple">
+                        <span>
+                            <img src="./static/check.svg" alt="Checked Icon" />
+                        </span>
+                    </label>
+                </div>
+
+                <div>
+                    <input type="radio" class="custom-radio" id="orange" name="colour" value="orange" />
+                    <label for="orange">
+                        <span>
+                            <img src="./static/check.svg" alt="Checked Icon" />
+                        </span>
+                    </label>
+
+                </div>
+            </div>
+        </div>
+
+        <h4>Set a voice volume</h4>
+        <p>
+            The robot has a number of different volumes. Listen to each
+            sample and select one that you think will sound good.
+        </p>
+        <div class="volume-settings">
+            <div class="volume-buttons">
+                <button 
+                    type="button" 
+                    class="settings-button {{ 'clicked' if volume_button_states['quiet'] else '' }}" 
+                    data-type="volume" 
+                    data-volume="quiet" 
+                    {{ 'disabled' if volume_button_states['quiet'] else '' }}>
+                    Quiet
+                </button>
+                <button 
+                    type="button" 
+                    class="settings-button {{ 'clicked' if volume_button_states['default'] else '' }}" 
+                    data-type="volume" 
+                    data-volume="default" 
+                    {{ 'disabled' if volume_button_states['default'] else '' }}>
+                    Default
+                </button>
+                <button 
+                    type="button" 
+                    class="settings-button {{ 'clicked' if volume_button_states['loud'] else '' }}" 
+                    data-type="volume" 
+                    data-volume="loud" 
+                    {{ 'disabled' if volume_button_states['loud'] else '' }}>
+                    Loud
+                </button>
+            </div>
+        </div>
+
+        <h4>Select a voice that you like</h4>
+        <p>
+            The robot has a two different voices to choose from.
+        </p>
+        <div class="volume-settings">
+            <div class="volume-buttons">
+                <button 
+                    type="button" 
+                    class="settings-button {{ 'clicked' if voice_button_states['quiet'] else '' }}" 
+                    data-type="voice" 
+                    data-voice="quiet" 
+                    {{ 'disabled' if voice_button_states['quiet'] else '' }}>
+                    Robotic
+                </button>
+                <button 
+                    type="button" 
+                    class="settings-button {{ 'clicked' if voice_button_states['default'] else '' }}" 
+                    data-type="voice" 
+                    data-voice="default" 
+                    {{ 'disabled' if voice_button_states['default'] else '' }}>
+                    Human
+                </button>
+            </div>
+        </div>
+
+        <h4>Enable free play</h4>
+        <p>
+            Enabling this behaviour will allow the robot to move around roam freely.
+        </p>
+        <label class="toggle-switch">
+            <input type="checkbox" />
+            <span class="toggle"></span>
+        </label>
+    </div>
+    {% endif %}
+
+    <div class="settings-container">
+        <h2>UI settings</h2>
+        <h4>Set screen brightness</h4>
+        <div class="slidecontainer">
+            <input type="range" min="1" max="100" value="50" step="1" class="slider" id="myRange">
         </div>
     </div>
-
-    <h4>Select a voice that you like</h4>
-    <p>
-        The robot has a two different voices to choose from.
-    </p>
-    <div class="volume-settings">
-        <div class="volume-buttons">
-            <button 
-                type="button" 
-                class="settings-button {{ 'clicked' if voice_button_states['quiet'] else '' }}" 
-                data-type="voice" 
-                data-voice="quiet" 
-                {{ 'disabled' if voice_button_states['quiet'] else '' }}>
-                Robotic
-            </button>
-            <button 
-                type="button" 
-                class="settings-button {{ 'clicked' if voice_button_states['default'] else '' }}" 
-                data-type="voice" 
-                data-voice="default" 
-                {{ 'disabled' if voice_button_states['default'] else '' }}>
-                Human
-            </button>
-        </div>
-    </div>
-
-    <h4>Enable free play</h4>
-    <p>
-        Enabling this behaviour will allow the robot to move around roam freely.
-    </p>
-    <label class="toggle-switch">
-        <input type="checkbox" />
-        <span class="toggle"></span>
-    </label>
 </div>
-
-<div class="settings-container">
-<h2>UI settings</h2>
-<h4>Set screen brightness</h4>
-<div class="slidecontainer">
-    <input type="range" min="1" max="100" value="50" step="1" class="slider" id="myRange">
-  </div>
-<p>Value: <output id="value"></output></p>
-</div>
-
-
 
 {% endblock %}
 
@@ -248,21 +248,17 @@
             }
         });
 
-        const value = document.querySelector("#value");
-        const input = document.querySelector("#myRange");
 
-        // Update the displayed value
-        value.textContent = input.value;
 
-        input.addEventListener("input", (event) => {
+        const slider = document.querySelector("#myRange");
+
+        slider.addEventListener("input", (event) => {
             const brightness_level = event.target.value;
 
             $.ajax({
                 url: "/brightness/" + brightness_level,
                 type: "GET",
                 success: function (response) {
-                    // Update the displayed value on success
-                    value.textContent = brightness_level;
                     console.log(response); // Optional: Log the success response
                 },
                 error: function (error) {
@@ -271,7 +267,79 @@
                 },
             });
         });
+
+
+
+
+
+
+        // Enable click-and-drag scrolling for the entire page
+        const settingsPage = document.querySelector(".settings-page");
+
+        let isDragging = false;
+        let startY = 0; // Initial Y position of the pointer
+        let scrollTop = 0; // Initial scroll position of the container
+
+        settingsPage.addEventListener("mousedown", (e) => {
+            // Ignore drag if clicking on interactive elements
+            if (
+                e.target.tagName === "BUTTON" ||
+                e.target.tagName === "INPUT" ||
+                e.target.tagName === "LABEL"
+            ) {
+                return;
+            }
+
+            isDragging = true;
+            startY = e.pageY - settingsPage.offsetTop;
+            scrollTop = settingsPage.scrollTop;
+            settingsPage.style.cursor = "grabbing"; // Change cursor to grabbing
+        });
+
+        settingsPage.addEventListener("mouseleave", () => {
+            isDragging = false;
+            settingsPage.style.cursor = "default"; // Reset cursor
+        });
+
+        settingsPage.addEventListener("mouseup", () => {
+            isDragging = false;
+            settingsPage.style.cursor = "default"; // Reset cursor
+        });
+
+        settingsPage.addEventListener("mousemove", (e) => {
+            if (!isDragging) return;
+            e.preventDefault();
+            const y = e.pageY - settingsPage.offsetTop;
+            const walk = (y - startY) * 2; // Adjust scroll speed
+            settingsPage.scrollTop = scrollTop - walk;
+        });
+
+        // Optional: Add touch support for mobile
+        let touchStartY = 0;
+        let touchScrollTop = 0;
+
+        settingsPage.addEventListener("touchstart", (e) => {
+            // Ignore drag if touching on interactive elements
+            if (
+                e.target.tagName === "BUTTON" ||
+                e.target.tagName === "INPUT" ||
+                e.target.tagName === "LABEL"
+            ) {
+                return;
+            }
+
+            touchStartY = e.touches[0].pageY;
+            touchScrollTop = settingsPage.scrollTop;
+        });
+
+        settingsPage.addEventListener("touchmove", (e) => {
+            e.preventDefault();
+            const y = e.touches[0].pageY;
+            const walk = (y - touchStartY) * 2; // Adjust scroll speed
+            settingsPage.scrollTop = touchScrollTop - walk;
+        });
     });
+
 </script>
 
 {% endblock %}

@@ -2,21 +2,20 @@ from flask import Flask, render_template, request, jsonify
 from flask_socketio import SocketIO, emit
 import threading
 import time
-from communication_interface import CommunicationInterface
+from .communication_interface import CommunicationInterface
 import logging
-from custom_logging.logging_config import setup_logger
 import os
-from dotenv import load_dotenv
-from pathlib import Path
+import sys
 import subprocess
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your_secret_key'
+app.config['SYSTEM_IS_STILL_LOADING'] = True
 socketio = SocketIO(app)
 
-# Load environment variables
-dotenv_path = Path('../configurations/.env')
-load_dotenv(dotenv_path=dotenv_path)
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.abspath(os.path.join(current_dir, "../../../../"))
+sys.path.insert(0, project_root)
+from shared_libraries.logging_config import setup_logger
 
 # Setup logger
 setup_logger()
@@ -45,7 +44,7 @@ voice_button_states = {
 
 def publish_heartbeat():
     while True:
-        communication_interface.publish_UI_status("running")
+        # Publish heartbeat
         time.sleep(30)  # Publish heartbeat every 30 seconds
 
 # Start heartbeat thread
@@ -70,11 +69,26 @@ communication_interface.message_callback = on_mqtt_message
 
 @app.route('/')
 def home():
+    serviceStatus = communication_interface.get_system_status()
+    still_loading = False
+    print(f"serviceStatus: {serviceStatus}")
+    for key, value in serviceStatus.items():
+        if value != "Awake":
+            still_loading = True
+    if still_loading or serviceStatus == {}:
+        return render_template('system_boot_up.html')
     return render_template('home.html')
+
+@socketio.on('ui_ready')
+def handle_ui_ready():
+    logger.info("UI is ready, sending system status update...")
+
+    # Publish the UI status to the MQTT broker
+    communication_interface.publish_UI_status("Awake")
 
 @app.route('/check_in')
 def check_in():
-    return render_template('check_in.html')
+    return render_template('check_in.html', chat_history=chat_history)
 
 @app.route('/history')
 def history():
@@ -82,7 +96,12 @@ def history():
 
 @app.route('/settings')
 def settings():
-    return render_template('settings.html', volume_button_states=volume_button_states, voice_button_states=voice_button_states)
+    return render_template(
+        'settings.html',
+        volume_button_states=volume_button_states,
+        voice_button_states=voice_button_states,
+        robot_enabled=os.getenv("ROBOT_ENABLED") == "True",
+    )
 
 @app.route('/colour/<secected_colour>')
 def colour_button_click(secected_colour):
@@ -132,12 +151,6 @@ def start_check_in():
     communication_interface.start_check_in()
     return jsonify({'status': 'success', 'message': 'Check-In command sent'})
 # Asynchronous response returning true but the message channel closed before response received
-
-@socketio.on('connect')
-def handle_connect():
-    logger.info('Client connected')
-    # Send chat history to the newly connected client
-    emit('chat_history', chat_history)
 
 @socketio.on('disconnect')
 def handle_disconnect():

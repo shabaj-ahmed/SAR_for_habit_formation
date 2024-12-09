@@ -8,10 +8,13 @@
 <div class="chat-wrapper">
     <div class="chat-container">
         <div id="messages" class="messages">
-            <p id="no-messages" style="text-align: center; color: #999;">No messages yet...</p>
+            <p id="no-messages" class="notification-message">
+                Press the start check in button below to start the check in process
+            </p>
         </div>
         <div class="chat-controls">
             <button id="start-check-in-button">Start Check-In</button>
+            <br>
         </div>
     </div>
 </div>
@@ -19,85 +22,214 @@
 
 {% block scripts %}
 <script>
+    // Handle "Start Check-In" button click
+    document.getElementById('start-check-in-button').addEventListener('click', function () {
+        fetch('/start_check_in', { method: 'POST' })
+            .then((response) => response.json())
+            .then((data) => {
+                // Remove the place holder message
+                const noMessages = document.getElementById('no-messages');
+                if (noMessages) noMessages.remove();
+                // Remove the chat controls
+                const chatControls = document.querySelector('.chat-controls');
+                if (chatControls) chatControls.remove();                
+
+                // Add the progress bar
+                const chatContainer = document.querySelector('.chat-container');
+
+                const progressBar = document.createElement('div');
+                progressBar.id = 'myProgress';
+                progressBar.innerHTML = `
+                    <div id="myBar"></div>
+                `;
+                chatContainer.appendChild(progressBar);
+            })
+            .catch((error) => console.error('Error starting check-in:', error));
+    });
+
+    window.socket.on('connect', function () {
+        console.log("Connected to Socket.IO server");
+    });
+
+    // Listen for check-in completion
+    window.socket.on('check_in_complete', function () {
+        console.log("Check-in complete event received");
+        const progressBar = document.getElementById('myProgress');
+        if (progressBar) progressBar.remove();
+
+        const chatContainer = document.querySelector('.chat-container');
+        
+        const chatControl = document.createElement('div');
+        chatControl.classList.add('chat-controls');
+        chatControl.innerHTML = `
+        <button id="restart-checkin">Restart Check-In</button>
+        <button id="save-checkin">Save Check-In</button>
+        `;
+        chatContainer.appendChild(chatControl);
+        
+        document.getElementById('save-checkin').addEventListener('click', function () {
+            console.log('Save Check-In button clicked');
+            window.location.href = "/";
+        });
+        
+        document.getElementById('restart-checkin').addEventListener('click', function () {
+            console.log('Restart Check-In button clicked');
+        });
+        
+        const countdownContainer = document.createElement('div');
+        countdownContainer.classList.add('notification-message');
+        countdownContainer.id = 'countdown-timer';
+        countdownContainer.innerHTML = `
+                    Your responses will be saved in <span id="timer">20</span> seconds.
+                `;
+        chatContainer.appendChild(countdownContainer);
+
+        const timerDisplay = document.getElementById("timer");
+        startCountdown(20, timerDisplay); 
+
+        function startCountdown(duration, display) {
+            let timer = duration, seconds;
+            const countdownInterval = setInterval(() => {
+                seconds = parseInt(timer, 10);
+
+                display.textContent = seconds;
+
+                if (--timer < 0) {
+                    clearInterval(countdownInterval);
+                    // window.location.href = "/save_check_in";
+                    window.location.href = "/";
+                    
+                }
+            }, 1000);
+        }
+
+        function appendOutgoingMessage(content, time) {
+            const messages = document.getElementById('messages');
+
+            const outgoingChat = document.createElement('div');
+            outgoingChat.classList.add('outgoing-message'); // Apply outgoing message styling
+            outgoingChat.innerHTML = `
+            <p>${content}</p>
+            <span class="time">${time}</span>
+            `;    
+            messages.appendChild(outgoingChat);
+            scrollToBottom(); // Auto-scroll to the bottom
+        }
+    });    
+
+
+
+
+    // Listen for new messages
+    window.socket.on('new_message', function(message) {
+        const noMessages = document.getElementById('no-messages');
+        if (noMessages) noMessages.remove(); // Remove placeholder if it exists
+        if (message.sender === 'robot') {
+            appendReceivedMessage(message.content, message.time);
+        } else {
+            appendOutgoingMessage(message.content, message.time);    
+        }
+    });    
+    
     // Function to create and append a received message
     function appendReceivedMessage(content, time) {
         const messages = document.getElementById('messages');
-        const noMessages = document.getElementById('no-messages');
-        if (noMessages) noMessages.remove(); // Remove placeholder if it exists
-
+        
         const receivedChat = document.createElement('div');
         receivedChat.classList.add('received-message'); // Apply received message styling
         receivedChat.innerHTML = `
             <p>${content}</p>
             <span class="time">${time}</span>
-        `;
+            `;    
         messages.appendChild(receivedChat);
         scrollToBottom(); // Auto-scroll to the bottom
-    }
+    }    
 
     // Function to create and append an outgoing message
     function appendOutgoingMessage(content, time) {
         const messages = document.getElementById('messages');
-        const noMessages = document.getElementById('no-messages');
-        if (noMessages) noMessages.remove(); // Remove placeholder if it exists
 
         const outgoingChat = document.createElement('div');
         outgoingChat.classList.add('outgoing-message'); // Apply outgoing message styling
         outgoingChat.innerHTML = `
-            <p>${content}</p>
-            <span class="time">${time}</span>
-        `;
+        <p>${content}</p>
+        <span class="time">${time}</span>
+        `;    
         messages.appendChild(outgoingChat);
         scrollToBottom(); // Auto-scroll to the bottom
-    }
-
+    }    
+    
     function scrollToBottom() {
         const messages = document.getElementById('messages');
         messages.scrollTop = messages.scrollHeight; // Scroll to the bottom
-    }
-
+    }    
+    
     // Load chat history on connection
     window.socket.on('chat_history', function(history) {
         history.forEach(message => {
             if (message.sender === 'robot') {
                 appendReceivedMessage(message.content, message.time);
             } else {
-                appendOutgoingMessage(message.content, message.time);
+                appendOutgoingMessage(message.content, message.time);        
             }
         });
+    });    
+    
+    
+    
+        
+    
+    let animationId = null; // To store the current animation frame ID
+    
+    window.socket.on('silence_detected', function (data) {
+        const duration = parseFloat(data.duration); // Get the duration in seconds
+        if (isNaN(duration) || duration < 0) {
+            console.error("Invalid duration received:", duration);
+            return;
+        }    
+
+        const elem = document.getElementById("myBar");
+        if (!elem) {
+            console.error("Element #myBar not found");
+            return;
+        }    
+
+        // Reset the progress bar and stop the current animation if a new request comes in
+        if (animationId) {
+            cancelAnimationFrame(animationId); // Stop the current animation
+            animationId = null;
+            elem.style.transform = `scaleX(1)`; // Reset progress bar
+        }    
+
+        if (duration === 0) {
+            console.warn("User is talking, resetting progress bar immediately.");
+            return; // Exit early, no animation is needed
+        }    
+
+        let startTime = Date.now(); // Record the animation start time
+        const totalTime = duration * 1000; // Convert duration to milliseconds
+
+        function frame() {
+            const elapsedTime = Date.now() - startTime;
+            const progress = 1 - Math.min(elapsedTime / totalTime, 1); // Calculate progress (clamp to 1)
+
+            elem.style.transform = `scaleX(${progress})`; // Update transform to match progress
+
+            if (progress > 0) {
+                animationId = requestAnimationFrame(frame); // Continue animation
+            } else {
+                animationId = null; // Clear animation ID when complete
+            }
+        }    
+
+        // Start the animation
+        animationId = requestAnimationFrame(frame);
     });
 
-    // Listen for new messages
-    window.socket.on('new_message', function(message) {
-        if (message.sender === 'robot') {
-            appendReceivedMessage(message.content, message.time);
-        } else {
-            appendOutgoingMessage(message.content, message.time);
-        }
-    });
 
-    // Handle "Start Check-In" button click
-    document.getElementById('start-check-in-button').addEventListener('click', function() {
-        fetch('/start_check_in', { method: 'POST' })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Check-In started:', data);
-                const button = document.getElementById('start-check-in-button');
-                if (button) {
-                    button.textContent = "Check-In in Progress...";
-                    button.disabled = true;
-                }
-            })
-            .catch(error => console.error('Error starting check-in:', error));
-    });
 
-    window.socket.on('check_in_complete', function() {
-        const button = document.getElementById('start-check-in-button');
-        if (button) {
-            button.textContent = "Start Check-In";
-            button.disabled = false;
-        }
-    });
+
+    
 
     // Enable click-and-drag scrolling for the messages container
     const messages = document.getElementById('messages');
@@ -130,7 +262,6 @@
         const walk = (y - startY) * 2; // Adjust scroll speed
         messages.scrollTop = scrollTop - walk;
     });
-
 
 </script>
 {% endblock %}

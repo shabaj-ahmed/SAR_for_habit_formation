@@ -11,16 +11,25 @@ class DecisionTree:
         self.sr = SpeedToText()
         self.communication_interface = None
 
-    def check_in(self):
+    def set_up(self):
         self.sr.communication_interface = self.communication_interface
         if not self.communication_interface:
             self.logger.debug("Communication interface is not set!")
             return
         self.logger.info("Communication interface is set and ready to use.")
+        self.communication_interface.publish_voice_assistant_status("ready")
 
+        # Wait for the start command
+        while not self.communication_interface.command == "start":
+            time.sleep(1)
+        
+        self.communication_interface.publish_voice_assistant_status("running")
+    
+    def check_in(self):
+        self.set_up()
+        
         # Step 1: Send greeting
         self.communication_interface.publish_robot_speech(
-            sender = "robot",
             message_type = "greeting",
             content = "Hello! Welcome to your daily check-in."
         )
@@ -39,20 +48,21 @@ class DecisionTree:
             self.ask_questions(self.experience_sampling_questions)
         except Exception as e:
             self.logger.error(f"Error asking experience questions: {e}")
-
+        
         # Step 4: Summarise the conversation
-
 
         # Step 5: Wish participants farewell
         self.communication_interface.publish_robot_speech(
-            sender = "robot",
             message_type = "farewell",
             content = "Thank you for checking in. Have a great day!"
         )
 
+        time.sleep(0.2)
+
         # Step 6: Save the conversation to a database or file
         self.logger.info("Voice assistant service completed successfully.")
         self.communication_interface.publish_voice_assistant_status("completed")
+        self.communication_interface.end_check_in()
 
     # Function to determine the day and adjust the questions accordingly
     def get_current_day_questions(self, question = "", response = ""):
@@ -145,7 +155,6 @@ class DecisionTree:
         question_data = next_question()
         while question_data:
             self.communication_interface.publish_robot_speech(
-                sender = "robot",
                 message_type = "question",
                 content = question_data["question"]
             )
@@ -158,7 +167,6 @@ class DecisionTree:
                 continue
 
             self.communication_interface.publish_user_response(
-                sender = "user",
                 message_type = "Response",
                 content = response
             )

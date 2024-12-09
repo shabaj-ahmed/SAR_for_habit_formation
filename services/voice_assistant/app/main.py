@@ -1,20 +1,16 @@
 from src.communication_interface import CommunicationInterface
 from src.decision_tree import DecisionTree
-from custom_logging.logging_config import setup_logger
 import time
 import threading
 import traceback
-from dotenv import load_dotenv
-from pathlib import Path
 import os
 import logging
+import sys
 
-# Relative path to the .env file in the config directory
-# Move up one level and into config
-dotenv_path = Path('../../configurations/.env')
-
-# Load the .env file
-load_dotenv(dotenv_path=dotenv_path)
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.abspath(os.path.join(current_dir, "../../../../"))
+sys.path.insert(0, project_root)
+from shared_libraries.logging_config import setup_logger
 
 decision_tree = DecisionTree()
 
@@ -22,6 +18,7 @@ def publish_heartbeat():
     while True:
         # Publish voice assistant heartbeat
         logger.info("voice assistant heartbeat")
+        communication_interface.publish_voice_assistant_heartbeat()
         time.sleep(30)  # Publish heartbeat every 30 seconds
 
 def process_communication_queue():
@@ -48,11 +45,13 @@ if __name__ == "__main__":
     
     decision_tree.communication_interface = communication_interface
 
+    communication_interface.publish_voice_assistant_status("Awake")
+
     # Keep the program running to listen for commands
     try:
         while True:
             attempt = 0
-            if communication_interface.start_command:
+            if communication_interface.command != "":
                 while attempt < communication_interface.max_retries:
                     try:
                         decision_tree.check_in()

@@ -11,7 +11,7 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.abspath(os.path.join(current_dir, "../../../../"))
 sys.path.insert(0, project_root)
 
-from services.shared_libraries.mqtt_client_base import MQTTClientBase
+from shared_libraries.mqtt_client_base import MQTTClientBase
 
 class CommunicationInterface(MQTTClientBase):
     def __init__(self, broker_address, port, robot_controller):
@@ -19,11 +19,14 @@ class CommunicationInterface(MQTTClientBase):
         self.logger = logging.getLogger(self.__class__.__name__)
 
         self.robot_controller = robot_controller
-        self.start_command = False
+        self.start_command = ""
         self.is_streaming = False
 
+        self.service_status = "Awake" # As soon as the robot controller starts, it is awake
+
         # Subscription topics
-        self.check_in_status_topic = "robot/check_in_status"
+        self.service_status_requested_topic = "request/service_status"
+        self.service_control_cmd = "robot_control_control_cmd"
         self.robot_volume = "robot_volume"
         self.robot_colour = "robot_colour"
         self.tts_topic = "voice_assistant/robot_speech"
@@ -33,11 +36,13 @@ class CommunicationInterface(MQTTClientBase):
 
         # Publish topics
         self.conversation_history_topic = "conversation/history"
+        self.camera_active_topic = "robot/cameraActive"
         self.video_topic = "robot/video_feed"
         self.robot_status = "robot_status"
 
         # Subscribe to necessary topics
-        self.subscribe(self.check_in_status_topic, self._handle_start_command)
+        self.subscribe(self.service_status_requested_topic, self._respond_with_service_status)
+        self.subscribe(self.service_control_cmd, self._handle_control_command)
         self.subscribe(self.robot_volume, self._handle_volume_command)
         self.subscribe(self.robot_colour, self._handle_colour_command)
         self.subscribe(self.tts_topic, self._handle_tts_command)
@@ -45,18 +50,25 @@ class CommunicationInterface(MQTTClientBase):
         self.subscribe(self.behavior_topic, self._handle_behavior_command)
         self.subscribe(self.activate_camera_topic, self._process_camera_active)
     
-    def _handle_start_command(self, client, userdata, message):
+    def _respond_with_service_status(self, client, userdata, message):
+        self.publish_robot_status(self.service_status)
+    
+    def _handle_control_command(self, client, userdata, message):
         try:
             payload = json.loads(message.payload.decode("utf-8"))
-            message = payload.get("message", "")
-            self.logger.info(f"message = {message}")
-            if message == "start" or message == "running":
-                self.robot_controller.drive
-                # Wake up the robot
-                pass
-            elif message == "completed" or message == "end":
-                # request to go to charger
-                pass
+            message = payload.get("cmd", "")
+            self.logger.info(f"Robot controller received the command = {message}")
+            self.start_command = message
+            if message == "set_up":
+                logging.info("Engaging user")
+                self.robot_controller.drive_off_charger()
+                self.publish_robot_status("ready",)
+                logging.info("User engaged")
+            elif message == "start":
+                self.publish_robot_status("running")
+            elif message == "end":
+                self.robot_controller.disengage_user()
+                self.publish_robot_status("completed")
         except json.JSONDecodeError:
             self.logger.error("Invalid JSON payload. Using default retry parameters.")
     
@@ -83,10 +95,10 @@ class CommunicationInterface(MQTTClientBase):
             payload = json.loads(message.payload.decode("utf-8"))
             sender = payload.get("sender", "")
             text = payload.get("content", "")
-            self.logger.info(f"environment variable {text}")
+            self.logger.info(f"Robot said: {text}")
             if sender == "robot":
                 self.robot_controller.say_text(text)
-                self.publish(self.conversation_history_topic, text)
+                self.publish(self.conversation_history_topic, json.dumps(payload))
         except json.JSONDecodeError:
             self.logger.error("Invalid JSON payload for TTS command.")
     
@@ -143,10 +155,19 @@ class CommunicationInterface(MQTTClientBase):
                     break
     
     def publish_robot_status(self, status, message="", details=None):
+        logging.info(f"Publishing robot status: {status}")
+        if status == "ready":
+            self.publish(self.camera_active_topic, "1")
+        if status == "completed":
+            self.publish(self.camera_active_topic, "0")
+        
         payload = {
+            "service_name": "robot_control",
             "status": status,
             "message": message,
             "details": details,
             "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
         }
         self.publish(self.robot_status, json.dumps(payload))
+
+        self.service_status = status

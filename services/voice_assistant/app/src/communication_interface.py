@@ -10,43 +10,54 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.abspath(os.path.join(current_dir, "../../../../"))
 sys.path.insert(0, project_root)
 
-from services.shared_libraries.mqtt_client_base import MQTTClientBase
+from shared_libraries.mqtt_client_base import MQTTClientBase
 
 class CommunicationInterface(MQTTClientBase):
     def __init__(self, broker_address, port):
         super().__init__(broker_address, port)
         self.logger = logging.getLogger(self.__class__.__name__)
 
-        self.start_command = False
+        self.command = ""
         self.max_retries = 5
         self.delay = 10
+
+        self.service_status = "Awake" # As soon as the voice assistant starts, it is awake
 
         self.message_queue = queue.Queue()
 
         # Subscription topics
-        self.check_in_status_topic = "check_in_status"
+        self.service_status_requested_topic = "request/service_status"
+        self.control_cmd = "voice_assistant_control_cmd"
 
         # Publish topics
-        self.audio_active_topic = "audio_active"
+        self.voice_assistant_status_topic = "voice_assistant_status"
+        self.vocie_assistant_hearbeat_topic = "voice_assistant_heartbeat"
         self.conversation_history_topic = "conversation/history"
         self.robot_speech_topic = "voice_assistant/robot_speech"
-        self.voice_assistant_status_topic = "voice_assistant_status"
-        self.silance_detected_topic = "voice_assistant/silance_detected"
+        self.silance_detected_topic = "voice_assistant/silence_detected"
+        self.audio_active_topic = "audio_active"
+        self.check_in_controls_topic = "check_in_controller"
 
         # subscribe to topics
-        self.subscribe(self.check_in_status_topic, self._handle_start_command)
+        self.subscribe(self.service_status_requested_topic, self._respond_with_service_status)
+        self.subscribe(self.control_cmd, self._handle_command)
+
+    def _respond_with_service_status(self, client, userdata, message):
+        self.publish_voice_assistant_status(self.service_status)
     
-    def _handle_start_command(self, client, userdata, message):
+    def _handle_command(self, client, userdata, message):
+        
         try:
             payload = json.loads(message.payload.decode("utf-8"))
-            message = payload.get("message", "")
-            self.logger.info(f"message = {message}")
-            if message == "start" or message == "running":
-                self.start_command = True
-                self.publish(self.audio_active_topic, "1")
-            elif message == "completed" or message == "end":
-                self.start_command = False
-                self.publish(self.audio_active_topic, "0")
+            cmd = payload.get("cmd", "")
+            logging.info(f"vocie assistant received the command: {cmd}")
+            self.logger.info(f"cmd = {cmd}")
+            if cmd == "end":
+                self.command = ""
+            elif cmd == "set_up" or cmd == "start":
+                self.command = cmd
+            else:
+                self.command = ""
         except json.JSONDecodeError:
             self.logger.error("Invalid JSON payload. Using default retry parameters.")
     
@@ -54,9 +65,9 @@ class CommunicationInterface(MQTTClientBase):
         # Forwards the robot speech to the conversation history
         self._thread_safe_publish(self.conversation_history_topic, message.payload.decode("utf-8"))
 
-    def publish_robot_speech(self, sender, content, message_type="response"):
+    def publish_robot_speech(self, content, message_type="response"):
         message = {
-            "sender": sender,
+            "sender": "robot",
             "message_type": message_type,
             "content": content
         }
@@ -64,31 +75,54 @@ class CommunicationInterface(MQTTClientBase):
         # This is what the robot should say
         self._thread_safe_publish(self.robot_speech_topic, json_message)
 
-    def publish_user_speech(self, sender, content, message_type="response"):
+    def publish_user_response(self, content, message_type="response"):
         message = {
-            "sender": sender,
+            "sender": "user",
             "message_type": message_type,
             "content": content
         }
         json_message = json.dumps(message)
         # This is what the user said
         self._thread_safe_publish(self.conversation_history_topic, json_message)
-        
     
     def publish_voice_assistant_status(self, status, message="", details=None):
+        if status == "running":
+            self.publish(self.audio_active_topic, "1")
         if status == "completed":
-            self.start_command = False
+            self.command = False
+            self.publish(self.audio_active_topic, "0")
+        
         payload = {
+            "service_name": "voice_assistant",
             "status": status,
             "message": message,
             "details": details,
             "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
         }
         self.publish(self.voice_assistant_status_topic, json.dumps(payload))
+
+        self.service_status = status
+
+    def publish_voice_assistant_heartbeat(self):
+        payload = {
+            "service_name": "voice_assistant",
+            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+        }
+        self.publish(self.vocie_assistant_hearbeat_topic, json.dumps(payload))
     
-    def silance_detected(self):
-        ''' Publish silence detected message to allow the UI to to show the user that the voice assistant will capture what they said '''
-        self.publish(self.silance_detected_topic, "1")
+    def publish_silance_detected(self, duration):
+        '''
+        Publish silence detected message to allow the UI to to show the user that the voice assistant will capture what they said
+
+        Args:
+            duration (int): The duration of the silence
+        '''
+        logging.info(f"Silence detected. Duration: {duration}")
+        self.publish(self.silance_detected_topic, duration)
+
+    def end_check_in(self):
+        logging.info("Voice assistant ending check in process")
+        self.publish(self.check_in_controls_topic, "0")
     
     def _thread_safe_publish(self, topic, message):
         self.logger.info(f"Thread safe publish: {topic}, {message}")

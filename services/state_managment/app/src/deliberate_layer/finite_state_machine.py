@@ -1,15 +1,6 @@
 from .fsm_communication_interface import CommunicationInterface
-from dotenv import load_dotenv
-from pathlib import Path
 import os
 import logging
-
-# Relative path to the .env file in the config directory
-# Move up one level and into config
-dotenv_path = Path('../../configurations/.env')
-
-# Load the .env file
-load_dotenv(dotenv_path=dotenv_path)
 
 class State:
     def enter(self):
@@ -154,7 +145,7 @@ class FSM:
             self.currentState = self.states[state_name]
             self.currentState.enter()
             self.finite_state_machine_event_queue.put({"state": state_name})
-            self.communication_interface.publish("fsm/state", state_name)
+            self.communication_interface.publish_fsm_state(state_name)
         else:
             self.logger.debug(f"State {state_name} not found.")
     
@@ -173,10 +164,12 @@ class FSM:
         if not self.behavior_tree_event_queue.empty():
             behavior_tree_event = self.behavior_tree_event_queue.get()
             if behavior_tree_event is not None:
-                if behavior_tree_event["state"] == "interacting":
+                if behavior_tree_event["state"] == "check_in":
                     self.transition_to("Interacting")
                 elif behavior_tree_event["state"] == "configuring":
                     self.transition_to("Configuring")
+                elif behavior_tree_event["state"] == "reminder":
+                    self.transition_to("Active")
         
         # Calls update method of the current state
         self.currentState.update()

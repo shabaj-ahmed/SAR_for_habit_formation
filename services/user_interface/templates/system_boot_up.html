@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Research study</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='system_boot_up.css') }}">
+</head>
+<body>
+    <div id="loading-page">
+        <div id="myProgress">
+            <div id="myBar"></div>
+            <div id="progress-text">0%</div>
+        </div>
+        <div id="pending-services-container">
+            <h3>Services Pending:</h3>
+            <ul id="pending-services"></ul>
+        </div>
+    </div>
+</body>
+<script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+<script>
+    let progress = 0; // Track current progress
+    let totalServices = 0; // Track the total number of services dynamically
+    const pendingServices = new Set(); // Keep track of services that are not yet awake
+
+    // Progress bar and text elements
+    const progressBar = document.getElementById("myBar");
+    const progressText = document.getElementById("progress-text");
+    const pendingServicesContainer = document.getElementById("pending-services"); // Container for pending services
+
+    // Listen for updates from the server via Socket.IO
+    window.socket = io();
+
+    // Notify the server when the page is fully loaded
+    window.addEventListener('load', () => {
+        setTimeout(() => {
+            console.log("UI is ready. Notifying backend...");
+            socket.emit('ui_ready');
+        }, 1000); // Delay of 1000 milliseconds (1 second)
+    });
+
+    window.socket.on("service_status", (serviceStatus) => {
+        console.log("Received service status:", serviceStatus);
+
+        // Update the total services dynamically
+        totalServices = Object.keys(serviceStatus).length;
+
+        // Process the service statuses
+        for (const [service, status] of Object.entries(serviceStatus)) {
+            if (status === "Awake") {
+                // Remove the service from the pending set if it's Awake
+                pendingServices.delete(service);
+            } else {
+                // Add the service to the pending set if it's not Awake
+                pendingServices.add(service);
+            }
+        }
+
+        // Update the progress bar and percentage
+        const loadedServices = totalServices - pendingServices.size;
+        progress = (loadedServices / totalServices) * 100;
+        progressBar.style.width = progress + "%";
+        progressText.textContent = Math.round(progress) + "%";
+
+        // Update the list of pending services in the UI
+        updatePendingServicesList();
+    });
+
+    // Function to update the pending services list in the UI
+    function updatePendingServicesList() {
+        // Clear the current list
+        pendingServicesContainer.innerHTML = "";
+
+        // Add each pending service to the list
+        pendingServices.forEach((service) => {
+            const listItem = document.createElement("li");
+            listItem.textContent = service;
+            pendingServicesContainer.appendChild(listItem);
+        });
+    }
+
+    window.socket.on("loading_complete", () => {
+        console.log("All services are awake. Redirecting to home...");
+        window.location.href = "/";
+        
+    });
+</script>
+</html>

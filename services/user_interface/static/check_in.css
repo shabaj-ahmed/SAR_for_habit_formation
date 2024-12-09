@@ -34,9 +34,16 @@
     box-sizing: border-box;
     scroll-behavior: smooth; /* Smooth scrolling */
 }
+.notification-message{
+    font-size: 24pt;
+    text-align: center;
+    color: #999;
+}
 
 /* Received Messages */
 .received-message {
+    font-size: 24px;
+    line-height: 1.5;
     align-self: flex-start;
     background-color: #efefef;
     border-radius: 10px;
@@ -48,6 +55,8 @@
 
 /* Outgoing Messages */
 .outgoing-message {
+    font-size: 24px;
+    line-height: 1.5;
     align-self: flex-end;
     background: linear-gradient(45deg, #ee087f, #DD2A7B, #9858ac, #8134AF, #515BD4);
     color: white;
@@ -81,11 +90,30 @@
     color: white;
     border: none;
     padding: 10px 20px;
-    font-size: 16px;
+    font-size: 24px;
     cursor: pointer;
     border-radius: 5px;
 }
 
 .chat-controls button:hover {
     background-color: #45a049;
+}
+
+#myProgress {
+    width: 100%;
+    background-color: #ddd;
+    position: relative;
+    overflow: hidden;
+    height: 10px; /* Ensure container has height */
+}
+
+#myBar {
+    width: 100%; /* Full width for scaling */
+    height: 100%; /* Match the container height */
+    background-color: #04AA6D;
+    position: absolute;
+    left: 0; /* Align to the left */
+    transform-origin: center center; /* Scale from center */
+    transform: scaleX(0); /* Start hidden */
+    transition: transform 0.1s ease-out; /* Smooth animation */
 }
