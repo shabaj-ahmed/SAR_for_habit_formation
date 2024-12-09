@@ -103,6 +103,19 @@ def settings():
         robot_enabled=os.getenv("ROBOT_ENABLED") == "True",
     )
 
+@app.route('/action_page', methods=['POST'])
+def process_form():
+    hour = request.form.get('hour')
+    minute = request.form.get('minute')
+    ampm = request.form.get('ampm')
+    
+    formatted_time = f"{hour}:{minute} {ampm}"
+    logger.info(f"Received time: {formatted_time}")
+
+    # Save to a database
+
+    return jsonify({'status': 'success', 'time': formatted_time}), 200
+
 @app.route('/colour/<secected_colour>')
 def colour_button_click(secected_colour):
 
