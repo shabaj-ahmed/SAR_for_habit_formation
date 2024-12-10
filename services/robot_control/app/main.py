@@ -6,6 +6,7 @@ import sys
 import os
 
 import anki_vector
+from anki_vector import audio
 from anki_vector.util import degrees
 
 import logging
@@ -159,11 +160,11 @@ class VectorRobotController:
     def set_volume(self, volume):
         self.logger.info(f"Setting volume to {volume}")
         RobotVolumeLevel = {
-            "quiet": 0,
-            "medium_low": 1,
-            "default": 2,
-            "medium_high": 3,
-            "loud": 4,
+            "quiet": audio.RobotVolumeLevel.LOW,
+            "medium_low": audio.RobotVolumeLevel.MEDIUM_LOW,
+            "default": audio.RobotVolumeLevel.MEDIUM,
+            "medium_high": audio.RobotVolumeLevel.MEDIUM_HIGH,
+            "loud": audio.RobotVolumeLevel.HIGH,
         }
         
         self.logger.info(f"robot volume level {RobotVolumeLevel[volume]}")

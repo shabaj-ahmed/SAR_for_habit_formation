@@ -76,8 +76,8 @@ class CommunicationInterface(MQTTClientBase):
         try:
             volume = message.payload.decode("utf-8")
             self.logger.info(f"Volume command received: {volume}")
-            if volume:
-                self.robot_controller.set_volume(volume)
+            self.robot_controller.set_volume(volume)
+            self.robot_controller.say_text(f"Volume has been set to {volume}")
         except json.JSONDecodeError:
             self.logger.error("Invalid JSON payload for volume command.")
     
