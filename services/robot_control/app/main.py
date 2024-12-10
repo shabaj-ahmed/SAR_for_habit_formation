@@ -11,7 +11,6 @@ from anki_vector.util import degrees
 import logging
 
 # import json
-import anki_vector
 # from PIL import Image
 # import paho.mqtt.client as mqtt
 
@@ -20,27 +19,36 @@ project_root = os.path.abspath(os.path.join(current_dir, "../../../../"))
 sys.path.insert(0, project_root)
 from shared_libraries.logging_config import setup_logger
 
-MAX_RETRIES = 3
-RETRY_DELAY = 1
+MAX_RETRIES = 5
+RETRY_DELAY = 2
 
 class VectorRobotController:
     def __init__(self):
+        self.logger = logging.getLogger(self.__class__.__name__)
+
         self.robot_serial = str(os.getenv("SDK_CONFIGURATION"))
         self.robot_enabled = str(os.getenv("ROBOT_ENABLED")) == 'True'
-        print(f"Robot enabled: {self.robot_enabled}")
+        self.logger.info(f"Robot enabled: {self.robot_enabled}")
         self.connected = False
         self.connect()
         
     def connect(self):
         """Connects to the Vector robot."""
-        try:
-            if self.robot_enabled:
-                self.robot = anki_vector.Robot(self.robot_serial)
-                self.robot.connect()
-                self.connected = True
-        except anki_vector.exceptions.VectorConnectionException as e:
-            self.connected = False
-            raise e
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                if self.robot_enabled:
+                    self.robot = anki_vector.Robot(self.robot_serial)
+                    self.robot.connect()
+                    self.connected = True
+                    self.logger.info("Connected successfully!")
+            except anki_vector.exceptions.VectorTimeoutException as e:
+                self.logger.error(f"Attempt {attempt + 1} failed: {e}")
+                if attempt < max_retries - 1:
+                    self.logger.info("Retrying...")
+                else:
+                    self.connected = False
+                    raise e
 
     def disconnect_robot(self):
         """Disconnects from the Vector robot."""
@@ -149,6 +157,7 @@ class VectorRobotController:
     @run_if_robot_is_enabled
     @reconnect_on_fail
     def set_volume(self, volume):
+        self.logger.info(f"Setting volume to {volume}")
         RobotVolumeLevel = {
             "quiet": 0,
             "medium_low": 1,
@@ -157,6 +166,7 @@ class VectorRobotController:
             "loud": 4,
         }
         
+        self.logger.info(f"robot volume level {RobotVolumeLevel[volume]}")
         self.robot.audio.set_master_volume(RobotVolumeLevel[volume])
 
     @run_if_robot_is_enabled
