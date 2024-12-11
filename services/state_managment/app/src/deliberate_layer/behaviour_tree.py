@@ -111,59 +111,24 @@ class RobotController(Leaf):
         self.comm_interface.behaviour_controller(self.name, "end")
         pass
 
-class TaskScheduler(Leaf):
+class Reminder(Leaf):
     def __init__(self, communication_interface=None, priority='critical', branch_name=''):
         super().__init__(communication_interface, priority, branch_name)
         self.logger = logging.getLogger(self.__class__.__name__)
-        self.name = "task_manager"
+        self.name = "reminder"
 
     def set_up(self):
-        payload = {
-            "service_name": "task_manager",
-            "status": "ready",
-            "message": "",
-            "details": "",
-            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
-        }
-        if self.comm_interface:
-            self.comm_interface.publish(
-                topic="task_manager_status", 
-                message=json.dumps(payload))
         pass
 
     def start(self):
-        # Send message to the task scheduler to start scheduling tasks
-        # Send message to user interface to show scheduled tasks
-        self.logger.info("Starting task scheduler")
-        payload = {
-            "service_name": "task_manager",
-            "status": "running",
-            "message": "",
-            "details": "",
-            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
-        }
-        if self.comm_interface:
-            self.comm_interface.publish(
-                topic="task_manager_status", 
-                message=json.dumps(payload))
+        self.logger.info("Starting reminder")
         pass
 
     def update(self):
         pass
 
     def end(self):
-        self.logger.info("Exiting task scheduler")
-        payload = {
-            "service_name": "task_manager",
-            "status": "end",
-            "message": "",
-            "details": "",
-            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
-        }
-        if self.comm_interface:
-            self.comm_interface.publish(
-                topic="task_manager_status", 
-                message=json.dumps(payload))
+        self.logger.info("Exiting reminder")
         pass
 
 
@@ -277,7 +242,7 @@ class BehaviorTree:
         # Reminder
         self.reminder_branch = BehaviorBranch(self.behaviours[0], self.communication_interface)
         self.reminder_branch.add_service(UserInterface)
-        self.reminder_branch.add_service(TaskScheduler)
+        self.reminder_branch.add_service(Reminder)
         self.add_branch(self.behaviours[0], self.reminder_branch)
 
         # Check-in

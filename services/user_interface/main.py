@@ -112,7 +112,7 @@ def process_form():
     formatted_time = f"{hour}:{minute} {ampm}"
     logger.info(f"Received time: {formatted_time}")
 
-    # Save to a database
+    communication_interface.set_reminder_time(hour, minute, ampm)
 
     return jsonify({'status': 'success', 'time': formatted_time}), 200
 

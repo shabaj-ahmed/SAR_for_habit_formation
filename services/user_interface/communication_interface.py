@@ -48,6 +48,7 @@ class CommunicationInterface(MQTTClientBase):
         self.user_interface_status_topic = "user_interface_status"
         self.robot_volume_topic = "robot_volume"
         self.robot_colour_topic = "robot_colour"
+        self.update_reminder_time = "update_reminder_time"
 
         # Subscriber and publisher topics
         self.check_in_controls_topic = "check_in_controller"
@@ -164,6 +165,14 @@ class CommunicationInterface(MQTTClientBase):
         self.publish(self.user_interface_status_topic, json.dumps(payload))
 
         self.service_status = status
+
+    def set_reminder_time(self, hours = 0, minutes = 0, ampm = "AM"):
+        payload = {
+            "hours": hours,
+            "minutes": minutes,
+            "ampm": ampm
+        }
+        self.publish(self.update_reminder_time, json.dumps(payload))
 
     def get_system_status(self):
         return self.system_status

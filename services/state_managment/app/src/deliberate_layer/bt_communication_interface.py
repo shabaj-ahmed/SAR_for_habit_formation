@@ -30,12 +30,12 @@ class CommunicationInterface(MQTTClientBase):
             "voice_assistant": "",
             "robot_control": "",
             "user_interface": "",
-            "task_manager": "Awake"
+            "reminder": ""
         }
 
         # Subscription topics
-        self.task_manager_status_topic = "task_manager_status"
-        self.task_manager_heartbeat_topic = "task_manager_heartbeat"
+        self.reminder_status_topic = "reminder_status"
+        self.reminder_heartbeat_topic = "reminder_heartbeat"
         self.voice_assistant_status_topic = "voice_assistant_status"
         self.voice_assistant_heartbeat_topic = "voice_assistant_heartbeat"
         self.robot_status_topic = "robot_status"
@@ -61,14 +61,14 @@ class CommunicationInterface(MQTTClientBase):
         # self.subscribe(self.robot_controller_status_topic, self._process_heartbeat)
         self.subscribe(self.user_interface_status_topic, self._process_service_status)
         # self.subscribe(self.user_interface_status_topic, self._process_heartbeat)
-        self.subscribe(self.task_manager_status_topic, self._process_service_status)
-        # self.subscribe(self.task_manager_heartbeat_topic, self._process_heartbeat)
+        self.subscribe(self.reminder_status_topic, self._process_service_status)
+        # self.subscribe(self.reminder_heartbeat_topic, self._process_heartbeat)
         self.subscribe(self.configure_topic, self._process_configurations)
         self.subscribe(self.service_error_topic, self._process_error_message)
 
     def _process_check_in_request(self, client, userdata, message):
         '''
-        Process the check in request from the user interface or task manager
+        Process the check in request from the user interface
         
         Args:
             message (str): A string flag indicating the check in status
@@ -102,7 +102,7 @@ class CommunicationInterface(MQTTClientBase):
         payload = json.loads(message.payload.decode("utf-8"))
         service = payload.get("service_name", "")
         status = payload.get("status", "")
-        self.logger.info(f"Processing service: {service} with status: {status}")
+
         self.systemStatus[service] = status
 
     def _process_configurations(self, client, userdata, message):
@@ -147,7 +147,6 @@ class CommunicationInterface(MQTTClientBase):
         '''
         A method to expose the service status or all services
         '''
-        logging.info(f"System status: {self.systemStatus}")
         return self.systemStatus
 
     def get_behaviour_running_status(self):

@@ -37,7 +37,7 @@ class SleepState(State):
             # Screen
             # Robot
             # Voice assistant
-            # Task scheduler
+            # Reminder
         pass
 
     def exit(self):
