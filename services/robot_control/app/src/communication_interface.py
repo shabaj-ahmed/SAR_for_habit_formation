@@ -14,11 +14,11 @@ sys.path.insert(0, project_root)
 from shared_libraries.mqtt_client_base import MQTTClientBase
 
 class CommunicationInterface(MQTTClientBase):
-    def __init__(self, broker_address, port, robot_controller):
+    def __init__(self, broker_address, port, event_dispatcher):
         super().__init__(broker_address, port)
         self.logger = logging.getLogger(self.__class__.__name__)
+        self.dispatcher = event_dispatcher
 
-        self.robot_controller = robot_controller
         self.start_command = ""
         self.is_streaming = False
 
@@ -31,8 +31,7 @@ class CommunicationInterface(MQTTClientBase):
         self.robot_colour = "robot_colour"
         self.tts_topic = "voice_assistant/robot_speech"
         self.animation_topic = "robot/animation"
-        self.behavior_topic = "robot/behavior"
-        self.activate_camera_topic = "robot/activate_camera"
+        # self.activate_camera_topic = "robot/activate_camera"
 
         # Publish topics
         self.conversation_history_topic = "conversation/history"
@@ -47,8 +46,7 @@ class CommunicationInterface(MQTTClientBase):
         self.subscribe(self.robot_colour, self._handle_colour_command)
         self.subscribe(self.tts_topic, self._handle_tts_command)
         self.subscribe(self.animation_topic, self._handle_animation_command)
-        self.subscribe(self.behavior_topic, self._handle_behavior_command)
-        self.subscribe(self.activate_camera_topic, self._process_camera_active)
+        # self.subscribe(self.activate_camera_topic, self._process_camera_active)
     
     def _respond_with_service_status(self, client, userdata, message):
         self.publish_robot_status(self.service_status)
@@ -56,19 +54,16 @@ class CommunicationInterface(MQTTClientBase):
     def _handle_control_command(self, client, userdata, message):
         try:
             payload = json.loads(message.payload.decode("utf-8"))
-            message = payload.get("cmd", "")
-            self.logger.info(f"Robot controller received the command = {message}")
-            self.start_command = message
-            if message == "set_up":
-                logging.info("Engaging user")
-                self.robot_controller.drive_off_charger()
-                self.publish_robot_status("ready",)
-                logging.info("User engaged")
-            elif message == "start":
-                self.publish_robot_status("running")
-            elif message == "end":
-                self.robot_controller.disengage_user()
-                self.publish_robot_status("completed")
+            command = payload.get("cmd", "")
+            self.dispatcher.dispatch_event("control_command", command)
+
+            status_response = {
+                "set_up": "Engaging user",
+                "start": "running",
+                "end": "completed"
+            }
+
+            self.publish_robot_status(status_response.get(command, "running"))
         except json.JSONDecodeError:
             self.logger.error("Invalid JSON payload. Using default retry parameters.")
     
@@ -76,8 +71,7 @@ class CommunicationInterface(MQTTClientBase):
         try:
             volume = message.payload.decode("utf-8")
             self.logger.info(f"Volume command received: {volume}")
-            self.robot_controller.set_volume(volume)
-            self.robot_controller.say_text(f"Volume has been set to {volume}")
+            self.dispatcher.dispatch_event("volume_command", volume)
         except json.JSONDecodeError:
             self.logger.error("Invalid JSON payload for volume command.")
     
@@ -86,7 +80,7 @@ class CommunicationInterface(MQTTClientBase):
         try:
             self.logger.info(f"Colour received: {selected_colour}")
             if selected_colour:
-                self.robot_controller.set_eye_colour(selected_colour)
+                self.dispatcher.dispatch_event("eye_colour_command", selected_colour)
         except json.JSONDecodeError:
             self.logger.error("Invalid JSON payload for colour command.")
     
@@ -97,7 +91,7 @@ class CommunicationInterface(MQTTClientBase):
             text = payload.get("content", "")
             self.logger.info(f"Robot said: {text}")
             if sender == "robot":
-                self.robot_controller.say_text(text)
+                self.dispatcher.dispatch_event("tts_command", text)
                 self.publish(self.conversation_history_topic, json.dumps(payload))
         except json.JSONDecodeError:
             self.logger.error("Invalid JSON payload for TTS command.")
@@ -108,51 +102,33 @@ class CommunicationInterface(MQTTClientBase):
             animation_name = payload.get("animation", "")
             self.logger.info(f"Animation command received: {animation_name}")
             if animation_name:
-                self.robot_controller.play_animation(animation_name)
+                self.dispatcher.dispatch_event("animation_command", animation_name)
         except json.JSONDecodeError:
             self.logger.error("Invalid JSON payload for animation command.")
-    
-    def _handle_behavior_command(self, client, userdata, message):
-        try:
-            payload = json.loads(message.payload.decode("utf-8"))
-            action = payload.get("action", "")
-            self.logger.info(f"Behavior command received: {action}")
 
-            if action == "move_forward":
-                self.robot_controller.drive(forward_speed=100)
-                time.sleep(2)
-                self.robot_controller.drive(forward_speed=0)
-            elif action == "go_home":
-                self.robot_controller.return_to_charger()
-            elif action == "toggle_autonomous":
-                enable = payload.get("enable", True)
-                self.robot_controller.toggle_autonomous_behavior(enable)
-        except json.JSONDecodeError:
-            self.logger.error("Invalid JSON payload for behavior command.")
-
-    def _process_camera_active(self, client, userdata, message):
-        camera_active = message.payload.decode() == '1'
-        self.logger.info(f"Camera active: {camera_active}")
-        if self.socketio:
-            self.logger.info("start displaying camera feed")
-            self.robot_controller.start_video_stream()
-        else:
-            self.robot_controller.stop_video_stream()
+    # def _process_camera_active(self, client, userdata, message):
+    #     camera_active = message.payload.decode() == '1'
+    #     self.logger.info(f"Camera active: {camera_active}")
+    #     if self.socketio:
+    #         self.logger.info("start displaying camera feed")
+    #         self.robot_controller.start_video_stream()
+    #     else:
+    #         self.robot_controller.stop_video_stream()
     
-    def video_stream(self):
-        self.logger.info(f"Video stream status = {self.robot_controller.is_streaming}")
-        while True:
-            if self.robot_controller.is_streaming:
-                try:
-                    img = self.robot_controller.capture_camera_frame()
-                    img_io = io.BytesIO()
-                    img.save(img_io, format="JPEG")
-                    img_data = img_io.getvalue()
-                    self.publish(self.video_topic, img_data)
-                    time.sleep(0.2)  # Frame rate of 5 frames per second
-                except Exception as e:
-                    self.logger.error(f"Error in video streaming: {e}")
-                    break
+    # def video_stream(self):
+    #     self.logger.info(f"Video stream status = {self.robot_controller.is_streaming}")
+    #     while True:
+    #         if self.robot_controller.is_streaming:
+    #             try:
+    #                 img = self.robot_controller.capture_camera_frame()
+    #                 img_io = io.BytesIO()
+    #                 img.save(img_io, format="JPEG")
+    #                 img_data = img_io.getvalue()
+    #                 self.publish(self.video_topic, img_data)
+    #                 time.sleep(0.2)  # Frame rate of 5 frames per second
+    #             except Exception as e:
+    #                 self.logger.error(f"Error in video streaming: {e}")
+    #                 break
     
     def publish_robot_status(self, status, message="", details=None):
         logging.info(f"Publishing robot status: {status}")
