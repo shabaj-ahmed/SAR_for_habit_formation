@@ -38,7 +38,7 @@ class CommunicationInterface(MQTTClientBase):
         self.service_status_requested_topic = "request/service_status"
         self.update_system_status_topic = "publish/system_status"
         self.user_interface_control_cmd_topic = "user_interface_control_cmd"
-        self.silence_detected_topic = "voice_assistant/silence_detected"
+        self.silence_detected_topic = "speech_recognition/silence_detected"
         self.conversation_history_topic = "conversation/history"
         self.camera_active_topic = "robot/cameraActive"
         self.audio_active_topic = "audio_active"

@@ -18,7 +18,7 @@ def publish_heartbeat():
     while True:
         # Publish voice assistant heartbeat
         logger.info("voice assistant heartbeat")
-        communication_interface.publish_voice_assistant_heartbeat()
+        communication_interface.publish_speech_recognition_heartbeat()
         time.sleep(30)  # Publish heartbeat every 30 seconds
 
 def process_communication_queue():
@@ -45,7 +45,7 @@ if __name__ == "__main__":
     
     decision_tree.communication_interface = communication_interface
 
-    communication_interface.publish_voice_assistant_status("Awake")
+    communication_interface.publish_speech_recognition_status("Awake")
 
     # Keep the program running to listen for commands
     try:
@@ -61,13 +61,13 @@ if __name__ == "__main__":
                         error_details = traceback.format_exc()
                         logger.error(f"Attempt {attempt}: {e}")
                         logger.error(error_details)
-                        communication_interface.publish_voice_assistant_status("error", f"Attempt {attempt}: {e}", details=error_details)
+                        communication_interface.publish_speech_recognition_status("error", f"Attempt {attempt}: {e}", details=error_details)
 
                         if attempt < communication_interface.max_retries:
                             time.sleep(communication_interface.delay)
                         else:
                             logger.error("Max retries reached. Service stopped.")
-                            communication_interface.publish_voice_assistant_status("failure", "Max retries reached. Service stopped.")
+                            communication_interface.publish_speech_recognition_status("failure", "Max retries reached. Service stopped.")
                             break
             time.sleep(1)
     except KeyboardInterrupt:

@@ -1,4 +1,4 @@
-from services.voice_assistant.app.src.speech_to_text_recognition import SpeedToText
+from services.speech_recognitoin.app.src.speech_to_text_recognition import SpeedToText
 import datetime
 import re
 import time
@@ -17,16 +17,18 @@ class DecisionTree:
             self.logger.debug("Communication interface is not set!")
             return
         self.logger.info("Communication interface is set and ready to use.")
-        self.communication_interface.publish_voice_assistant_status("ready")
+        self.communication_interface.publish_speech_recognition_status("ready")
 
         # Wait for the start command
         while not self.communication_interface.command == "start":
             time.sleep(1)
         
-        self.communication_interface.publish_voice_assistant_status("running")
+        self.communication_interface.publish_speech_recognition_status("running")
     
     def check_in(self):
         self.set_up()
+
+        self.logger.info("Starting the check-in process.")
         
         # Step 1: Send greeting
         self.communication_interface.publish_robot_speech(
@@ -35,19 +37,17 @@ class DecisionTree:
         )
         time.sleep(2)
 
-        self.logger.info("Starting the check-in process.")
-
         # Step 2: Weekday-specific questions
-        try:
-            self.ask_questions(self.get_current_day_questions)
-        except Exception as e:
-            self.logger.error(f"Error asking weekday questions: {e}")
+        # try:
+        #     self.ask_questions(self.get_current_day_questions)
+        # except Exception as e:
+        #     self.logger.error(f"Error asking weekday questions: {e}")
         
-        # Step 3: Experience sampling questions
-        try:
-            self.ask_questions(self.experience_sampling_questions)
-        except Exception as e:
-            self.logger.error(f"Error asking experience questions: {e}")
+        # # Step 3: Experience sampling questions
+        # try:
+        #     self.ask_questions(self.experience_sampling_questions)
+        # except Exception as e:
+        #     self.logger.error(f"Error asking experience questions: {e}")
         
         # Step 4: Summarise the conversation
 
@@ -61,7 +61,7 @@ class DecisionTree:
 
         # Step 6: Save the conversation to a database or file
         self.logger.info("Voice assistant service completed successfully.")
-        self.communication_interface.publish_voice_assistant_status("completed")
+        self.communication_interface.publish_speech_recognition_status("completed")
         self.communication_interface.end_check_in()
 
     # Function to determine the day and adjust the questions accordingly

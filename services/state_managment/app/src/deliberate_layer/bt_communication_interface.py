@@ -27,7 +27,7 @@ class CommunicationInterface(MQTTClientBase):
         }
 
         self.systemStatus = {
-            "voice_assistant": "",
+            "speech_recognition": "",
             "robot_control": "",
             "user_interface": "",
             "reminder": ""
@@ -36,8 +36,8 @@ class CommunicationInterface(MQTTClientBase):
         # Subscription topics
         self.reminder_status_topic = "reminder_status"
         self.reminder_heartbeat_topic = "reminder_heartbeat"
-        self.voice_assistant_status_topic = "voice_assistant_status"
-        self.voice_assistant_heartbeat_topic = "voice_assistant_heartbeat"
+        self.speech_recognition_status_topic = "speech_recognition_status"
+        self.speech_recognition_heartbeat_topic = "speech_recognition_heartbeat"
         self.robot_status_topic = "robot_status"
         self.robot_heartbeat_topic = "robot_heartbeat"
         self.user_interface_status_topic = "user_interface_status"
@@ -55,8 +55,8 @@ class CommunicationInterface(MQTTClientBase):
 
         # Subscribe to topics with custom handlers
         self.subscribe(self.check_in_controls_topic, self._process_check_in_request)
-        self.subscribe(self.voice_assistant_status_topic, self._process_service_status)
-        # self.subscribe(self.voice_assistant_heartbeat_topic, self._process_heartbeat)
+        self.subscribe(self.speech_recognition_status_topic, self._process_service_status)
+        # self.subscribe(self.speech_recognition_heartbeat_topic, self._process_heartbeat)
         self.subscribe(self.robot_status_topic, self._process_service_status)
         # self.subscribe(self.robot_controller_status_topic, self._process_heartbeat)
         self.subscribe(self.user_interface_status_topic, self._process_service_status)
@@ -120,14 +120,14 @@ class CommunicationInterface(MQTTClientBase):
         '''
         Request a response from all services to get their status
         '''
-        self.logger.info("Requesting service status")
+        # self.logger.info("Requesting service status")
         self.publish(self.request_service_status_topic, "")
 
     def publish_system_status(self):
         '''
         Publish the system status to all services
         '''
-        self.logger.info("Publishing system status")
+        # self.logger.info("Publishing system status")
         self.publish(self.publish_system_status_topic, json.dumps(self.systemStatus))
 
     def behaviour_controller(self, service_name, cmd):

@@ -27,14 +27,14 @@ class CommunicationInterface(MQTTClientBase):
 
         # Subscription topics
         self.service_status_requested_topic = "request/service_status"
-        self.control_cmd = "voice_assistant_control_cmd"
+        self.control_cmd = "speech_recognition_control_cmd"
 
         # Publish topics
-        self.voice_assistant_status_topic = "voice_assistant_status"
-        self.vocie_assistant_hearbeat_topic = "voice_assistant_heartbeat"
+        self.speech_recognition_status_topic = "speech_recognition_status"
+        self.vocie_assistant_hearbeat_topic = "speech_recognition_heartbeat"
         self.conversation_history_topic = "conversation/history"
-        self.robot_speech_topic = "voice_assistant/robot_speech"
-        self.silance_detected_topic = "voice_assistant/silence_detected"
+        self.robot_speech_topic = "speech_recognition/robot_speech"
+        self.silance_detected_topic = "speech_recognition/silence_detected"
         self.audio_active_topic = "audio_active"
         self.check_in_controls_topic = "check_in_controller"
 
@@ -43,7 +43,7 @@ class CommunicationInterface(MQTTClientBase):
         self.subscribe(self.control_cmd, self._handle_command)
 
     def _respond_with_service_status(self, client, userdata, message):
-        self.publish_voice_assistant_status(self.service_status)
+        self.publish_speech_recognition_status(self.service_status)
     
     def _handle_command(self, client, userdata, message):
         
@@ -85,7 +85,7 @@ class CommunicationInterface(MQTTClientBase):
         # This is what the user said
         self._thread_safe_publish(self.conversation_history_topic, json_message)
     
-    def publish_voice_assistant_status(self, status, message="", details=None):
+    def publish_speech_recognition_status(self, status, message="", details=None):
         if status == "running":
             self.publish(self.audio_active_topic, "1")
         if status == "completed":
@@ -93,19 +93,19 @@ class CommunicationInterface(MQTTClientBase):
             self.publish(self.audio_active_topic, "0")
         
         payload = {
-            "service_name": "voice_assistant",
+            "service_name": "speech_recognition",
             "status": status,
             "message": message,
             "details": details,
             "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
         }
-        self.publish(self.voice_assistant_status_topic, json.dumps(payload))
+        self.publish(self.speech_recognition_status_topic, json.dumps(payload))
 
         self.service_status = status
 
-    def publish_voice_assistant_heartbeat(self):
+    def publish_speech_recognition_heartbeat(self):
         payload = {
-            "service_name": "voice_assistant",
+            "service_name": "speech_recognition",
             "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
         }
         self.publish(self.vocie_assistant_hearbeat_topic, json.dumps(payload))
