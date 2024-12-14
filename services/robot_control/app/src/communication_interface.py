@@ -29,7 +29,7 @@ class CommunicationInterface(MQTTClientBase):
         self.service_control_cmd = "robot_control_control_cmd"
         self.robot_volume = "robot_volume"
         self.robot_colour = "robot_colour"
-        self.tts_topic = "voice_assistant/robot_speech"
+        self.tts_topic = "speech_recognition/robot_speech"
         self.animation_topic = "robot/animation"
         # self.activate_camera_topic = "robot/activate_camera"
 
