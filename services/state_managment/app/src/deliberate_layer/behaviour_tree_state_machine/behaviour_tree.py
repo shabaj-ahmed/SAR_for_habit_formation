@@ -1,221 +1,11 @@
+from leaf_nodes import UserInterface, Reminder, VoiceAssistant, RobotController, Configurations
+from behaviour_branch import BehaviourBranch
 from .bt_communication_interface import CommunicationInterface
-import json
 import os
 import logging
 import time
 
-# Behaviour tree leaf nodes
-class Leaf:
-    def __init__(self, communication_interface=None, priority='critical', branch_name=""):
-        '''
-        A subclass with the critical variables and methods for running the service that need to be created for the behaviour tree to operate
-
-        args:
-
-        '''
-        self.comm_interface = communication_interface
-        self.name = None
-        self.priority = priority
-        self.branch = branch_name
-    
-    def set_up(self):
-        pass
-
-    def start(self):
-        pass
-
-    def update(self):
-        # check if the behaviour is complete
-        pass
-
-    def end(self):
-        pass
-
-# For each behaviour mark the services that are critical to the behaviour to previent transition to another state while behaviour is running
-
-class UserInterface(Leaf):
-    '''
-    The user interface is always active in each of the branches of the behaviour tree
-    The behaviour tree controls the response of the user interface when different behaviours are running
-    '''
-    def __init__(self, communication_interface=None, priority='critical', branch_name=''):
-        super().__init__(communication_interface, priority, branch_name)
-        self.logger = logging.getLogger(self.__class__.__name__)
-        self.name = "user_interface"
-
-    def set_up(self):
-        self.logger.info("Setting up user interface")
-        self.comm_interface.behaviour_controller(self.name, "set_up")
-        pass
-
-    def start(self):
-        self.logger.info("Starting user interface")
-        self.comm_interface.behaviour_controller(self.name, "start")
-        pass
-
-    def update(self):
-        pass
-
-    def end(self):
-        self.logger.info("Stopping behaviour in user interface")
-        if self.branch == "check_in":
-            self.comm_interface.end_check_in()
-            pass
-        self.comm_interface.behaviour_controller(self.name, "end")
-        pass
-
-class VoiceAssistant(Leaf):
-    def __init__(self, communication_interface=None, priority='critical', branch_name=''):
-        super().__init__(communication_interface, priority, branch_name)
-        self.logger = logging.getLogger(self.__class__.__name__)
-        self.name = "voice_assistant"
-
-    def set_up(self):
-        self.comm_interface.behaviour_controller(self.name, "set_up")
-
-    def start(self):
-        # Start voice assistant
-        self.comm_interface.behaviour_controller(self.name, "start")
-        pass
-
-    def update(self):
-        # Check for errors in the services and pause or restart the check-in process
-        pass
-
-    def end(self):
-        self.logger.info("Exiting check-in process")
-        self.comm_interface.behaviour_controller(self.name, "end")
-        pass
-
-class RobotController(Leaf):
-    def __init__(self, communication_interface=None, priority='critical', branch_name=''):
-        super().__init__(communication_interface, priority, branch_name)
-        self.logger = logging.getLogger(self.__class__.__name__)
-        self.name = "robot_control"
-
-    def set_up(self):
-        self.comm_interface.behaviour_controller(self.name, "set_up")
-
-    def start(self):
-        # Face tracking
-        # Autonomous roaming
-        self.logger.info("Starting autonomous behaviour")
-        self.comm_interface.behaviour_controller(self.name, "start")
-        pass
-
-    def update(self):
-        pass
-
-    def end(self):
-        self.logger.info("Exiting autonomous behaviour")
-        self.comm_interface.behaviour_controller(self.name, "end")
-        pass
-
-class Reminder(Leaf):
-    def __init__(self, communication_interface=None, priority='critical', branch_name=''):
-        super().__init__(communication_interface, priority, branch_name)
-        self.logger = logging.getLogger(self.__class__.__name__)
-        self.name = "reminder"
-
-    def set_up(self):
-        pass
-
-    def start(self):
-        self.logger.info("Starting reminder")
-        pass
-
-    def update(self):
-        pass
-
-    def end(self):
-        self.logger.info("Exiting reminder")
-        pass
-
-
-class Configurations(Leaf):
-    def __init__(self, communication_interface=None, priority='critical', branch_name=''):
-        super().__init__(communication_interface, priority, branch_name)
-        self.logger = logging.getLogger(self.__class__.__name__)
-
-    def set_up(self):
-        pass
-
-    def start(self):
-        # Show configuration options in user interface and start robot behaviour configuration
-        self.logger.info("Starting configuration page")
-        pass
-
-    def update(self):
-        pass
-
-    def end(self):
-        self.logger.info("Exiting configuration page")
-        pass
-
-
-class BehaviorBranch:
-    """Represents a branch of behaviours accessible during a specific FSM state."""
-
-    def __init__(self, name, communication_interface,):
-        self.branch_name = name
-        self.communication_interface = communication_interface
-        self.services = []
-        self.all_services_available = False
-        self.behaviour_running = False
-        self.logger = logging.getLogger(self.__class__.__name__)
-
-    def add_service(self, behaviour_class, priority='critical'):
-        behaviour = behaviour_class(
-            communication_interface = self.communication_interface,
-            priority = priority,
-            branch_name = self.branch_name
-            )
-        self.services.append(behaviour)
-
-    def activate_behaviour(self):
-        """Activate a specific behaviour by name"""
-        # If all services are available, start the behaviour
-        logging.info(f"Activating {self.branch_name} branch")
-        for service in self.services:
-            logging.info(f"{service.name} is in the {self.branch_name} behaviour branch" )
-            if self.behaviour_running is False:
-                service.set_up()
-        
-        logging.info(f"Waiting for services to be available for {self.branch_name} branch")
-
-        # Wait until all services are available
-        waiting = True
-        while True:
-            waiting = False
-            for service in self.services:
-                serviceStatus = self.communication_interface.get_system_status()[service.name]
-                if serviceStatus != "ready":
-                    waiting = True
-                time.sleep(0.2)
-            if not waiting: # Once all services are ready, continue with the behaviour
-                break
-        
-        for service in self.services:
-            service.start()
-            time.sleep(0.4) # give service time to process the start command
-        logging.info(f"{self.branch_name} branch has started")
-        self.behaviour_running = True # Mark the behaviour as running
-
-    def update(self):
-        """Update all active behaviours in this branch"""
-        for behaviour in self.services:
-            # TODO: Check if critical behaviours are running
-            behaviour.update()
-
-    def deactivate_behaviour(self):
-        """Deactivate a specific behaviour by name"""
-        # Ensure all services has ended gracefully
-        for behaviour in self.services:
-            behaviour.end()
-        self.behaviour_running = False
-
-
-class BehaviorTree:
+class BehaviourTree:
     def __init__(self, finite_state_machine_event_queue, behaviour_tree_event_queue):
         self.logger = logging.getLogger(self.__class__.__name__)
         self.first_run = True
@@ -240,20 +30,20 @@ class BehaviorTree:
         self.behaviour_branch_status = {behaviour: False for behaviour in self.behaviours}
 
         # Reminder
-        self.reminder_branch = BehaviorBranch(self.behaviours[0], self.communication_interface)
+        self.reminder_branch = BehaviourBranch(self.behaviours[0], self.communication_interface)
         self.reminder_branch.add_service(UserInterface)
         self.reminder_branch.add_service(Reminder)
         self.add_branch(self.behaviours[0], self.reminder_branch)
 
         # Check-in
-        self.check_in_dialog_branch = BehaviorBranch(self.behaviours[1], self.communication_interface)
+        self.check_in_dialog_branch = BehaviourBranch(self.behaviours[1], self.communication_interface)
         self.reminder_branch.add_service(UserInterface)
         self.check_in_dialog_branch.add_service(VoiceAssistant)
         self.check_in_dialog_branch.add_service(RobotController, priority="optional")
         self.add_branch(self.behaviours[1], self.check_in_dialog_branch)
 
         # Configuration
-        self.configurations_branch = BehaviorBranch(self.behaviours[2], self.communication_interface)
+        self.configurations_branch = BehaviourBranch(self.behaviours[2], self.communication_interface)
         self.reminder_branch.add_service(UserInterface)
         self.configurations_branch.add_service(Configurations)
         self.add_branch(self.behaviours[2], self.configurations_branch)
@@ -336,7 +126,6 @@ class BehaviorTree:
             time.sleep(0.4)
 
             for service in services:
-                print(f"Service: {service} is {services[service]}")
                 if services[service] != "Awake":
                     self.all_services_running = False
             
