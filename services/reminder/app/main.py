@@ -17,6 +17,7 @@ class Reminder:
     def __init__(self, initial_reminder_time):
         self.reminder_time = initial_reminder_time
         self.todays_reminder_sent = False
+        self.reminder_date = datetime.datetime.now().date()
         self.enable_reminder = True
 
         self.logger = logging.getLogger(self.__class__.__name__)
@@ -28,7 +29,7 @@ class Reminder:
         def wrapper(self, *args, **kwargs):
             try:
                 if self.enable_reminder:
-                    self.logger.info("Reminder enabled")
+                    # self.logger.info("Reminder enabled")
                     return func(self, *args, **kwargs)
             except Exception as e:
                 self.logger.error(f"Reminder failed: {e}")
@@ -46,19 +47,31 @@ class Reminder:
             self.todays_reminder_sent = True
             self.logger.info("check in reminder sent")
             return True
+        time.sleep(1)
         return False
+    
+    @is_reminder_enabled
+    def send_reminder(self):
+        now = datetime.datetime.now()
+        self.todays_reminder_sent = True
+        self.reminder_date = now.date()
+        self.logger.info("Reminder sent")
     
     @is_reminder_enabled
     def set_reminder_time(self, hours = 0, minutes = 0, ampm = "AM"):
         if ampm == "PM" and hours < 12:
             hours += 12
         self.reminder_time = datetime.time(hour=hours, minute=minutes)
+        self.reminder_date = datetime.datetime.now().date()
         self.logger.info(f"Reminder set for {self.reminder_time}")
     
     @is_reminder_enabled
     def _reset_reminder(self):
-        now = datetime.datetime.now().time()
-        if now > datetime.time(hour=0, minute=0):
+        now = datetime.datetime.now()
+        current_date = now.date()
+        self.logger.info(f"Current date: {current_date} and reminder_date: {self.reminder_date}")
+
+        if self.reminder_date is not None and current_date > self.reminder_date and self.todays_reminder_sent:
             self.todays_reminder_sent = False
             self.logger.info("Reminder reset")
 

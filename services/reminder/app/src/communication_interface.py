@@ -51,6 +51,14 @@ class CommunicationInterface(MQTTClientBase):
                 self.command = cmd
             else:
                 self.command = ""
+
+            status = {
+                "set_up": "ready",
+                "start": "running",
+                "end": "completed"
+            }
+            
+            self.publish_reminder_status(status[cmd])
         except json.JSONDecodeError:
             self.logger.error("Invalid JSON payload for control commands. Using default retry parameters.")
 
