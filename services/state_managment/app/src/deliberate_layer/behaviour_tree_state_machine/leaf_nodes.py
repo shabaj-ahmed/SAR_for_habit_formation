@@ -114,10 +114,12 @@ class Reminder(Leaf):
         self.name = "reminder"
 
     def set_up(self):
+        self.comm_interface.behaviour_controller(self.name, "set_up")
         pass
 
     def start(self):
         self.logger.info("Starting reminder")
+        self.comm_interface.behaviour_controller(self.name, "start")
         # Check if its time to provide a reminder
         pass
 

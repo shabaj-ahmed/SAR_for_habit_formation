@@ -72,13 +72,7 @@ class CommunicationInterface(MQTTClientBase):
         except json.JSONDecodeError:
             self.logger.error("Invalid JSON payload for setting reminder time. Using default retry parameters.")
 
-    def publish_reminder_status(self, status, message="", details=None):
-        if status == "running":
-            self.publish(self.audio_active_topic, "1")
-        if status == "completed":
-            self.command = False
-            self.publish(self.audio_active_topic, "0")
-        
+    def publish_reminder_status(self, status, message="", details=None):        
         payload = {
             "service_name": "reminder",
             "status": status,

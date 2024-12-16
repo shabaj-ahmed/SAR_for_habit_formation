@@ -69,7 +69,6 @@ class Reminder:
     def _reset_reminder(self):
         now = datetime.datetime.now()
         current_date = now.date()
-        self.logger.info(f"Current date: {current_date} and reminder_date: {self.reminder_date}")
 
         if self.reminder_date is not None and current_date > self.reminder_date and self.todays_reminder_sent:
             self.todays_reminder_sent = False
