@@ -6,7 +6,7 @@ import os
 import time
 
 MAX_RETRIES = 5
-RETRY_DELAY = 2
+RETRY_DELAY = 4
 
 class VectorRobotController:
     def __init__(self, dispatcher=None):
@@ -22,7 +22,7 @@ class VectorRobotController:
         
     def connect(self):
         """Connects to the Vector robot."""
-        max_retries = 3
+        max_retries = MAX_RETRIES
         for attempt in range(max_retries):
             try:
                 if self.robot_enabled:
@@ -30,13 +30,16 @@ class VectorRobotController:
                     self.robot.connect()
                     self.connected = True
                     self.logger.info("Connected successfully!")
+                    break
             except anki_vector.exceptions.VectorTimeoutException as e:
+                # self.disconnect_robot()
                 self.logger.error(f"Attempt {attempt + 1} failed: {e}")
                 if attempt < max_retries - 1:
                     self.logger.info("Retrying...")
                 else:
                     self.connected = False
                     raise e
+            time.sleep(RETRY_DELAY)
 
     def disconnect_robot(self):
         """Disconnects from the Vector robot."""
@@ -83,11 +86,14 @@ class VectorRobotController:
         '''
         self.logger.info(f"Handling control command: {command}")
         if command == "set_up":
-            self.drive_off_charger()
+            # self.drive_off_charger()
+            pass
         elif command == "start":
-            self.say_text("Starting check-in")
+            # self.handle_tts_command("Starting check-in")
+            pass
         elif command == "end":
-            self.disengage_user()
+            # self.disengage_user()
+            pass
     
     def run_if_robot_is_enabled(func):
         def wrapper(self, *args, **kwargs):

@@ -58,7 +58,7 @@ class CommunicationInterface(MQTTClientBase):
             self.dispatcher.dispatch_event("control_command", command)
 
             status_response = {
-                "set_up": "Engaging user",
+                "set_up": "ready",
                 "start": "running",
                 "end": "completed"
             }
