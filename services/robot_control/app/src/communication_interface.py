@@ -32,12 +32,14 @@ class CommunicationInterface(MQTTClientBase):
         self.tts_topic = "speech_recognition/robot_speech"
         self.animation_topic = "robot/animation"
         # self.activate_camera_topic = "robot/activate_camera"
+        self.robot_behaviour_topic = "robot_behaviour_command"
 
         # Publish topics
         self.conversation_history_topic = "conversation/history"
         self.camera_active_topic = "robot/cameraActive"
         self.video_topic = "robot/video_feed"
-        self.robot_status = "robot_status"
+        self.robot_service_status_topic = "robot_status"
+        self.robot_control_status_topic = "robot_control_status"
 
         # Subscribe to necessary topics
         self.subscribe(self.service_status_requested_topic, self._respond_with_service_status)
@@ -46,6 +48,7 @@ class CommunicationInterface(MQTTClientBase):
         self.subscribe(self.robot_colour, self._handle_colour_command)
         self.subscribe(self.tts_topic, self._handle_tts_command)
         self.subscribe(self.animation_topic, self._handle_animation_command)
+        self.subscribe(self.robot_behaviour_topic, self._handle_behaviour_request)
         # self.subscribe(self.activate_camera_topic, self._process_camera_active)
     
     def _respond_with_service_status(self, client, userdata, message):
@@ -88,13 +91,25 @@ class CommunicationInterface(MQTTClientBase):
         try:
             payload = json.loads(message.payload.decode("utf-8"))
             sender = payload.get("sender", "")
+            message_type = payload.get("message_type", "")
             text = payload.get("content", "")
-            self.logger.info(f"Robot said: {text}")
-            if sender == "robot":
+            if sender == "orchestrator":
                 self.dispatcher.dispatch_event("tts_command", text)
                 self.publish(self.conversation_history_topic, json.dumps(payload))
+            response = {
+                    "behaviour_name": message_type,
+                    "status": "complete",
+                    "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+                }
         except json.JSONDecodeError:
             self.logger.error("Invalid JSON payload for TTS command.")
+            response = {
+                    "behaviour_name": message_type,
+                    "status": "failed",
+                    "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+                }
+        
+        self.publish(self.robot_control_status_topic, json.dumps(response))
     
     def _handle_animation_command(self, client, userdata, message):
         try:
@@ -105,6 +120,29 @@ class CommunicationInterface(MQTTClientBase):
                 self.dispatcher.dispatch_event("animation_command", animation_name)
         except json.JSONDecodeError:
             self.logger.error("Invalid JSON payload for animation command.")
+
+    def _handle_behaviour_request(self, client, userdata, message):
+        try:
+            payload = json.loads(message.payload.decode("utf-8"))
+            behaviour_name = payload.get("cmd", "")
+            self.logger.info(f"behaviour command received: {behaviour_name}")
+            if behaviour_name:
+                self.dispatcher.dispatch_event("control_command", behaviour_name)
+            self.logger.info("Behaviour control command processed")
+            response = {
+                    "behaviour_name": behaviour_name,
+                    "status": "complete",
+                    "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+                }
+        except json.JSONDecodeError:
+            self.logger.error("Invalid JSON payload for animation command.")
+            response = {
+                    "behaviour_name": behaviour_name,
+                    "status": "failed",
+                    "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+                }
+        
+        self.publish(self.robot_control_status_topic, json.dumps(response))
 
     # def _process_camera_active(self, client, userdata, message):
     #     camera_active = message.payload.decode() == '1'
@@ -144,6 +182,6 @@ class CommunicationInterface(MQTTClientBase):
             "details": details,
             "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
         }
-        self.publish(self.robot_status, json.dumps(payload))
+        self.publish(self.robot_service_status_topic, json.dumps(payload))
 
         self.service_status = status

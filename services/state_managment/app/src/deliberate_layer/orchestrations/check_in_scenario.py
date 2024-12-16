@@ -16,84 +16,78 @@ class CheckInScenario:
     def start(self):
         self.step = 1
         self.complete = False
-        self.waiting_for_command = True
-        self.current_question = None
         self.waiting_for_response = False
+        self.current_question = None
         self.delay_start_time = None
         self.next_question = None
         self.logger.info("Check-in scenario started")
         pass
     
     def update(self):
-        self.logger.info("Updating orchestrator, currently on step = {self.step}")
+        self.logger.info(f"Updating orchestrator, currently on step = {self.step}")
         # If we've completed the scenario, do nothing.
         if self.complete:
             return
         
+        # Step 1: Set up
+        if self.step == 1: 
+            if self._drive_off_charger():
+                 self.step = 2
+        
         # Step 1: Send greeting
-        if self.step == 1:   
-            if self.delay_start_time is None:
-                self.logger.info("Step one started")         
-                self.delay_start_time = time.time()
-                self._greet_user()
-                return
-            elif time.time() - self.delay_start_time >= 2:
-                # Delay has passed, continue
-                self.delay_start_time = None
-                self.step = 2  # Move to next step in the next update call
-            else:
-                # Not enough time has passed yet, return and wait for next update cycle
-                return
-        
+        if self.step == 2: 
+            if self._greet_user():
+                 self.step = 3
+                
         # Step 2: Weekday-specific questions
-        if self.step == 2:
-            if self.waiting_for_response:
-                # check if the user has responded
-                try:
-                    response = self.communication_interface.get_user_response() #TODO: Delete the response once it has been processed
-                except Exception as e:
-                    self.logger.error(f"Error asking weekday questions: {e}")
-                # If the response is invalid, ask the same question again
-                if response == "":
-                    # Ask the same question again
-                    pass
-                if response is not None:
-                    self.waiting_for_response = False
-                    self.next_question = self.get_current_day_questions(previous_question=self.current_question, previous_response=response)
-                    if self.next_question is None:
-                        self.step = 3
-                        self.current_question = None
-                        return
-                    self.communication_interface.publish_robot_speech(
-                        message_type = "question",
-                        content = self.next_question["question"]
-                    )
-            else:
-                # Not currently waiting for a response means we must have just asked a new question
-                # or finished. If no question was asked yet, ask the first one:
-                if self.current_question is None:
-                    self.get_current_day_questions()
+        # if self.step == 3:
+        #     if self.waiting_for_response == False:
+        #         # check if the user has responded
+        #         try:
+        #             response = self.communication_interface.get_user_response() #TODO: Delete the response once it has been processed
+        #         except Exception as e:
+        #             self.logger.error(f"Error asking weekday questions: {e}")
+        #         # If the response is invalid, ask the same question again
+        #         if response == "":
+        #             # Ask the same question again
+        #             pass
+        #         if response is not None:
+        #             self.waiting_for_response = False
+        #             self.next_question = self.get_current_day_questions(previous_question=self.current_question, previous_response=response)
+        #             if self.next_question is None:
+        #                 self.step = 4
+        #                 self.current_question = None
+        #                 return
+        #             self.communication_interface.publish_robot_speech(
+        #                 message_type = "question",
+        #                 content = self.next_question["question"]
+        #             )
+        #     else:
+        #         # Not currently waiting for a response means we must have just asked a new question
+        #         # or finished. If no question was asked yet, ask the first one:
+        #         if self.current_question is None:
+        #             self.get_current_day_questions()
         
-        elif self.step == 3:
-            # Step 3: Experience sampling questions
-            self.step = 4
-            # Step 3: Experience sampling questions
-            try:
-                self._ask_experience_questions()
-            except Exception as e:
-                self.logger.error(f"Error asking experience questions: {e}")
-            return
+        # elif self.step == 3:
+        #     # Step 3: Experience sampling questions
+        #     self.step = 4
+        #     # Step 3: Experience sampling questions
+        #     try:
+        #         self._ask_experience_questions()
+        #     except Exception as e:
+        #         self.logger.error(f"Error asking experience questions: {e}")
+        #     return
         
-        # Step 4: Summarise the conversation
+        # # Step 4: Summarise the conversation
         
-        # Step 5: Wish participants farewell
-        if self.step == 4:
-            self._farewell_user()
-            self.step = 5
-            return
+        # # Step 5: Wish participants farewell
+        # if self.step == 4:
+        #     self._farewell_user()
+        #     self.step = 5
+        #     return
         
         # Step 5: Mark as complete
-        elif self.step == 5:
+        elif self.step == 4:
             self.complete = True
             self.logger.info("Check-In Scenario Complete")
             self.step = 0
@@ -104,13 +98,34 @@ class CheckInScenario:
         # Step 6: Save the conversation to a database or file
         
     # Helper methods for each step
-    def _greet_user(self):
-        self.logger.info("Greeting the user.")
+    def _drive_off_charger(self):
         # Get robot to drive off the charger and wait for it to complete...
-        self.communication_interface.publish_robot_speech(
-            message_type="greeting",
-            content="Hello! Welcome to your daily check-in."
-        )
+        if self.waiting_for_response == False:
+            self.communication_interface.publish_robot_behaviour_command("drive off charger")
+            self.waiting_for_response = True
+        
+        if self.communication_interface.get_robot_behaviour_completion_status("drive off charger") == "complete":
+            self.waiting_for_response = False
+            self.logger.info("No longer wating, moving to step 2 to greet user")
+            return True
+        
+        return False
+    
+    def _greet_user(self):
+        if self.waiting_for_response == False:
+            self.logger.info("Requesting robot to speak")
+            self.communication_interface.publish_robot_speech(
+                message_type="greeting",
+                content="Hello! Welcome to your daily check-in."
+            )
+            self.waiting_for_response = True
+        
+        if self.communication_interface.get_robot_behaviour_completion_status("greeting") == "complete":
+            self.logger.info("Greetings complete")
+            self.waiting_for_response = False
+            return True
+        
+        return False
 
     # Function to determine the day and adjust the questions accordingly
     def get_current_day_questions(self, question = "", response = ""):

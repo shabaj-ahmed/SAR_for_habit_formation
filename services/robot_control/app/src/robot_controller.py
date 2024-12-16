@@ -94,6 +94,9 @@ class VectorRobotController:
         elif command == "end":
             # self.disengage_user()
             pass
+        elif command == "drive off charger":
+            self.logger.debug("Processing drive off charger request")
+            self.drive_off_charger()
     
     def run_if_robot_is_enabled(func):
         def wrapper(self, *args, **kwargs):
@@ -125,6 +128,7 @@ class VectorRobotController:
     @run_if_robot_is_enabled
     @reconnect_on_fail
     def handle_tts_command(self, text):
+        self.logger.info(f"In handel tts command func, test to be said is: {text}")
         self.robot.behavior.say_text(text)
 
     @run_if_robot_is_enabled

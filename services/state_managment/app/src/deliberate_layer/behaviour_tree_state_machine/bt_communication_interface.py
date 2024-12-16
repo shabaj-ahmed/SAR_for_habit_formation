@@ -33,6 +33,8 @@ class CommunicationInterface(MQTTClientBase):
             "reminder": ""
         }
 
+        self.robot_behaviour_completion_status = {}
+
         # Subscription topics
         self.reminder_status_topic = "reminder_status"
         self.reminder_heartbeat_topic = "reminder_heartbeat"
@@ -44,11 +46,13 @@ class CommunicationInterface(MQTTClientBase):
         self.user_interface_heartbeat_topic = "user_interface_heartbeat"
         self.configure_topic = "configure"
         self.service_error_topic = "service_error"
+        self.robot_control_status_topic = "robot_control_status"
 
         # Publish topics
         self.request_service_status_topic = "request/service_status"
         self.publish_system_status_topic = "publish/system_status"
         self.robot_speech_topic = "speech_recognition/robot_speech"
+        self.robot_behaviour_topic = "robot_behaviour_command"
         self.service_control_command_topic = lambda service_name : service_name + "_control_cmd"
 
         # Subscriber and publisher topics
@@ -66,6 +70,7 @@ class CommunicationInterface(MQTTClientBase):
         # self.subscribe(self.reminder_heartbeat_topic, self._process_heartbeat)
         self.subscribe(self.configure_topic, self._process_configurations)
         self.subscribe(self.service_error_topic, self._process_error_message)
+        self.subscribe(self.robot_control_status_topic, self._process_robot_behaviour_status)
 
     def _process_check_in_request(self, client, userdata, message):
         '''
@@ -114,8 +119,15 @@ class CommunicationInterface(MQTTClientBase):
             self.behaviourRunningStatus['configurations'] = False
 
     def _process_error_message(self, client, userdata, message):
-        self.logger.imfo("Processing error message")
+        self.logger.info("Processing error message")
         self.criticalEvents['error'] = message.payload.decode()
+
+    def _process_robot_behaviour_status(self, client, userdata, message):
+        payload = json.loads(message.payload.decode("utf-8"))
+        behaviour_name = payload.get("behaviour_name", "")
+        behaviour_status = payload.get("status", "")
+        self.logger.info(f"behaviour status recived = {behaviour_status} for = {behaviour_name}")
+        self.robot_behaviour_completion_status[behaviour_name] = behaviour_status
 
     def request_service_status(self):
         '''
@@ -135,15 +147,27 @@ class CommunicationInterface(MQTTClientBase):
         # Forwards the robot speech to the conversation history
         self.publish(self.conversation_history_topic, message.payload.decode("utf-8"))
 
-    def publish_robot_speech(self, content, message_type="response"):
+    def publish_robot_speech(self, content, message_type="request"):
         message = {
-            "sender": "robot",
+            "sender": "orchestrator",
             "message_type": message_type,
             "content": content
         }
+        self.logger.info(f"sending message {message}")
         json_message = json.dumps(message)
         # This is what the robot should say
         self.publish(self.robot_speech_topic, json_message)
+
+    def publish_robot_behaviour_command(self, cmd, message_type="request"):
+        message = {
+            "sender": "orchestrator",
+            "message_type": message_type,
+            "cmd": cmd,
+            "time": time.strftime("%Y-%m-%d %H:%M:%S")
+        }
+        json_message = json.dumps(message)
+        # This is what the robot should do
+        self.publish(self.robot_behaviour_topic, json_message)
 
     def behaviour_controller(self, service_name, cmd):
         payload = {
@@ -169,3 +193,9 @@ class CommunicationInterface(MQTTClientBase):
     
     def set_behaviour_running_status(self, behaviour, status):
         self.behaviourRunningStatus[behaviour] = status
+
+    def get_robot_behaviour_completion_status(self, behaviour_name):
+        status = self.robot_behaviour_completion_status.get(behaviour_name, "")
+        if status != "":
+            self.robot_behaviour_completion_status.pop(behaviour_name)
+        return status
