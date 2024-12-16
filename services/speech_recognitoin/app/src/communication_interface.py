@@ -33,7 +33,6 @@ class CommunicationInterface(MQTTClientBase):
         self.speech_recognition_status_topic = "speech_recognition_status"
         self.vocie_assistant_hearbeat_topic = "speech_recognition_heartbeat"
         self.conversation_history_topic = "conversation/history"
-        self.robot_speech_topic = "speech_recognition/robot_speech"
         self.silance_detected_topic = "speech_recognition/silence_detected"
         self.audio_active_topic = "audio_active"
         self.check_in_controls_topic = "check_in_controller"
@@ -60,20 +59,13 @@ class CommunicationInterface(MQTTClientBase):
                 self.command = ""
         except json.JSONDecodeError:
             self.logger.error("Invalid JSON payload. Using default retry parameters.")
-    
-    def _handle_robot_speech(self, client, userdata, message):
-        # Forwards the robot speech to the conversation history
-        self._thread_safe_publish(self.conversation_history_topic, message.payload.decode("utf-8"))
 
-    def publish_robot_speech(self, content, message_type="response"):
-        message = {
-            "sender": "robot",
-            "message_type": message_type,
-            "content": content
+        status = {
+            "set_up": "ready",
+            "start": "running",
         }
-        json_message = json.dumps(message)
-        # This is what the robot should say
-        self._thread_safe_publish(self.robot_speech_topic, json_message)
+
+        self.publish_speech_recognition_status(status[cmd])
 
     def publish_user_response(self, content, message_type="response"):
         message = {

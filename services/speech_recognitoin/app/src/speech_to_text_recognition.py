@@ -1,10 +1,13 @@
 import queue
 import time
 import os
+import re
 from google.cloud import speech
 
 import pyaudio
 import audioop
+
+import logging
 
 # Audio recording parameters
 RATE = 16000
@@ -21,10 +24,27 @@ class SpeedToText:
         self.speech_key = os.getenv('SPEECH_KEY')
         self.service_region = os.getenv('SPEECH_REGION')
         self.communication_interface = None
-
         self.client = speech.SpeechClient()
+
+        self.logger = logging.getLogger(self.__class__.__name__)
     
-    def recognise_response(self, response_type):
+    def get_response(self, expected_format):
+        response = self._recognise_response(expected_format)
+        if not isinstance(response, str) or not response.strip():
+            self.logger.debug(f"Invalid response: {response}. Expected a non-empty string.")
+            return ""
+        if expected_format == "short":
+            # Check if the response is a valid number
+            try:
+                response = self._extract_number_from(response)
+            except ValueError:
+                self.logger.debug(f"Invalid response: {response}. Expected a number.")
+                return ""
+        # TODO: publish respones to the orchestrator and the user interface for display
+        return response
+        # Send the response to the orchestrator
+    
+    def _recognise_response(self, response_type):
         while True:
             # Configure recognition settings based on the response type
             config = self.short_response() if response_type == "short" else self.long_response()
@@ -56,7 +76,6 @@ class SpeedToText:
             language_code="en-US",
         )
 
-
     def short_response(self):
         return speech.RecognitionConfig(
             encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
@@ -84,6 +103,17 @@ class SpeedToText:
                 print(f"Interim result: {result.alternatives[0].transcript}", end="\r")
 
         return transcript.strip()
+    
+    def _extract_number_from(self, response):
+        if not isinstance(response, str):
+            self.logger.debug(f"Invalid response type: {type(response)}. Expected string.")
+            return None
+        # Use regex to find the first occurrence of a number (integer)
+        match = re.search(r'\d+', response)
+        if match:
+            return int(match.group())
+        else:
+            return None
 
 class MicrophoneStream:
     """Opens a recording stream as a generator yielding the audio chunks."""

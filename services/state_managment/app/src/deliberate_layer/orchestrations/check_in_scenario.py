@@ -1,78 +1,126 @@
-from services.speech_recognitoin.app.src.speech_to_text_recognition import SpeedToText
 import datetime
-import re
 import time
 import logging
 
+'''
+Publish the questions to be asked and request reponses from the user
+'''
 
-class DecisionTree:
-    def __init__(self):
+class CheckInScenario:
+    def __init__(self, communication_interface):
         self.logger = logging.getLogger(self.__class__.__name__)
-        self.sr = SpeedToText()
-        self.communication_interface = None
+        self.communication_interface = communication_interface
+        self.step = 0
+        self.complete = False
 
-    def set_up(self):
-        self.sr.communication_interface = self.communication_interface
-        if not self.communication_interface:
-            self.logger.debug("Communication interface is not set!")
-            return
-        self.logger.info("Communication interface is set and ready to use.")
-        self.communication_interface.publish_speech_recognition_status("ready")
-
-        # Wait for the start command
-        while not self.communication_interface.command == "start":
-            time.sleep(1)
-        
-        self.communication_interface.publish_speech_recognition_status("running")
+    def start(self):
+        self.step = 1
+        self.complete = False
+        self.waiting_for_command = True
+        self.current_question = None
+        self.waiting_for_response = False
+        self.delay_start_time = None
+        self.next_question = None
+        self.logger.info("Check-in scenario started")
+        pass
     
-    def check_in(self):
-        self.set_up()
-
-        self.logger.info("Starting the check-in process.")
+    def update(self):
+        self.logger.info("Updating orchestrator, currently on step = {self.step}")
+        # If we've completed the scenario, do nothing.
+        if self.complete:
+            return
         
         # Step 1: Send greeting
-        self.communication_interface.publish_robot_speech(
-            message_type = "greeting",
-            content = "Hello! Welcome to your daily check-in."
-        )
-        time.sleep(2)
-
-        # Step 2: Weekday-specific questions
-        # try:
-        #     self.ask_questions(self.get_current_day_questions)
-        # except Exception as e:
-        #     self.logger.error(f"Error asking weekday questions: {e}")
+        if self.step == 1:   
+            if self.delay_start_time is None:
+                self.logger.info("Step one started")         
+                self.delay_start_time = time.time()
+                self._greet_user()
+                return
+            elif time.time() - self.delay_start_time >= 2:
+                # Delay has passed, continue
+                self.delay_start_time = None
+                self.step = 2  # Move to next step in the next update call
+            else:
+                # Not enough time has passed yet, return and wait for next update cycle
+                return
         
-        # # Step 3: Experience sampling questions
-        # try:
-        #     self.ask_questions(self.experience_sampling_questions)
-        # except Exception as e:
-        #     self.logger.error(f"Error asking experience questions: {e}")
+        # Step 2: Weekday-specific questions
+        if self.step == 2:
+            if self.waiting_for_response:
+                # check if the user has responded
+                try:
+                    response = self.communication_interface.get_user_response() #TODO: Delete the response once it has been processed
+                except Exception as e:
+                    self.logger.error(f"Error asking weekday questions: {e}")
+                # If the response is invalid, ask the same question again
+                if response == "":
+                    # Ask the same question again
+                    pass
+                if response is not None:
+                    self.waiting_for_response = False
+                    self.next_question = self.get_current_day_questions(previous_question=self.current_question, previous_response=response)
+                    if self.next_question is None:
+                        self.step = 3
+                        self.current_question = None
+                        return
+                    self.communication_interface.publish_robot_speech(
+                        message_type = "question",
+                        content = self.next_question["question"]
+                    )
+            else:
+                # Not currently waiting for a response means we must have just asked a new question
+                # or finished. If no question was asked yet, ask the first one:
+                if self.current_question is None:
+                    self.get_current_day_questions()
+        
+        elif self.step == 3:
+            # Step 3: Experience sampling questions
+            self.step = 4
+            # Step 3: Experience sampling questions
+            try:
+                self._ask_experience_questions()
+            except Exception as e:
+                self.logger.error(f"Error asking experience questions: {e}")
+            return
         
         # Step 4: Summarise the conversation
-
+        
         # Step 5: Wish participants farewell
-        self.communication_interface.publish_robot_speech(
-            message_type = "farewell",
-            content = "Thank you for checking in. Have a great day!"
-        )
+        if self.step == 4:
+            self._farewell_user()
+            self.step = 5
+            return
+        
+        # Step 5: Mark as complete
+        elif self.step == 5:
+            self.complete = True
+            self.logger.info("Check-In Scenario Complete")
+            self.step = 0
+            # Possibly also send completion signals if needed
 
-        time.sleep(0.2)
-
+            return
+        
         # Step 6: Save the conversation to a database or file
-        self.logger.info("Voice assistant service completed successfully.")
-        self.communication_interface.publish_speech_recognition_status("completed")
-        self.communication_interface.end_check_in()
+        
+    # Helper methods for each step
+    def _greet_user(self):
+        self.logger.info("Greeting the user.")
+        # Get robot to drive off the charger and wait for it to complete...
+        self.communication_interface.publish_robot_speech(
+            message_type="greeting",
+            content="Hello! Welcome to your daily check-in."
+        )
 
     # Function to determine the day and adjust the questions accordingly
     def get_current_day_questions(self, question = "", response = ""):
-        self.logger.info(f"In get_current_day_questions: question = {question}, response = {response}")
         """
         Determine the initial question based on the current day of the week.
 
         Returns:
             dict: A dictionary containing the question and expected response format.
         """
+        self.logger.info(f"In get_current_day_questions: question = {question}, response = {response}")
 
         QUESTION_MAP = {
             "Monday": "What specific goals do you have for this week?",
@@ -151,56 +199,18 @@ class DecisionTree:
             self.logger.info(f"No more questions for experience sampling. Returning None.")
             return None
     
-    def ask_questions(self, next_question):
-        question_data = next_question()
-        while question_data:
-            self.communication_interface.publish_robot_speech(
-                message_type = "question",
-                content = question_data["question"]
-            )
-            time.sleep(2)
-
-            response = self._get_response(question_data["expected_format"])
-
-            # If the response is invalid, ask the same question again
-            if response == "" or response is None:
-                continue
-
-            self.communication_interface.publish_user_response(
-                message_type = "Response",
-                content = response
-            )
-
-            # Determine the next question based on the current response
-            question_data = next_question(
-                question = question_data["question"],
-                response  = response
-            )
-    
-    def _get_response(self, expected_format):
-        response = self.sr.recognise_response(expected_format)
-        if not isinstance(response, str) or not response.strip():
-            self.logger.debug(f"Invalid response: {response}. Expected a non-empty string.")
-            return ""
-        if expected_format == "short":
-            # Check if the response is a valid number
-            try:
-                response = self._extract_number_from(response)
-            except ValueError:
-                self.logger.debug(f"Invalid response: {response}. Expected a number.")
-                return ""
-        return response
-
-    def _extract_number_from(self, response):
-        if not isinstance(response, str):
-            self.logger.debug(f"Invalid response type: {type(response)}. Expected string.")
-            return None
-        # Use regex to find the first occurrence of a number (integer)
-        match = re.search(r'\d+', response)
-        if match:
-            return int(match.group())
-        else:
-            return None
+    def _farewell_user(self):
+        self.logger.info("Sending farewell.")
+        self.communication_interface.publish_robot_speech(
+            message_type="farewell",
+            content="Thank you for checking in. Have a great day!"
+        )
+        self.communication_interface.publish_speech_recognition_status("completed")
+        self.communication_interface.end_check_in()
+        self.logger.info("Voice assistant service completed successfully.")
 
     # def save_response(question, response, summary=""):
         # Save the response to a database or file
+
+    def is_complete(self):
+            return self.complete

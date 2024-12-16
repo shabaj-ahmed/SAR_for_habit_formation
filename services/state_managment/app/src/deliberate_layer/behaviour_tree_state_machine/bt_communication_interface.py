@@ -48,6 +48,7 @@ class CommunicationInterface(MQTTClientBase):
         # Publish topics
         self.request_service_status_topic = "request/service_status"
         self.publish_system_status_topic = "publish/system_status"
+        self.robot_speech_topic = "speech_recognition/robot_speech"
         self.service_control_command_topic = lambda service_name : service_name + "_control_cmd"
 
         # Subscriber and publisher topics
@@ -129,6 +130,20 @@ class CommunicationInterface(MQTTClientBase):
         '''
         # self.logger.info("Publishing system status")
         self.publish(self.publish_system_status_topic, json.dumps(self.systemStatus))
+    
+    def _handle_robot_speech(self, client, userdata, message):
+        # Forwards the robot speech to the conversation history
+        self.publish(self.conversation_history_topic, message.payload.decode("utf-8"))
+
+    def publish_robot_speech(self, content, message_type="response"):
+        message = {
+            "sender": "robot",
+            "message_type": message_type,
+            "content": content
+        }
+        json_message = json.dumps(message)
+        # This is what the robot should say
+        self.publish(self.robot_speech_topic, json_message)
 
     def behaviour_controller(self, service_name, cmd):
         payload = {

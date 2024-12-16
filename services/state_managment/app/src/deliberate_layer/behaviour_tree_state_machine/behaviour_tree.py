@@ -1,9 +1,16 @@
-from leaf_nodes import UserInterface, Reminder, VoiceAssistant, RobotController, Configurations
-from behaviour_branch import BehaviourBranch
+from .leaf_nodes import UserInterface, Reminder, VoiceAssistant, RobotController, Configurations
+from .behaviour_branch import BehaviourBranch
 from .bt_communication_interface import CommunicationInterface
 import os
 import logging
 import time
+import sys
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.abspath(os.path.join(current_dir, "../"))
+sys.path.insert(0, project_root)
+
+from orchestrations.check_in_scenario import CheckInScenario
 
 class BehaviourTree:
     def __init__(self, finite_state_machine_event_queue, behaviour_tree_event_queue):
@@ -36,25 +43,32 @@ class BehaviourTree:
         self.add_branch(self.behaviours[0], self.reminder_branch)
 
         # Check-in
-        self.check_in_dialog_branch = BehaviourBranch(self.behaviours[1], self.communication_interface)
-        self.reminder_branch.add_service(UserInterface)
+        check_in_scenario = CheckInScenario(self.communication_interface)
+        self.check_in_dialog_branch = BehaviourBranch(self.behaviours[1], self.communication_interface, orchestrator = check_in_scenario)
+        self.check_in_dialog_branch.add_service(UserInterface)
         self.check_in_dialog_branch.add_service(VoiceAssistant)
         self.check_in_dialog_branch.add_service(RobotController, priority="optional")
         self.add_branch(self.behaviours[1], self.check_in_dialog_branch)
 
         # Configuration
         self.configurations_branch = BehaviourBranch(self.behaviours[2], self.communication_interface)
-        self.reminder_branch.add_service(UserInterface)
+        self.configurations_branch.add_service(UserInterface)
         self.configurations_branch.add_service(Configurations)
         self.add_branch(self.behaviours[2], self.configurations_branch)
 
-    def set_current_state(self, state):
+    def _set_current_state(self, state):
         self.current_state = state
 
     def get_current_state(self):
+        '''
+            This funtion is used for testing purposes
+        '''
         return self.current_state
     
     def get_current_branch(self):
+        '''
+            This funtion is used for testing purposes
+        '''
         return self.current_branch.branch_name if self.current_branch else None
 
     def add_branch(self, branch_name, branch):
@@ -103,9 +117,9 @@ class BehaviourTree:
             # Set current state if it's different from the existing one
             if self.current_state in ['Sleep', 'Active'] or state in ['Sleep', 'Active']:
                     # If the fsm transitions from sleep to active or vice versa, the branch won't change so don't transition
-                    self.set_current_state(state)
+                    self._set_current_state(state)
             elif self.current_state != state:
-                self.set_current_state(state)
+                self._set_current_state(state)
                 
                 # Transition based on the FSM state
                 if state == 'Sleep':
@@ -142,12 +156,12 @@ class BehaviourTree:
         if behaviourRunning['check_in'] and self.current_branch.branch_name != self.behaviours[1]:
             self.logger.info(f"Check-in event received event['check_in'] = {behaviourRunning['check_in']} and self.current_branch.branch_name = {self.current_branch.branch_name}")
             self.transition_to_branch(self.behaviours[1])
-            self.set_current_state('interacting')
+            self._set_current_state('interacting')
             self.logger.info("Fulfilled user request and transitioning to check-in branch")
         elif behaviourRunning['configurations'] and self.current_branch.branch_name != self.behaviours[2]:
             self.logger.info("Configurations event received")
             self.transition_to_branch(self.behaviours[2])
-            self.set_current_state('configuring')
+            self._set_current_state('configuring')
             self.logger.info("Fulfilled user request and transitioning to configurations branch")
 
     def manage_behaviour(self):
@@ -160,4 +174,4 @@ class BehaviourTree:
         elif behaviourIsRunning == False and self.current_branch.behaviour_running: # Deactivate the current branch if it's running and complete
             self.logger.info(f"Current branch is: {self.current_branch.branch_name} and the behaviour is complete")
             self.transition_to_branch(self.behaviours[0])
-            self.set_current_state('active')
+            self._set_current_state('active')

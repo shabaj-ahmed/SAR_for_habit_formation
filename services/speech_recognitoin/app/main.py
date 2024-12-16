@@ -1,5 +1,4 @@
 from src.communication_interface import CommunicationInterface
-from src.decision_tree import DecisionTree
 import time
 import threading
 import traceback
@@ -11,8 +10,6 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.abspath(os.path.join(current_dir, "../../../../"))
 sys.path.insert(0, project_root)
 from shared_libraries.logging_config import setup_logger
-
-decision_tree = DecisionTree()
 
 def publish_heartbeat():
     while True:
@@ -43,8 +40,6 @@ if __name__ == "__main__":
     threading.Thread(target=publish_heartbeat, daemon=True).start()
     threading.Thread(target=process_communication_queue, daemon=True).start()
     
-    decision_tree.communication_interface = communication_interface
-
     communication_interface.publish_speech_recognition_status("Awake")
 
     # Keep the program running to listen for commands
@@ -54,7 +49,8 @@ if __name__ == "__main__":
             if communication_interface.command != "":
                 while attempt < communication_interface.max_retries:
                     try:
-                        decision_tree.check_in()
+                        while communication_interface.command != "":
+                            pass
                         break  # Exit the loop if successful
                     except Exception as e:
                         attempt += 1
