@@ -23,23 +23,23 @@ class VectorRobotController:
     def connect(self):
         """Connects to the Vector robot."""
         max_retries = MAX_RETRIES
-        for attempt in range(max_retries):
-            try:
-                if self.robot_enabled:
+        if self.robot_enabled:
+            for attempt in range(max_retries):
+                try:
                     self.robot = anki_vector.Robot(self.robot_serial)
                     self.robot.connect()
                     self.connected = True
                     self.logger.info("Connected successfully!")
                     break
-            except anki_vector.exceptions.VectorTimeoutException as e:
-                # self.disconnect_robot()
-                self.logger.error(f"Attempt {attempt + 1} failed: {e}")
-                if attempt < max_retries - 1:
-                    self.logger.info("Retrying...")
-                else:
-                    self.connected = False
-                    raise e
-            time.sleep(RETRY_DELAY)
+                except anki_vector.exceptions.VectorTimeoutException as e:
+                    # self.disconnect_robot()
+                    self.logger.error(f"Attempt {attempt + 1} failed: {e}")
+                    if attempt < max_retries - 1:
+                        self.logger.info("Retrying...")
+                    else:
+                        self.connected = False
+                        raise e
+                time.sleep(RETRY_DELAY)
 
     def disconnect_robot(self):
         """Disconnects from the Vector robot."""
@@ -128,7 +128,7 @@ class VectorRobotController:
     @run_if_robot_is_enabled
     @reconnect_on_fail
     def handle_tts_command(self, text):
-        self.logger.info(f"In handel tts command func, test to be said is: {text}")
+        self.logger.info(f"In handel tts command func, text to be said is: {text}")
         self.robot.behavior.say_text(text)
 
     @run_if_robot_is_enabled
