@@ -177,9 +177,9 @@ class CommunicationInterface(MQTTClientBase):
         # This is what the robot should do
         self.publish(self.robot_behaviour_topic, json_message)
 
-    def publish_collect_response(self):
+    def publish_collect_response(self, expected_format):
         self.logger.info("Publishing record response")
-        self.publish(self.record_response_topic, "open-ended")
+        self.publish(self.record_response_topic, expected_format)
 
     def behaviour_controller(self, service_name, cmd):
         payload = {

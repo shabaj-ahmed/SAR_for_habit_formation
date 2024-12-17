@@ -68,6 +68,7 @@ class CommunicationInterface(MQTTClientBase):
         status = {
             "set_up": "ready",
             "start": "running",
+            "end": "completed"
         }
 
         self.publish_speech_recognition_status(status[cmd])
@@ -127,10 +128,6 @@ class CommunicationInterface(MQTTClientBase):
         '''
         logging.info(f"Silence detected. Duration: {duration}")
         self.publish(self.silance_detected_topic, duration)
-
-    def end_check_in(self):
-        logging.info("Voice assistant ending check in process")
-        self.publish(self.check_in_controls_topic, "0")
     
     def _thread_safe_publish(self, topic, message):
         self.logger.info(f"Thread safe publish: {topic}, {message}")

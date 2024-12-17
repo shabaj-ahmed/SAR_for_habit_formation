@@ -20,6 +20,7 @@ class CheckInScenario:
         self.delay_start_time = None
         self.current_question = None
         self.next_question = None
+        self.response = None
         self.logger.info("Check-in scenario started")
         pass
     
@@ -38,82 +39,95 @@ class CheckInScenario:
         if self.step == 2: 
             if self._greet_user():
                  self.step = 3
-                 self.waiting_for_response = True
                 
         # Step 2: Weekday-specific questions
         if self.step == 3:
-            if not self.waiting_for_response and self.current_question is not None:
-                # check if the user has responded
-                response = self.communication_interface.get_user_response() #TODO: Delete the response once it has been processed
-                # If the response is invalid, ask the same question again
-                if response == "":
-                    # Ask the same question again
-                    pass
-                else:
-                    self.next_question = self.get_current_day_questions(question=self.current_question, response=response)
-                    if self.next_question is None:
-                        self.step = 4
-                        self.current_question = None
-                        return
+            if not self.waiting_for_response:
+                self.logger.info("Not waiting for response, checking for current question.")
+                if self.current_question is not None:
+                    self.logger.info("Current question exists, checking for response.")
+                    # Check if the user has responded
+                    self.response = self.communication_interface.get_user_response()  # TODO: Delete the response once it has been processed
+                    if self.response == "":
+                        # Ask the same question again
+                        self.logger.info("Invalid response received, asking the same question again.")
                     else:
-                        self.current_question = self.next_question["question"]
-                
-                try:
-                    print("Before publish_robot_speech")
-                    self.communication_interface.publish_robot_speech(
-                        message_type="question",
-                        content=self.current_question
-                    )
-                    print("After publish_robot_speech")
-                except Exception as e:
-                    print(f"Exception occurred in publish_robot_speech: {e}")
-
-                print("Before publishing collect response message")
-                self.logger.info("Publishing a collect response message")
-                self.communication_interface.publish_collect_response()
-                print("After publishing collect response message")
-                self.waiting_for_response = True
-            else:
-                # Not currently waiting for a response means we must have just asked a new question
-                # or finished. If no question was asked yet, ask the first one:
-                if self.current_question is None:
-                    self.next_question = self.get_current_day_questions()['question']
+                        self.next_question = self.get_current_day_questions(question=self.current_question['question'], response=self.response)
+                        if self.next_question is None:
+                            self.step = 4
+                            self.current_question = None
+                            return
+                        else:
+                            self.current_question = self.next_question
+                else:
+                    self.logger.info("No current question, getting the first question for the day.")
+                    # No question was asked yet, ask the first one
+                    self.next_question = self.get_current_day_questions()
                     self.current_question = self.next_question
-                    self.communication_interface.publish_robot_speech(
-                        message_type = "question",
-                        content = self.current_question
-                    )
-                    self.communication_interface.publish_collect_response()
-                    self.waiting_for_response = True
-                elif self.communication_interface.get_robot_behaviour_completion_status("user response") == "complete":
-                    self.waiting_for_response = False
+        
+                self.communication_interface.publish_robot_speech(
+                    message_type="question",
+                    content=self.current_question['question']
+                )
+                self.communication_interface.publish_collect_response(self.current_question["expected_format"])
+                self.waiting_for_response = True
+
+            elif self.communication_interface.get_robot_behaviour_completion_status("user response") == "complete":
+                self.waiting_for_response = False
+            elif self.communication_interface.get_robot_behaviour_completion_status("user response") == "failed":
+                self.waiting_for_response = False
                     
         
-        # elif self.step == 3:
-        #     # Step 3: Experience sampling questions
-        #     self.step = 4
-        #     # Step 3: Experience sampling questions
-        #     try:
-        #         self._ask_experience_questions()
-        #     except Exception as e:
-        #         self.logger.error(f"Error asking experience questions: {e}")
-        #     return
+        elif self.step == 4:
+            if not self.waiting_for_response:
+                self.logger.info("Not waiting for response, checking for current question.")
+                if self.current_question is not None:
+                    self.logger.info("Current question exists, checking for response.")
+                    # Check if the user has responded
+                    self.response = self.communication_interface.get_user_response()  # TODO: Delete the response once it has been processed
+                    if self.response == "":
+                        # Ask the same question again
+                        self.logger.info("Invalid response received, asking the same question again.")
+                    else:
+                        self.next_question = self._experience_sampling_questions(question=self.current_question['question'], response=self.response)
+                        if self.next_question is None:
+                            self.step = 5
+                            self.current_question = None
+                            return
+                        else:
+                            self.current_question = self.next_question
+                else:
+                    self.logger.info("No current question, getting the first question for the day.")
+                    # No question was asked yet, ask the first one
+                    self.next_question = self._experience_sampling_questions()
+                    self.current_question = self.next_question
+        
+                self.communication_interface.publish_robot_speech(
+                    message_type="question",
+                    content=self.current_question['question']
+                )
+                self.communication_interface.publish_collect_response(self.current_question["expected_format"])
+                self.waiting_for_response = True
+
+            elif self.communication_interface.get_robot_behaviour_completion_status("user response") == "complete":
+                self.waiting_for_response = False
+            elif self.communication_interface.get_robot_behaviour_completion_status("user response") == "failed":
+                self.waiting_for_response = False
         
         # # Step 4: Summarise the conversation
         
-        # # Step 5: Wish participants farewell
-        # if self.step == 4:
-        #     self._farewell_user()
-        #     self.step = 5
-        #     return
+        # Step 5: Wish participants farewell
+        if self.step == 5:
+            self._farewell_user()
+            self.step = 6
+            return
         
         # Step 5: Mark as complete
-        elif self.step == 4:
+        elif self.step == 6:
             self.complete = True
             self.logger.info("Check-In Scenario Complete")
             self.step = 0
             # Possibly also send completion signals if needed
-
             return
         
         # Step 6: Save the conversation to a database or file
@@ -203,7 +217,7 @@ class CheckInScenario:
 
         return {"question": question, "expected_format": "open-ended"}
 
-    def experience_sampling_questions(self, question = "", response = ""):
+    def _experience_sampling_questions(self, question = "", response = ""):
         self.logger.info(f"In experience_sampling_questions: question = {question}, response = {response}")
         if question == "":
             return {"question": "How would you rate your progress on a scale of 1 to 10?", "expected_format": "short"}
@@ -242,9 +256,9 @@ class CheckInScenario:
             message_type="farewell",
             content="Thank you for checking in. Have a great day!"
         )
-        self.communication_interface.publish_speech_recognition_status("completed")
-        self.communication_interface.end_check_in()
+        self.communication_interface.set_behaviour_running_status("check_in", False)
         self.logger.info("Voice assistant service completed successfully.")
+        time.sleep(0.5)
 
     # def save_response(question, response, summary=""):
         # Save the response to a database or file
