@@ -18,6 +18,8 @@ class CommunicationInterface(MQTTClientBase):
         self.logger = logging.getLogger(self.__class__.__name__)
 
         self.command = ""
+        self.collect_response = False
+        self.format = "open-ended"
         self.max_retries = 5
         self.delay = 10
 
@@ -28,6 +30,7 @@ class CommunicationInterface(MQTTClientBase):
         # Subscription topics
         self.service_status_requested_topic = "request/service_status"
         self.control_cmd = "speech_recognition_control_cmd"
+        self.record_response_topic = "speech_recognition/record_response"
 
         # Publish topics
         self.speech_recognition_status_topic = "speech_recognition_status"
@@ -36,10 +39,12 @@ class CommunicationInterface(MQTTClientBase):
         self.silance_detected_topic = "speech_recognition/silence_detected"
         self.audio_active_topic = "audio_active"
         self.check_in_controls_topic = "check_in_controller"
+        self.robot_control_status_topic = "robot_control_status"
 
         # subscribe to topics
         self.subscribe(self.service_status_requested_topic, self._respond_with_service_status)
         self.subscribe(self.control_cmd, self._handle_command)
+        self.subscribe(self.record_response_topic, self._handle_record_response)
 
     def _respond_with_service_status(self, client, userdata, message):
         self.publish_speech_recognition_status(self.service_status)
@@ -67,15 +72,26 @@ class CommunicationInterface(MQTTClientBase):
 
         self.publish_speech_recognition_status(status[cmd])
 
+    def _handle_record_response(self, client, userdata, message):
+        self.collect_response = True
+        self.format = message.payload.decode("utf-8")
+
     def publish_user_response(self, content, message_type="response"):
+        self.collect_response = False
+
         message = {
             "sender": "user",
             "message_type": message_type,
             "content": content
         }
-        json_message = json.dumps(message)
-        # This is what the user said
-        self._thread_safe_publish(self.conversation_history_topic, json_message)
+        self._thread_safe_publish(self.conversation_history_topic, json.dumps(message))
+
+        status = {
+            "behaviour_name": "user response",
+            "status": "failed" if content == "" else "complete",
+            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+            }
+        self._thread_safe_publish(self.robot_control_status_topic, json.dumps(status))
     
     def publish_speech_recognition_status(self, status, message="", details=None):
         if status == "running":

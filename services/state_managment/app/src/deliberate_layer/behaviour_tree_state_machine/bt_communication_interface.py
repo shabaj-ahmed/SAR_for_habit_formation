@@ -34,6 +34,7 @@ class CommunicationInterface(MQTTClientBase):
         }
 
         self.robot_behaviour_completion_status = {}
+        self.user_response = ""
 
         # Subscription topics
         self.reminder_status_topic = "reminder_status"
@@ -47,6 +48,7 @@ class CommunicationInterface(MQTTClientBase):
         self.configure_topic = "configure"
         self.service_error_topic = "service_error"
         self.robot_control_status_topic = "robot_control_status"
+        self.conversation_history_topic = "conversation/history"
 
         # Publish topics
         self.request_service_status_topic = "request/service_status"
@@ -54,6 +56,7 @@ class CommunicationInterface(MQTTClientBase):
         self.robot_speech_topic = "speech_recognition/robot_speech"
         self.robot_behaviour_topic = "robot_behaviour_command"
         self.service_control_command_topic = lambda service_name : service_name + "_control_cmd"
+        self.record_response_topic = "speech_recognition/record_response"
 
         # Subscriber and publisher topics
         self.check_in_controls_topic = "check_in_controller"
@@ -71,6 +74,7 @@ class CommunicationInterface(MQTTClientBase):
         self.subscribe(self.configure_topic, self._process_configurations)
         self.subscribe(self.service_error_topic, self._process_error_message)
         self.subscribe(self.robot_control_status_topic, self._process_robot_behaviour_status)
+        self.subscribe(self.conversation_history_topic, self._handle_user_response)
 
     def _process_check_in_request(self, client, userdata, message):
         '''
@@ -126,8 +130,12 @@ class CommunicationInterface(MQTTClientBase):
         payload = json.loads(message.payload.decode("utf-8"))
         behaviour_name = payload.get("behaviour_name", "")
         behaviour_status = payload.get("status", "")
-        self.logger.info(f"behaviour status recived = {behaviour_status} for = {behaviour_name}")
+        self.logger.info(f"behaviour status recived = {behaviour_status} for behaviour name = {behaviour_name}")
         self.robot_behaviour_completion_status[behaviour_name] = behaviour_status
+
+    def _handle_user_response(self, client, userdata, message):
+        payload = json.loads(message.payload.decode("utf-8"))
+        self.user_response = payload.get("content", "")
 
     def request_service_status(self):
         '''
@@ -169,6 +177,10 @@ class CommunicationInterface(MQTTClientBase):
         # This is what the robot should do
         self.publish(self.robot_behaviour_topic, json_message)
 
+    def publish_collect_response(self):
+        self.logger.info("Publishing record response")
+        self.publish(self.record_response_topic, "open-ended")
+
     def behaviour_controller(self, service_name, cmd):
         payload = {
             "service_name": service_name,
@@ -199,3 +211,6 @@ class CommunicationInterface(MQTTClientBase):
         if status != "":
             self.robot_behaviour_completion_status.pop(behaviour_name)
         return status
+    
+    def get_user_response(self):
+        return self.user_response

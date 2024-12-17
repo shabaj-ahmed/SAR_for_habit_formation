@@ -19,11 +19,11 @@ SILENCE_DURATION = 4  # Silence duration in seconds
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
 
 class SpeedToText:
-    def __init__(self):
+    def __init__(self, communication_interface):
         # Load API keys from environment variables
         self.speech_key = os.getenv('SPEECH_KEY')
         self.service_region = os.getenv('SPEECH_REGION')
-        self.communication_interface = None
+        self.communication_interface = communication_interface
         self.client = speech.SpeechClient()
 
         self.logger = logging.getLogger(self.__class__.__name__)
@@ -41,8 +41,8 @@ class SpeedToText:
                 self.logger.debug(f"Invalid response: {response}. Expected a number.")
                 return ""
         # TODO: publish respones to the orchestrator and the user interface for display
-        return response
         # Send the response to the orchestrator
+        return response
     
     def _recognise_response(self, response_type):
         while True:

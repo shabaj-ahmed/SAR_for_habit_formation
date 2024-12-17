@@ -5,6 +5,7 @@ import traceback
 import os
 import logging
 import sys
+from src.speech_to_text_recognition import SpeedToText
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.abspath(os.path.join(current_dir, "../../../../"))
@@ -42,6 +43,8 @@ if __name__ == "__main__":
     
     communication_interface.publish_speech_recognition_status("Awake")
 
+    speech_to_text = SpeedToText(communication_interface)
+    
     # Keep the program running to listen for commands
     try:
         while True:
@@ -49,8 +52,12 @@ if __name__ == "__main__":
             if communication_interface.command != "":
                 while attempt < communication_interface.max_retries:
                     try:
-                        while communication_interface.command != "":
-                            pass
+                        while communication_interface.collect_response == True:
+                            expected_format = communication_interface.format
+                            logger.info(f"Expected format recived: {expected_format}")
+                            logger.info("Collecting response...")
+                            response = speech_to_text.get_response(expected_format)
+                            communication_interface.publish_user_response(response)
                         break  # Exit the loop if successful
                     except Exception as e:
                         attempt += 1

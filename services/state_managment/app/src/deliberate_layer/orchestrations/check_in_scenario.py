@@ -17,14 +17,14 @@ class CheckInScenario:
         self.step = 1
         self.complete = False
         self.waiting_for_response = False
-        self.current_question = None
         self.delay_start_time = None
+        self.current_question = None
         self.next_question = None
         self.logger.info("Check-in scenario started")
         pass
     
     def update(self):
-        self.logger.info(f"Updating orchestrator, currently on step = {self.step}")
+        # self.logger.info(f"Updating orchestrator, currently on step = {self.step}")
         # If we've completed the scenario, do nothing.
         if self.complete:
             return
@@ -38,35 +38,56 @@ class CheckInScenario:
         if self.step == 2: 
             if self._greet_user():
                  self.step = 3
+                 self.waiting_for_response = True
                 
         # Step 2: Weekday-specific questions
-        # if self.step == 3:
-        #     if self.waiting_for_response == False:
-        #         # check if the user has responded
-        #         try:
-        #             response = self.communication_interface.get_user_response() #TODO: Delete the response once it has been processed
-        #         except Exception as e:
-        #             self.logger.error(f"Error asking weekday questions: {e}")
-        #         # If the response is invalid, ask the same question again
-        #         if response == "":
-        #             # Ask the same question again
-        #             pass
-        #         if response is not None:
-        #             self.waiting_for_response = False
-        #             self.next_question = self.get_current_day_questions(previous_question=self.current_question, previous_response=response)
-        #             if self.next_question is None:
-        #                 self.step = 4
-        #                 self.current_question = None
-        #                 return
-        #             self.communication_interface.publish_robot_speech(
-        #                 message_type = "question",
-        #                 content = self.next_question["question"]
-        #             )
-        #     else:
-        #         # Not currently waiting for a response means we must have just asked a new question
-        #         # or finished. If no question was asked yet, ask the first one:
-        #         if self.current_question is None:
-        #             self.get_current_day_questions()
+        if self.step == 3:
+            if not self.waiting_for_response and self.current_question is not None:
+                # check if the user has responded
+                response = self.communication_interface.get_user_response() #TODO: Delete the response once it has been processed
+                # If the response is invalid, ask the same question again
+                if response == "":
+                    # Ask the same question again
+                    pass
+                else:
+                    self.next_question = self.get_current_day_questions(question=self.current_question, response=response)
+                    if self.next_question is None:
+                        self.step = 4
+                        self.current_question = None
+                        return
+                    else:
+                        self.current_question = self.next_question["question"]
+                
+                try:
+                    print("Before publish_robot_speech")
+                    self.communication_interface.publish_robot_speech(
+                        message_type="question",
+                        content=self.current_question
+                    )
+                    print("After publish_robot_speech")
+                except Exception as e:
+                    print(f"Exception occurred in publish_robot_speech: {e}")
+
+                print("Before publishing collect response message")
+                self.logger.info("Publishing a collect response message")
+                self.communication_interface.publish_collect_response()
+                print("After publishing collect response message")
+                self.waiting_for_response = True
+            else:
+                # Not currently waiting for a response means we must have just asked a new question
+                # or finished. If no question was asked yet, ask the first one:
+                if self.current_question is None:
+                    self.next_question = self.get_current_day_questions()['question']
+                    self.current_question = self.next_question
+                    self.communication_interface.publish_robot_speech(
+                        message_type = "question",
+                        content = self.current_question
+                    )
+                    self.communication_interface.publish_collect_response()
+                    self.waiting_for_response = True
+                elif self.communication_interface.get_robot_behaviour_completion_status("user response") == "complete":
+                    self.waiting_for_response = False
+                    
         
         # elif self.step == 3:
         #     # Step 3: Experience sampling questions
@@ -163,6 +184,7 @@ class CheckInScenario:
             if question == "What specific goals do you have for this week?": # Monday
                 question = "What strategies will you use to achieve these goals?"
             elif question == "What would you like to reflect on this week?": # Tuesday
+                self.logger.info(f"In tusedays question, question recived = {question}")
                 question = "What did you learn from your reflections?"
             elif question == "What can you improve next week?": # Wednesday
                 question = "What specific actions will you take to improve?"
