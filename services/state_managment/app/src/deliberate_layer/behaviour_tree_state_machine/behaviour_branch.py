@@ -9,7 +9,7 @@ class BehaviourBranch:
         self.communication_interface = communication_interface
         self.services = []
         self.all_services_available = False
-        self.behaviour_running = False
+        self.behaviour_running = "disabled"
         self.orchestrator = orchestrator
         self.logger = logging.getLogger(self.__class__.__name__)
 
@@ -30,8 +30,7 @@ class BehaviourBranch:
             logging.info(f"{service.name} is in the {self.branch_name} behaviour branch" )
 
         for service in self.services:
-            if self.behaviour_running is False:
-                service.set_up()
+            service.set_up()
         
         logging.info(f"Waiting for services to be available for {self.branch_name} branch")
 
@@ -52,24 +51,29 @@ class BehaviourBranch:
             service.start()
             time.sleep(0.4) # give service time to process the start command
         logging.info(f"{self.branch_name} branch has started")
-        self.behaviour_running = True # Mark the behaviour as running
 
-        # Once services are ready, also start the orchestrator if present
-        if self.orchestrator:
-            self.logger.info("Calling start() in check in orchestrator")
-            self.orchestrator.start()
-
-        self.behaviour_running = True
+        self.behaviour_running = "standby" 
 
     def update(self):
         """Update all active behaviours in this branch"""
         for behaviour in self.services:
             # TODO: Check if critical behaviours are running
             behaviour.update()
+
+        # Check for behaviour start trigger
+        # Check the communication interface for a start command, if received, start the orchestrator
+            # Once services are ready, also start the orchestrator if present
+        if self.behaviour_running == "standby" and self.communication_interface.get_behaviour_running_status()[self.branch_name] == "enabled":
+            self.behaviour_running = "running"
+            self.communication_interface.set_behaviour_running_status(self.branch_name, self.behaviour_running)
+            logging.info(f"{self.branch_name} branch is running")
+            if self.orchestrator:
+                self.logger.info("Calling start() in check in orchestrator")
+                self.orchestrator.start()
         
         # Update the orchestrator if present
+        # Check for a behaviour start command...
         if self.orchestrator:
-            self.logger.debug("calling update() in orchestrator")
             self.orchestrator.update()
             if self.orchestrator.is_complete():
                 # If the orchestrator signals completion, 
@@ -88,4 +92,4 @@ class BehaviourBranch:
             # if you have an end or reset method for orchestrator
             pass 
 
-        self.behaviour_running = False
+        self.behaviour_running = "disabled"

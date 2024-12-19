@@ -78,12 +78,12 @@ class BehaviourTree:
         """Transition to a specific branch of behaviours based on FSM state"""
         self.logger.info(f"processing request to transition to {branch_name} branch")
         if branch_name in self.branches:
-            if self.current_branch:
-                self.current_branch.deactivate_behaviour()  # Stop all behaviours in the current branch
+            if self.current_branch: # If current branch exists
+                self.current_branch.deactivate_behaviour()  # Stop all behaviours
             self.current_branch = self.branches[branch_name]
-            if branch_name == self.behaviours[0]:
-                self.communication_interface.set_behaviour_running_status(self.behaviours[0], "standby")
-            self.current_branch.activate_behaviour()  # Start all behaviours in the new branch
+            if branch_name == self.behaviours[0]: # If transitioning to reminder branch
+                self.communication_interface.set_behaviour_running_status(self.behaviours[0], "standby") # Default current behaviour to standby
+            self.current_branch.activate_behaviour()  # Start behaviour in the new branch
             self.logger.info(f"Transitioned to {self.current_branch.branch_name} branch")
             self.behaviour_tree_event_queue.put({"state": branch_name})
             time.sleep(0.4) # Give the system time to process the request
@@ -168,10 +168,10 @@ class BehaviourTree:
         """Activate or deactivate a specific behaviour in the current branch"""
         behaviourIsRunning = self.communication_interface.get_behaviour_running_status()[self.current_branch.branch_name] # Check if behaviour branch is running
 
-        if behaviourIsRunning != "disabled" and self.current_branch.behaviour_running == False: # Activate the current branch if it's not running
+        if behaviourIsRunning != "disabled" and self.current_branch.behaviour_running == "disabled": # Activate the current branch if it's not running
             self.logger.info(f"Current branch is: {self.current_branch.branch_name} and the behaviour is not running")
             self.current_branch.activate_behaviour() # Activate the current branch if it's not running and not complete
-        elif behaviourIsRunning == "disabled" and self.current_branch.behaviour_running: # Deactivate the current branch if it's running and complete
+        elif behaviourIsRunning == "disabled" and self.current_branch.behaviour_running != "disabled": # Deactivate the current branch if it's running and complete
             self.logger.info(f"Current branch is: {self.current_branch.branch_name} and the behaviour is complete")
             self.transition_to_branch(self.behaviours[0])
             self._set_current_state('active')

@@ -54,9 +54,6 @@ class UserInterface(Leaf):
 
     def end(self):
         self.logger.info("Stopping behaviour in user interface")
-        if self.branch == "check_in":
-            self.comm_interface.end_check_in()
-            pass
         self.comm_interface.behaviour_controller(self.name, "end")
         pass
 
@@ -127,21 +124,7 @@ class Reminder(Leaf):
         # Check if its time to provide a reminder
             # Start reminder
         pass
-
-    def remind_behaviour(self):
-        # Wake up robot
-            # Start a animation
-            # Wait for the animation to complete
-        # Drive off charging station
-            # Request robot to drive off charging station
-            # Wait for robot to drive off charging station
-        # Provide reminder
-            # Ask voice assistant to send reminder message
-            # Wait for robot to provide reminder
-        # Return to charging station
-            # Request robot to return to charging station
-        pass
-
+    
     def end(self):
         self.logger.info("Exiting reminder")
         pass

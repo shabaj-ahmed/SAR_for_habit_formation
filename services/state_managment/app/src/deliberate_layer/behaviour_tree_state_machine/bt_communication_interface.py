@@ -86,7 +86,7 @@ class CommunicationInterface(MQTTClientBase):
         '''
         self.logger.info("Processing check in")
         if message.payload.decode() == '1':
-            self.behaviourRunningStatus['check_in'] = "running"
+            self.behaviourRunningStatus['check_in'] = "enabled"
             # Transition to check in branch
             self.logger.info("Starting check in")
         else:
@@ -117,7 +117,7 @@ class CommunicationInterface(MQTTClientBase):
     def _process_configurations(self, client, userdata, message):
         self.logger.info("Processing configurations")
         if message.payload.decode() == '1':
-            self.behaviourRunningStatus['configurations'] = "active"
+            self.behaviourRunningStatus['configurations'] = "enabled"
         else:
             self.behaviourRunningStatus['configurations'] = "disabled"
 
