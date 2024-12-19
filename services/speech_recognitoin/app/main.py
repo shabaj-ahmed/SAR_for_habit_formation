@@ -5,7 +5,7 @@ import traceback
 import os
 import logging
 import sys
-from src.speech_to_text_recognition import SpeedToText
+from src.speech_to_text_recognition import SpeechToText
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.abspath(os.path.join(current_dir, "../../../../"))
@@ -43,7 +43,7 @@ if __name__ == "__main__":
     
     communication_interface.publish_speech_recognition_status("Awake")
 
-    speech_to_text = SpeedToText(communication_interface)
+    speech_to_text = SpeechToText(communication_interface)
     
     # Keep the program running to listen for commands
     try:
