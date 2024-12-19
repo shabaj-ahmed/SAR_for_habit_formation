@@ -18,7 +18,7 @@ SILENCE_DURATION = 4  # Silence duration in seconds
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
 
-class SpeedToText:
+class SpeechToText:
     def __init__(self, communication_interface):
         # Load API keys from environment variables
         self.speech_key = os.getenv('SPEECH_KEY')
