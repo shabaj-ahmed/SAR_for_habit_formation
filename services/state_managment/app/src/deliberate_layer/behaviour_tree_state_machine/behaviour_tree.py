@@ -11,6 +11,7 @@ project_root = os.path.abspath(os.path.join(current_dir, "../"))
 sys.path.insert(0, project_root)
 
 from orchestrations.check_in_scenario import CheckInScenario
+from orchestrations.reminder_scenario import ReminderScenario
 
 class BehaviourTree:
     def __init__(self, finite_state_machine_event_queue, behaviour_tree_event_queue):
@@ -37,7 +38,8 @@ class BehaviourTree:
         self.behaviour_branch_status = {behaviour: False for behaviour in self.behaviours}
 
         # Reminder
-        self.reminder_branch = BehaviourBranch(self.behaviours[0], self.communication_interface)
+        reminder_scenario = ReminderScenario(self.communication_interface)
+        self.reminder_branch = BehaviourBranch(self.behaviours[0], self.communication_interface, orchestrator = reminder_scenario)
         self.reminder_branch.add_service(UserInterface)
         self.reminder_branch.add_service(Reminder)
         self.add_branch(self.behaviours[0], self.reminder_branch)

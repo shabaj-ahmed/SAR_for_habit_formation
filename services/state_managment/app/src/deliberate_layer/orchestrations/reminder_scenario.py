@@ -40,7 +40,7 @@ class ReminderScenario:
         # Step 5: Mark as complete
         elif self.step == 4:
             self.complete = True
-            self.logger.info("Check-In Scenario Complete")
+            self.logger.info("Reminder Scenario Complete")
             self.step = 0
             # Possibly also send completion signals if needed
             return
@@ -69,7 +69,7 @@ class ReminderScenario:
             self.waiting_for_response = True
         
         if self.communication_interface.get_robot_behaviour_completion_status("greeting") == "complete":
-            self.logger.info("Greetings complete")
+            self.logger.info("Sending reminder has completed")
             self.waiting_for_response = False
             return True
         
@@ -77,12 +77,10 @@ class ReminderScenario:
 
     def _farewell_user(self):
         self.logger.info("Sending farewell.")
-        self.communication_interface.publish_robot_speech(
-            message_type="farewell",
-            content="Thank you for checking in. Have a great day!"
-        )
+        # Drive back to the charging station
+        self.communication_interface.publish_robot_behaviour_command("return home")
         self.communication_interface.set_behaviour_running_status("reminder", "standby")
-        self.logger.info("Voice assistant service completed successfully.")
+        self.logger.info("Sending reminder has completed successfully.")
         time.sleep(0.5)
 
     # def save_response(question, response, summary=""):

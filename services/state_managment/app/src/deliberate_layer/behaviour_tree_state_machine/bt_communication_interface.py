@@ -48,6 +48,7 @@ class CommunicationInterface(MQTTClientBase):
         self.service_error_topic = "service_error"
         self.robot_control_status_topic = "robot_control_status"
         self.conversation_history_topic = "conversation/history"
+        self.send_reminder_topic = "start_reminder"
 
         # Publish topics
         self.request_service_status_topic = "request/service_status"
@@ -74,6 +75,7 @@ class CommunicationInterface(MQTTClientBase):
         self.subscribe(self.service_error_topic, self._process_error_message)
         self.subscribe(self.robot_control_status_topic, self._process_robot_behaviour_status)
         self.subscribe(self.conversation_history_topic, self._handle_user_response)
+        self.subscribe(self.send_reminder_topic, self._send_reminder)
 
     def _process_check_in_request(self, client, userdata, message):
         '''
@@ -135,6 +137,15 @@ class CommunicationInterface(MQTTClientBase):
     def _handle_user_response(self, client, userdata, message):
         payload = json.loads(message.payload.decode("utf-8"))
         self.user_response = payload.get("content", "")
+
+    def _send_reminder(self, client, userdata, message):
+        self.logger.info("Processing reminder request")
+        if message.payload.decode() == '1':
+            self.behaviourRunningStatus['reminder'] = "enabled"
+            self.logger.info("enable reminder")
+        else:
+            self.behaviourRunningStatus['reminder'] = "disabled"
+            self.logger.info("disable reminder")
 
     def request_service_status(self):
         '''

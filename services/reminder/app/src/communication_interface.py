@@ -90,7 +90,7 @@ class CommunicationInterface(MQTTClientBase):
 
     def _send_reminder(self):
         self.logger.info("Sending reminder")
-        self.publish(self.start_reminder_topic, True)
+        self.publish(self.start_reminder_topic, "1")
 
     def publish_reminder_heartbeat(self):
         payload = {

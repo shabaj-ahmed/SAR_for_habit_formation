@@ -61,15 +61,13 @@ class BehaviourBranch:
             behaviour.update()
 
         # Check for behaviour start trigger
-        # Check the communication interface for a start command, if received, start the orchestrator
-            # Once services are ready, also start the orchestrator if present
         if self.behaviour_running == "standby" and self.communication_interface.get_behaviour_running_status()[self.branch_name] == "enabled":
-            self.behaviour_running = "running"
-            self.communication_interface.set_behaviour_running_status(self.branch_name, self.behaviour_running)
-            logging.info(f"{self.branch_name} branch is running")
+            logging.info(f"{self.branch_name} is being requested to start")
             if self.orchestrator:
-                self.logger.info("Calling start() in check in orchestrator")
+                self.logger.info("Calling in orchestrator")
                 self.orchestrator.start()
+                self.behaviour_running = "running"
+                self.communication_interface.set_behaviour_running_status(self.branch_name, self.behaviour_running)
         
         # Update the orchestrator if present
         # Check for a behaviour start command...

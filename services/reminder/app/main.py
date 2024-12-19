@@ -23,7 +23,7 @@ def publish_heartbeat():
 if __name__ == "__main__":
     dispatcher = EventDispatcher()
 
-    reminder = ReminderController(datetime.time(hour=23, minute=40), dispatcher)
+    reminder = ReminderController(datetime.time(hour=8, minute=30), dispatcher)
 
     communication_interface = CommunicationInterface(
         broker_address = str(os.getenv("MQTT_BROKER_ADDRESS")),

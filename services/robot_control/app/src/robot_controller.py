@@ -97,6 +97,9 @@ class VectorRobotController:
         elif command == "drive off charger":
             self.logger.debug("Processing drive off charger request")
             self.drive_off_charger()
+        elif command == "return home":
+            self.logger.debug("Processing drive off charger request")
+            self.drive_on_charger()
     
     def run_if_robot_is_enabled(func):
         def wrapper(self, *args, **kwargs):
@@ -108,8 +111,12 @@ class VectorRobotController:
     @run_if_robot_is_enabled
     @reconnect_on_fail
     def drive_off_charger(self):
-        # self.robot.connection.request_control()
         self.robot.behavior.drive_off_charger()
+
+    @run_if_robot_is_enabled
+    @reconnect_on_fail
+    def drive_on_charger(self):
+        self.robot.behavior.drive_on_charger()
 
     @run_if_robot_is_enabled
     @reconnect_on_fail
