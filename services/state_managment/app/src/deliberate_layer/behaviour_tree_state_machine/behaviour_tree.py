@@ -82,7 +82,7 @@ class BehaviourTree:
                 self.current_branch.deactivate_behaviour()  # Stop all behaviours in the current branch
             self.current_branch = self.branches[branch_name]
             if branch_name == self.behaviours[0]:
-                self.communication_interface.set_behaviour_running_status(self.behaviours[0], True)
+                self.communication_interface.set_behaviour_running_status(self.behaviours[0], "standby")
             self.current_branch.activate_behaviour()  # Start all behaviours in the new branch
             self.logger.info(f"Transitioned to {self.current_branch.branch_name} branch")
             self.behaviour_tree_event_queue.put({"state": branch_name})
@@ -153,12 +153,12 @@ class BehaviourTree:
         behaviourRunning = self.communication_interface.get_behaviour_running_status()
 
         # Transition to appropriate branch if it is not already in that branch
-        if behaviourRunning['check_in'] and self.current_branch.branch_name != self.behaviours[1]:
+        if behaviourRunning['check_in'] != "disabled" and self.current_branch.branch_name != self.behaviours[1]:
             self.logger.info(f"Check-in event received event['check_in'] = {behaviourRunning['check_in']} and self.current_branch.branch_name = {self.current_branch.branch_name}")
             self.transition_to_branch(self.behaviours[1])
             self._set_current_state('interacting')
             self.logger.info("Fulfilled user request and transitioning to check-in branch")
-        elif behaviourRunning['configurations'] and self.current_branch.branch_name != self.behaviours[2]:
+        elif behaviourRunning['configurations'] != "disabled" and self.current_branch.branch_name != self.behaviours[2]:
             self.logger.info("Configurations event received")
             self.transition_to_branch(self.behaviours[2])
             self._set_current_state('configuring')
@@ -168,10 +168,10 @@ class BehaviourTree:
         """Activate or deactivate a specific behaviour in the current branch"""
         behaviourIsRunning = self.communication_interface.get_behaviour_running_status()[self.current_branch.branch_name] # Check if behaviour branch is running
 
-        if behaviourIsRunning and self.current_branch.behaviour_running == False: # Activate the current branch if it's not running
+        if behaviourIsRunning != "disabled" and self.current_branch.behaviour_running == False: # Activate the current branch if it's not running
             self.logger.info(f"Current branch is: {self.current_branch.branch_name} and the behaviour is not running")
             self.current_branch.activate_behaviour() # Activate the current branch if it's not running and not complete
-        elif behaviourIsRunning == False and self.current_branch.behaviour_running: # Deactivate the current branch if it's running and complete
+        elif behaviourIsRunning == "disabled" and self.current_branch.behaviour_running: # Deactivate the current branch if it's running and complete
             self.logger.info(f"Current branch is: {self.current_branch.branch_name} and the behaviour is complete")
             self.transition_to_branch(self.behaviours[0])
             self._set_current_state('active')

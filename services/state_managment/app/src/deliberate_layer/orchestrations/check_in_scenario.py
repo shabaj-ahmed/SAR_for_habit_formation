@@ -256,7 +256,8 @@ class CheckInScenario:
             message_type="farewell",
             content="Thank you for checking in. Have a great day!"
         )
-        self.communication_interface.set_behaviour_running_status("check_in", False)
+        self.communication_interface.end_check_in()
+        self.communication_interface.set_behaviour_running_status("check_in", "standby")
         self.logger.info("Voice assistant service completed successfully.")
         time.sleep(0.5)
 

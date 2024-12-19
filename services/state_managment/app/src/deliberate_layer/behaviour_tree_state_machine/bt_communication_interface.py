@@ -11,7 +11,6 @@ sys.path.insert(0, project_root)
 
 from shared_libraries.mqtt_client_base import MQTTClientBase
 
-
 class CommunicationInterface(MQTTClientBase):
     def __init__(self, broker_address, port):
         super().__init__(broker_address, port)
@@ -21,9 +20,9 @@ class CommunicationInterface(MQTTClientBase):
 
         # Behaviour running status used activate/deactivate certain behaviours
         self.behaviourRunningStatus = {
-            'reminder': False,
-            'check_in': False,
-            'configurations': False
+            'reminder': "disabled",
+            'check_in': "disabled",
+            'configurations': "disabled"
         }
 
         self.systemStatus = {
@@ -87,12 +86,12 @@ class CommunicationInterface(MQTTClientBase):
         '''
         self.logger.info("Processing check in")
         if message.payload.decode() == '1':
-            self.behaviourRunningStatus['check_in'] = True
+            self.behaviourRunningStatus['check_in'] = "running"
             # Transition to check in branch
             self.logger.info("Starting check in")
         else:
             for behaviour in self.behaviourRunningStatus:
-                self.behaviourRunningStatus[behaviour] = False
+                self.behaviourRunningStatus[behaviour] = "disabled"
             self.logger.info("Ending check in")
 
     def _process_service_status(self, client, uesrdata, message):
@@ -118,9 +117,9 @@ class CommunicationInterface(MQTTClientBase):
     def _process_configurations(self, client, userdata, message):
         self.logger.info("Processing configurations")
         if message.payload.decode() == '1':
-            self.behaviourRunningStatus['configurations'] = True
+            self.behaviourRunningStatus['configurations'] = "active"
         else:
-            self.behaviourRunningStatus['configurations'] = False
+            self.behaviourRunningStatus['configurations'] = "disabled"
 
     def _process_error_message(self, client, userdata, message):
         self.logger.info("Processing error message")
