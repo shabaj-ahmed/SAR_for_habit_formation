@@ -12,11 +12,10 @@ sys.path.insert(0, project_root)
 from shared_libraries.mqtt_client_base import MQTTClientBase
 
 class CommunicationInterface(MQTTClientBase):
-    def __init__(self, broker_address, port, reminder_controler):
+    def __init__(self, broker_address, port, event_dispatcher):
         super().__init__(broker_address, port)
         self.logger = logging.getLogger(self.__class__.__name__)
-
-        self.reminder_controler = reminder_controler
+        self.dispatcher = event_dispatcher
 
         self.command = "" # used in main loop to determine what to do
 
@@ -30,11 +29,18 @@ class CommunicationInterface(MQTTClientBase):
         # Publish topics
         self.reminder_status_topic = "reminder_status"
         self.reminder_hearbeat_topic = "reminder_heartbeat"
+        self.start_reminder_topic = "start_reminder"
 
         # subscribe to topics
         self.subscribe(self.service_status_requested_topic, self._respond_with_service_status)
         self.subscribe(self.control_cmd, self._handle_command)
         self.subscribe(self.update_reminder_time, self._update_reminder_time)
+
+        self._register_event_handlers()
+
+    def _register_event_handlers(self):
+        if self.dispatcher:
+            self.dispatcher.register_event("send_reminder", self._send_reminder)
 
     def _respond_with_service_status(self, client, userdata, message):
         self.publish_reminder_status(self.service_status)
@@ -64,11 +70,9 @@ class CommunicationInterface(MQTTClientBase):
 
     def _update_reminder_time(self, client, userdata, message):
         try:
-            payload = json.loads(message.payload.decode("utf-8"))
-            hours = int(payload.get("hours", 0))
-            minutes = int(payload.get("minutes", 0))
-            ampm = payload.get("ampm", "AM")
-            self.reminder_controler.set_reminder_time(hours, minutes, ampm)
+            time = json.loads(message.payload.decode("utf-8"))
+            self.logger.info(f"Reminder time updated to {time}")
+            self.dispatcher.dispatch_event("set_reminder", time)
         except json.JSONDecodeError:
             self.logger.error("Invalid JSON payload for setting reminder time. Using default retry parameters.")
 
@@ -83,6 +87,10 @@ class CommunicationInterface(MQTTClientBase):
         self.publish(self.reminder_status_topic, json.dumps(payload))
 
         self.service_status = status
+
+    def _send_reminder(self):
+        self.logger.info("Sending reminder")
+        self.publish(self.start_reminder_topic, True)
 
     def publish_reminder_heartbeat(self):
         payload = {
