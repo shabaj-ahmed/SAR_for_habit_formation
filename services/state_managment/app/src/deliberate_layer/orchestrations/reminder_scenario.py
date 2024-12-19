@@ -1,4 +1,3 @@
-import datetime
 import time
 import logging
 
@@ -82,7 +81,7 @@ class ReminderScenario:
             message_type="farewell",
             content="Thank you for checking in. Have a great day!"
         )
-        self.communication_interface.set_behaviour_running_status("reminder", False)
+        self.communication_interface.set_behaviour_running_status("reminder", "standby")
         self.logger.info("Voice assistant service completed successfully.")
         time.sleep(0.5)
 
