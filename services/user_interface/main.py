@@ -15,6 +15,7 @@ socketio = SocketIO(app)
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.abspath(os.path.join(current_dir, "../../../../"))
 sys.path.insert(0, project_root)
+
 from shared_libraries.logging_config import setup_logger
 
 # Setup logger
@@ -160,6 +161,7 @@ def profile():
 
 @app.route('/start_check_in', methods=['POST'])
 def start_check_in():
+    chat_history = []
     # Start the check-in process
     communication_interface.start_check_in()
     return jsonify({'status': 'success', 'message': 'Check-In command sent'})
