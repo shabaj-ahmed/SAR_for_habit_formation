@@ -15,6 +15,7 @@ socketio = SocketIO(app)
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.abspath(os.path.join(current_dir, "../../../../"))
 sys.path.insert(0, project_root)
+
 from shared_libraries.logging_config import setup_logger
 
 # Setup logger
@@ -103,6 +104,19 @@ def settings():
         robot_enabled=os.getenv("ROBOT_ENABLED") == "True",
     )
 
+@app.route('/action_page', methods=['POST'])
+def process_form():
+    hour = request.form.get('hour')
+    minute = request.form.get('minute')
+    ampm = request.form.get('ampm')
+    
+    formatted_time = f"{hour}:{minute} {ampm}"
+    logger.info(f"Received time: {formatted_time}")
+
+    communication_interface.set_reminder_time(hour, minute, ampm)
+
+    return jsonify({'status': 'success', 'time': formatted_time}), 200
+
 @app.route('/colour/<secected_colour>')
 def colour_button_click(secected_colour):
 
@@ -147,6 +161,7 @@ def profile():
 
 @app.route('/start_check_in', methods=['POST'])
 def start_check_in():
+    chat_history = []
     # Start the check-in process
     communication_interface.start_check_in()
     return jsonify({'status': 'success', 'message': 'Check-In command sent'})

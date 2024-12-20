@@ -11,7 +11,6 @@ sys.path.insert(0, project_root)
 
 from shared_libraries.mqtt_client_base import MQTTClientBase
 
-
 class CommunicationInterface(MQTTClientBase):
     def __init__(self, broker_address, port):
         super().__init__(broker_address, port)
@@ -21,54 +20,66 @@ class CommunicationInterface(MQTTClientBase):
 
         # Behaviour running status used activate/deactivate certain behaviours
         self.behaviourRunningStatus = {
-            'reminder': False,
-            'check_in': False,
-            'configurations': False
+            'reminder': "disabled",
+            'check_in': "disabled",
+            'configurations': "disabled"
         }
 
         self.systemStatus = {
-            "voice_assistant": "",
+            "speech_recognition": "",
             "robot_control": "",
             "user_interface": "",
-            "task_manager": "Awake"
+            "reminder": ""
         }
 
+        self.robot_behaviour_completion_status = {}
+        self.user_response = ""
+
         # Subscription topics
-        self.task_manager_status_topic = "task_manager_status"
-        self.task_manager_heartbeat_topic = "task_manager_heartbeat"
-        self.voice_assistant_status_topic = "voice_assistant_status"
-        self.voice_assistant_heartbeat_topic = "voice_assistant_heartbeat"
+        self.reminder_status_topic = "reminder_status"
+        self.reminder_heartbeat_topic = "reminder_heartbeat"
+        self.speech_recognition_status_topic = "speech_recognition_status"
+        self.speech_recognition_heartbeat_topic = "speech_recognition_heartbeat"
         self.robot_status_topic = "robot_status"
         self.robot_heartbeat_topic = "robot_heartbeat"
         self.user_interface_status_topic = "user_interface_status"
         self.user_interface_heartbeat_topic = "user_interface_heartbeat"
         self.configure_topic = "configure"
         self.service_error_topic = "service_error"
+        self.robot_control_status_topic = "robot_control_status"
+        self.conversation_history_topic = "conversation/history"
+        self.send_reminder_topic = "start_reminder"
 
         # Publish topics
         self.request_service_status_topic = "request/service_status"
         self.publish_system_status_topic = "publish/system_status"
+        self.robot_speech_topic = "speech_recognition/robot_speech"
+        self.robot_behaviour_topic = "robot_behaviour_command"
         self.service_control_command_topic = lambda service_name : service_name + "_control_cmd"
+        self.record_response_topic = "speech_recognition/record_response"
 
         # Subscriber and publisher topics
         self.check_in_controls_topic = "check_in_controller"
 
         # Subscribe to topics with custom handlers
         self.subscribe(self.check_in_controls_topic, self._process_check_in_request)
-        self.subscribe(self.voice_assistant_status_topic, self._process_service_status)
-        # self.subscribe(self.voice_assistant_heartbeat_topic, self._process_heartbeat)
+        self.subscribe(self.speech_recognition_status_topic, self._process_service_status)
+        # self.subscribe(self.speech_recognition_heartbeat_topic, self._process_heartbeat)
         self.subscribe(self.robot_status_topic, self._process_service_status)
         # self.subscribe(self.robot_controller_status_topic, self._process_heartbeat)
         self.subscribe(self.user_interface_status_topic, self._process_service_status)
         # self.subscribe(self.user_interface_status_topic, self._process_heartbeat)
-        self.subscribe(self.task_manager_status_topic, self._process_service_status)
-        # self.subscribe(self.task_manager_heartbeat_topic, self._process_heartbeat)
+        self.subscribe(self.reminder_status_topic, self._process_service_status)
+        # self.subscribe(self.reminder_heartbeat_topic, self._process_heartbeat)
         self.subscribe(self.configure_topic, self._process_configurations)
         self.subscribe(self.service_error_topic, self._process_error_message)
+        self.subscribe(self.robot_control_status_topic, self._process_robot_behaviour_status)
+        self.subscribe(self.conversation_history_topic, self._handle_user_response)
+        self.subscribe(self.send_reminder_topic, self._send_reminder)
 
     def _process_check_in_request(self, client, userdata, message):
         '''
-        Process the check in request from the user interface or task manager
+        Process the check in request from the user interface
         
         Args:
             message (str): A string flag indicating the check in status
@@ -77,12 +88,12 @@ class CommunicationInterface(MQTTClientBase):
         '''
         self.logger.info("Processing check in")
         if message.payload.decode() == '1':
-            self.behaviourRunningStatus['check_in'] = True
+            self.behaviourRunningStatus['check_in'] = "enabled"
             # Transition to check in branch
             self.logger.info("Starting check in")
         else:
             for behaviour in self.behaviourRunningStatus:
-                self.behaviourRunningStatus[behaviour] = False
+                self.behaviourRunningStatus[behaviour] = "disabled"
             self.logger.info("Ending check in")
 
     def _process_service_status(self, client, uesrdata, message):
@@ -102,33 +113,83 @@ class CommunicationInterface(MQTTClientBase):
         payload = json.loads(message.payload.decode("utf-8"))
         service = payload.get("service_name", "")
         status = payload.get("status", "")
-        self.logger.info(f"Processing service: {service} with status: {status}")
+
         self.systemStatus[service] = status
 
     def _process_configurations(self, client, userdata, message):
         self.logger.info("Processing configurations")
         if message.payload.decode() == '1':
-            self.behaviourRunningStatus['configurations'] = True
+            self.behaviourRunningStatus['configurations'] = "enabled"
         else:
-            self.behaviourRunningStatus['configurations'] = False
+            self.behaviourRunningStatus['configurations'] = "disabled"
 
     def _process_error_message(self, client, userdata, message):
-        self.logger.imfo("Processing error message")
+        self.logger.info("Processing error message")
         self.criticalEvents['error'] = message.payload.decode()
+
+    def _process_robot_behaviour_status(self, client, userdata, message):
+        payload = json.loads(message.payload.decode("utf-8"))
+        behaviour_name = payload.get("behaviour_name", "")
+        behaviour_status = payload.get("status", "")
+        self.logger.info(f"behaviour status recived = {behaviour_status} for behaviour name = {behaviour_name}")
+        self.robot_behaviour_completion_status[behaviour_name] = behaviour_status
+
+    def _handle_user_response(self, client, userdata, message):
+        payload = json.loads(message.payload.decode("utf-8"))
+        self.user_response = payload.get("content", "")
+
+    def _send_reminder(self, client, userdata, message):
+        self.logger.info("Processing reminder request")
+        if message.payload.decode() == '1':
+            self.behaviourRunningStatus['reminder'] = "enabled"
+            self.logger.info("enable reminder")
+        else:
+            self.behaviourRunningStatus['reminder'] = "disabled"
+            self.logger.info("disable reminder")
 
     def request_service_status(self):
         '''
         Request a response from all services to get their status
         '''
-        self.logger.info("Requesting service status")
+        # self.logger.info("Requesting service status")
         self.publish(self.request_service_status_topic, "")
 
     def publish_system_status(self):
         '''
         Publish the system status to all services
         '''
-        self.logger.info("Publishing system status")
+        # self.logger.info("Publishing system status")
         self.publish(self.publish_system_status_topic, json.dumps(self.systemStatus))
+    
+    def _handle_robot_speech(self, client, userdata, message):
+        # Forwards the robot speech to the conversation history
+        self.publish(self.conversation_history_topic, message.payload.decode("utf-8"))
+
+    def publish_robot_speech(self, content, message_type="request"):
+        message = {
+            "sender": "orchestrator",
+            "message_type": message_type,
+            "content": content
+        }
+        self.logger.info(f"sending message {message}")
+        json_message = json.dumps(message)
+        # This is what the robot should say
+        self.publish(self.robot_speech_topic, json_message)
+
+    def publish_robot_behaviour_command(self, cmd, message_type="request"):
+        message = {
+            "sender": "orchestrator",
+            "message_type": message_type,
+            "cmd": cmd,
+            "time": time.strftime("%Y-%m-%d %H:%M:%S")
+        }
+        json_message = json.dumps(message)
+        # This is what the robot should do
+        self.publish(self.robot_behaviour_topic, json_message)
+
+    def publish_collect_response(self, expected_format):
+        self.logger.info("Publishing record response")
+        self.publish(self.record_response_topic, expected_format)
 
     def behaviour_controller(self, service_name, cmd):
         payload = {
@@ -147,7 +208,6 @@ class CommunicationInterface(MQTTClientBase):
         '''
         A method to expose the service status or all services
         '''
-        logging.info(f"System status: {self.systemStatus}")
         return self.systemStatus
 
     def get_behaviour_running_status(self):
@@ -155,3 +215,12 @@ class CommunicationInterface(MQTTClientBase):
     
     def set_behaviour_running_status(self, behaviour, status):
         self.behaviourRunningStatus[behaviour] = status
+
+    def get_robot_behaviour_completion_status(self, behaviour_name):
+        status = self.robot_behaviour_completion_status.get(behaviour_name, "")
+        if status != "":
+            self.robot_behaviour_completion_status.pop(behaviour_name)
+        return status
+    
+    def get_user_response(self):
+        return self.user_response

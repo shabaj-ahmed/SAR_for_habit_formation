@@ -18,6 +18,8 @@ class CommunicationInterface(MQTTClientBase):
         self.logger = logging.getLogger(self.__class__.__name__)
 
         self.command = ""
+        self.collect_response = False
+        self.format = "open-ended"
         self.max_retries = 5
         self.delay = 10
 
@@ -27,23 +29,25 @@ class CommunicationInterface(MQTTClientBase):
 
         # Subscription topics
         self.service_status_requested_topic = "request/service_status"
-        self.control_cmd = "voice_assistant_control_cmd"
+        self.control_cmd = "speech_recognition_control_cmd"
+        self.record_response_topic = "speech_recognition/record_response"
 
         # Publish topics
-        self.voice_assistant_status_topic = "voice_assistant_status"
-        self.vocie_assistant_hearbeat_topic = "voice_assistant_heartbeat"
+        self.speech_recognition_status_topic = "speech_recognition_status"
+        self.vocie_assistant_hearbeat_topic = "speech_recognition_heartbeat"
         self.conversation_history_topic = "conversation/history"
-        self.robot_speech_topic = "voice_assistant/robot_speech"
-        self.silance_detected_topic = "voice_assistant/silence_detected"
+        self.silance_detected_topic = "speech_recognition/silence_detected"
         self.audio_active_topic = "audio_active"
         self.check_in_controls_topic = "check_in_controller"
+        self.robot_control_status_topic = "robot_control_status"
 
         # subscribe to topics
         self.subscribe(self.service_status_requested_topic, self._respond_with_service_status)
         self.subscribe(self.control_cmd, self._handle_command)
+        self.subscribe(self.record_response_topic, self._handle_record_response)
 
     def _respond_with_service_status(self, client, userdata, message):
-        self.publish_voice_assistant_status(self.service_status)
+        self.publish_speech_recognition_status(self.service_status)
     
     def _handle_command(self, client, userdata, message):
         
@@ -60,32 +64,37 @@ class CommunicationInterface(MQTTClientBase):
                 self.command = ""
         except json.JSONDecodeError:
             self.logger.error("Invalid JSON payload. Using default retry parameters.")
-    
-    def _handle_robot_speech(self, client, userdata, message):
-        # Forwards the robot speech to the conversation history
-        self._thread_safe_publish(self.conversation_history_topic, message.payload.decode("utf-8"))
 
-    def publish_robot_speech(self, content, message_type="response"):
-        message = {
-            "sender": "robot",
-            "message_type": message_type,
-            "content": content
+        status = {
+            "set_up": "ready",
+            "start": "running",
+            "end": "completed"
         }
-        json_message = json.dumps(message)
-        # This is what the robot should say
-        self._thread_safe_publish(self.robot_speech_topic, json_message)
+
+        self.publish_speech_recognition_status(status[cmd])
+
+    def _handle_record_response(self, client, userdata, message):
+        self.collect_response = True
+        self.format = message.payload.decode("utf-8")
 
     def publish_user_response(self, content, message_type="response"):
+        self.collect_response = False
+
         message = {
             "sender": "user",
             "message_type": message_type,
             "content": content
         }
-        json_message = json.dumps(message)
-        # This is what the user said
-        self._thread_safe_publish(self.conversation_history_topic, json_message)
+        self._thread_safe_publish(self.conversation_history_topic, json.dumps(message))
+
+        status = {
+            "behaviour_name": "user response",
+            "status": "failed" if content == "" else "complete",
+            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+            }
+        self._thread_safe_publish(self.robot_control_status_topic, json.dumps(status))
     
-    def publish_voice_assistant_status(self, status, message="", details=None):
+    def publish_speech_recognition_status(self, status, message="", details=None):
         if status == "running":
             self.publish(self.audio_active_topic, "1")
         if status == "completed":
@@ -93,19 +102,19 @@ class CommunicationInterface(MQTTClientBase):
             self.publish(self.audio_active_topic, "0")
         
         payload = {
-            "service_name": "voice_assistant",
+            "service_name": "speech_recognition",
             "status": status,
             "message": message,
             "details": details,
             "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
         }
-        self.publish(self.voice_assistant_status_topic, json.dumps(payload))
+        self.publish(self.speech_recognition_status_topic, json.dumps(payload))
 
         self.service_status = status
 
-    def publish_voice_assistant_heartbeat(self):
+    def publish_speech_recognition_heartbeat(self):
         payload = {
-            "service_name": "voice_assistant",
+            "service_name": "speech_recognition",
             "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
         }
         self.publish(self.vocie_assistant_hearbeat_topic, json.dumps(payload))
@@ -119,10 +128,6 @@ class CommunicationInterface(MQTTClientBase):
         '''
         logging.info(f"Silence detected. Duration: {duration}")
         self.publish(self.silance_detected_topic, duration)
-
-    def end_check_in(self):
-        logging.info("Voice assistant ending check in process")
-        self.publish(self.check_in_controls_topic, "0")
     
     def _thread_safe_publish(self, topic, message):
         self.logger.info(f"Thread safe publish: {topic}, {message}")

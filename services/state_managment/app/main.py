@@ -2,8 +2,8 @@ import time
 import threading
 from queue import Queue
 from src.reactive_layer.reactive_layer import ReactiveLayer
-import src.deliberate_layer.finite_state_machine as fsm
-from src.deliberate_layer.behaviour_tree import BehaviorTree
+import src.deliberate_layer.finite_state_machine.finite_state_machine as fsm
+from src.deliberate_layer.behaviour_tree_state_machine.behaviour_tree import BehaviourTree
 import logging
 import os
 import sys
@@ -23,7 +23,7 @@ behaviour_tree_event_queue = Queue()
 # Instantiate High-Level FSM, Behavior Tree, and Reactive Layer
 reactive_layer = ReactiveLayer(event_queue=subsumption_layer_event_queue)
 finite_state_machine_layer = fsm.FSM(subsumption_layer_event_queue=subsumption_layer_event_queue, finite_state_machine_event_queue=finite_state_machine_event_queue, behavior_tree_event_queue=behaviour_tree_event_queue)
-deliberate_layer = BehaviorTree(finite_state_machine_event_queue=finite_state_machine_event_queue, behaviour_tree_event_queue=behaviour_tree_event_queue)
+deliberate_layer = BehaviourTree(finite_state_machine_event_queue=finite_state_machine_event_queue, behaviour_tree_event_queue=behaviour_tree_event_queue)
 
 # Loop interval
 LOOP_INTERVAL = 0.1

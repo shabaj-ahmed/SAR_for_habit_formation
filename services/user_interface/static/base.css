@@ -1,7 +1,7 @@
 /* Variables */
 :root {
-    --primary-color: #111;
-    --secondary-color: #ddd;
+    --nav-bar-color: #111;
+    --app-bar-color: #ddd;
     --highlight-color: #f1f1f1;
     --font-family: "Lato", sans-serif;
     --transition-duration: 0.3s;
@@ -41,7 +41,7 @@ body, html {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background-color: var(--secondary-color);
+    background-color: var(--app-bar-color);
     padding: 10px;
     box-sizing: border-box;
 }
@@ -72,7 +72,7 @@ body, html {
     position: fixed;
     top: 0;
     left: 0;
-    background-color: var(--primary-color);
+    background-color: var(--nav-bar-color);
     overflow-x: hidden;
     transition: width var(--transition-duration);
     padding-top: 60px;

@@ -66,59 +66,80 @@
         <button id="save-checkin">Save Check-In</button>
         `;
         chatContainer.appendChild(chatControl);
-        
-        document.getElementById('save-checkin').addEventListener('click', function () {
-            console.log('Save Check-In button clicked');
-            window.location.href = "/";
-        });
-        
-        document.getElementById('restart-checkin').addEventListener('click', function () {
-            console.log('Restart Check-In button clicked');
-        });
-        
         const countdownContainer = document.createElement('div');
         countdownContainer.classList.add('notification-message');
         countdownContainer.id = 'countdown-timer';
         countdownContainer.innerHTML = `
-                    Your responses will be saved in <span id="timer">20</span> seconds.
-                `;
+        Your responses will be saved in <span id="timer">20</span> seconds.
+        `;
         chatContainer.appendChild(countdownContainer);
-
+        
         const timerDisplay = document.getElementById("timer");
-        startCountdown(20, timerDisplay); 
 
+        let countdownInterval;
+        startCountdown(20, timerDisplay);
+        
         function startCountdown(duration, display) {
             let timer = duration, seconds;
-            const countdownInterval = setInterval(() => {
+            countdownInterval = setInterval(() => {
                 seconds = parseInt(timer, 10);
-
+                
                 display.textContent = seconds;
-
+                
                 if (--timer < 0) {
                     clearInterval(countdownInterval);
-                    // window.location.href = "/save_check_in";
                     window.location.href = "/";
                     
                 }
             }, 1000);
         }
+        
+        function clearCountdown() {
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+                countdownInterval = null;
+                const countdownContainer = document.getElementById('countdown-timer');
+                if (countdownContainer) {
+                    countdownContainer.remove();
+                }
+            }
+        }  
+        
+        document.getElementById('save-checkin').addEventListener('click', function () {
+            console.log('Save Check-In button clicked');
+            clearCountdown();
+            // Transition to home page and send a save check-in event
+            window.location.href = "/";
+        });
+        
+        document.getElementById('restart-checkin').addEventListener('click', function () {
+            clearCountdown();
+            fetch('/start_check_in', { method: 'POST' })
+            .then((response) => response.json())
+            .then((data) => {
+                // Remove the place holder message
+                const noMessages = document.getElementById('no-messages');
+                if (noMessages) noMessages.remove();
+                // Remove the chat controls
+                const chatControls = document.querySelector('.chat-controls');
+                if (chatControls) chatControls.remove();                
 
-        function appendOutgoingMessage(content, time) {
-            const messages = document.getElementById('messages');
+                const messagesContainer = document.getElementById('messages');
+                messagesContainer.innerHTML = ''; // Clear the chat history
 
-            const outgoingChat = document.createElement('div');
-            outgoingChat.classList.add('outgoing-message'); // Apply outgoing message styling
-            outgoingChat.innerHTML = `
-            <p>${content}</p>
-            <span class="time">${time}</span>
-            `;    
-            messages.appendChild(outgoingChat);
-            scrollToBottom(); // Auto-scroll to the bottom
-        }
+                const chatContainer = document.querySelector('.chat-container');
+                
+                // Add the progress bar
+                const progressBar = document.createElement('div');
+                progressBar.id = 'myProgress';
+                progressBar.innerHTML = `
+                    <div id="myBar"></div>
+                `;
+                chatContainer.appendChild(progressBar);
+            })
+            .catch((error) => console.error('Error starting check-in:', error));
+        });
     });    
-
-
-
 
     // Listen for new messages
     window.socket.on('new_message', function(message) {

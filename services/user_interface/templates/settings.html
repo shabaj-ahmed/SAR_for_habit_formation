@@ -10,142 +10,99 @@
         <h2>User settings</h2>
         <h4>When would you like to check in?</h4>
         <p>Pick a time that suits you best</p>
-        <form action="/action_page.php">
-            <label for="appt">Select a time:</label>
-            <input type="time" id="appt" name="appt">
-            <input type="submit">
+        <form action="/action_page">
+
+            <!-- Time Picker -->
+            <div class="custom-time-picker">
+                <!-- Hour Section -->
+                <div class="time-section">
+                    <button type="button" class="common-button hour-increment" aria-label="Increase hour">+</button>
+                    <span id="hour-display" aria-live="polite">12</span>
+                    <button type="button" class="common-button hour-decrement" aria-label="Decrease hour">-</button>
+                </div>
+
+                <span>:</span>
+
+                <!-- Minute Section -->
+                <div class="time-section">
+                    <button type="button" class="common-button minute-increment" aria-label="Increase minute">+</button>
+                    <span id="minute-display" aria-live="polite">00</span>
+                    <button type="button" class="common-button minute-decrement" aria-label="Decrease minute">-</button>
+                </div>
+
+                <!-- AM/PM Toggle -->
+                <div class="ampm-toggle">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="ampm-toggle">
+                        <span class="toggle"></span>
+                    </label>
+                    <span id="ampm-display">AM</span>
+                </div>
+            </div>
+
+            <!-- Hidden Inputs for Form Submission -->
+            <input type="hidden" id="hour" name="hour" value="12">
+            <input type="hidden" id="minute" name="minute" value="00">
+            <input type="hidden" id="ampm" name="ampm" value="AM">
+
+            <!-- Submit Button -->
+            <button type="submit" class="common-button">Submit</button>
         </form>
     </div>
 
     {% if robot_enabled %}
     <div class="settings-container">
         <h2>Robot settings</h2>
-        <h4>Choose a eye colour</h4>
-        <p>
-            Select a colour that you think looks good from the following options:
-        </p>
-        <div class="radios-container">
-            <div id="custom-radios">
-                <div>
-                    <input type="radio" class="custom-radio" id="green" name="colour" value="green" />
-                    <label for="green">
-                        <span>
-                            <img src="./static/check.svg" alt="Checked Icon" />
-                        </span>
-                    </label>
-                </div>
-
-                <div>
-                    <input type="radio" class="custom-radio" id="sapphire" name="colour" value="sapphire" />
-                    <label for="sapphire">
-                        <span>
-                            <img src="./static/check.svg" alt="Checked Icon" />
-                        </span>
-                    </label>
-                </div>
-
-                <div>
-                    <input type="radio" class="custom-radio" id="yellow" name="colour" value="yellow" />
-                    <label for="yellow">
-                        <span>
-                            <img src="./static/check.svg" alt="Checked Icon" />
-                        </span>
-                    </label>
-                </div>
-
-                <div>
-                    <input type="radio" class="custom-radio" id="red" name="colour" value="red" />
-                    <label for="red">
-                        <span>
-                            <img src="./static/check.svg" alt="Checked Icon" />
-                        </span>
-                    </label>
-                </div>
-
-                <div>
-                    <input type="radio" class="custom-radio" id="purple" name="colour" value="purple" />
-                    <label for="purple">
-                        <span>
-                            <img src="./static/check.svg" alt="Checked Icon" />
-                        </span>
-                    </label>
-                </div>
-
-                <div>
-                    <input type="radio" class="custom-radio" id="orange" name="colour" value="orange" />
-                    <label for="orange">
-                        <span>
-                            <img src="./static/check.svg" alt="Checked Icon" />
-                        </span>
-                    </label>
-
-                </div>
+        <h4>Choose an eye colour</h4>
+        <p>Select a colour that you think looks good:</p>
+        <div class="radios-container" id="custom-radios">
+            <div>
+                <input type="radio" class="custom-radio" id="green" name="colour" value="green" />
+                <label for="green"><span><img src="./static/check.svg" alt="Checked Icon" /></span></label>
+            </div>
+            <div>
+                <input type="radio" class="custom-radio" id="sapphire" name="colour" value="sapphire" />
+                <label for="sapphire"><span><img src="./static/check.svg" alt="Checked Icon" /></span></label>
+            </div>
+            <div>
+                <input type="radio" class="custom-radio" id="yellow" name="colour" value="yellow" />
+                <label for="yellow"><span><img src="./static/check.svg" alt="Checked Icon" /></span></label>
+            </div>
+            <div>
+                <input type="radio" class="custom-radio" id="red" name="colour" value="red" />
+                <label for="red"><span><img src="./static/check.svg" alt="Checked Icon" /></span></label>
+            </div>
+            <div>
+                <input type="radio" class="custom-radio" id="purple" name="colour" value="purple" />
+                <label for="purple"><span><img src="./static/check.svg" alt="Checked Icon" /></span></label>
+            </div>
+            <div>
+                <input type="radio" class="custom-radio" id="orange" name="colour" value="orange" />
+                <label for="orange"><span><img src="./static/check.svg" alt="Checked Icon" /></span></label>
             </div>
         </div>
 
         <h4>Set a voice volume</h4>
-        <p>
-            The robot has a number of different volumes. Listen to each
-            sample and select one that you think will sound good.
-        </p>
+        <p>Choose a volume level:</p>
         <div class="volume-settings">
             <div class="volume-buttons">
-                <button 
-                    type="button" 
-                    class="settings-button {{ 'clicked' if volume_button_states['quiet'] else '' }}" 
-                    data-type="volume" 
-                    data-volume="quiet" 
-                    {{ 'disabled' if volume_button_states['quiet'] else '' }}>
-                    Quiet
-                </button>
-                <button 
-                    type="button" 
-                    class="settings-button {{ 'clicked' if volume_button_states['default'] else '' }}" 
-                    data-type="volume" 
-                    data-volume="default" 
-                    {{ 'disabled' if volume_button_states['default'] else '' }}>
-                    Default
-                </button>
-                <button 
-                    type="button" 
-                    class="settings-button {{ 'clicked' if volume_button_states['loud'] else '' }}" 
-                    data-type="volume" 
-                    data-volume="loud" 
-                    {{ 'disabled' if volume_button_states['loud'] else '' }}>
-                    Loud
-                </button>
+                <button type="button" class="common-button settings-button" data-type="volume" data-volume="quiet">Quiet</button>
+                <button type="button" class="common-button settings-button" data-type="volume" data-volume="default">Default</button>
+                <button type="button" class="common-button settings-button" data-type="volume" data-volume="loud">Loud</button>
             </div>
         </div>
 
-        <h4>Select a voice that you like</h4>
-        <p>
-            The robot has a two different voices to choose from.
-        </p>
+        <h4>Select a voice you like</h4>
+        <p>Choose between Robotic or Human:</p>
         <div class="volume-settings">
             <div class="volume-buttons">
-                <button 
-                    type="button" 
-                    class="settings-button {{ 'clicked' if voice_button_states['quiet'] else '' }}" 
-                    data-type="voice" 
-                    data-voice="quiet" 
-                    {{ 'disabled' if voice_button_states['quiet'] else '' }}>
-                    Robotic
-                </button>
-                <button 
-                    type="button" 
-                    class="settings-button {{ 'clicked' if voice_button_states['default'] else '' }}" 
-                    data-type="voice" 
-                    data-voice="default" 
-                    {{ 'disabled' if voice_button_states['default'] else '' }}>
-                    Human
-                </button>
+                <button type="button" class="common-button settings-button" data-type="voice" data-voice="robot">Robotic</button>
+                <button type="button" class="common-button settings-button" data-type="voice" data-voice="human">Human</button>
             </div>
         </div>
 
         <h4>Enable free play</h4>
-        <p>
-            Enabling this behaviour will allow the robot to move around roam freely.
-        </p>
+        <p>Let the robot roam freely:</p>
         <label class="toggle-switch">
             <input type="checkbox" />
             <span class="toggle"></span>
@@ -161,185 +118,240 @@
         </div>
     </div>
 </div>
-
 {% endblock %}
 
 {% block scripts %}
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script>
-    $(document).ready(function () {
-        // This function is called when any of the radio buttons is changed
-        $('input[type="radio"].custom-radio').change(function () {
-            // 'this' refers to the radio button that was changed
-            var colorValue = $(this).val(); // Get the value of the radio button
+$(document).ready(function () {
 
-            // Make an AJAX request to the Flask route
-            $.ajax({
-                url: "/colour/" + colorValue,
-                type: "GET",
-                success: function (response) {
-                    // This function is called when the server responds successfully
-                    // Handle the response
-                    console.log(response);
-                },
-                error: function (error) {
-                    // This function is called when the server responds with an error
-                    console.log(error);
-                },
-            });
-        });
+    // ========================
+    // Variables and Helpers
+    // ========================
+    let lastClickTime = 0;
 
+    // Helper function to prevent rapid clicking
+    function canClickAgain() {
+        const now = Date.now();
+        if (now - lastClickTime < 300) return false;
+        lastClickTime = now;
+        return true;
+    }
 
-        // General function to handle button clicks for volume and voice buttons
-        $(".settings-button").click(function (event) {
-            event.preventDefault();
-            var button = $(this);
-            var buttonType = button.data("type"); // Determine the type of button (volume or voice)
-            
-            // Identify whether it's a volume button or voice button
-            if (buttonType === "volume") {
-                var volumeLevel = button.data("volume");
+    // ========================
+    // Time Adjustment Functions
+    // ========================
+    function adjustTime(type, increment) {
+        if (!canClickAgain()) return;
 
-                $.ajax({
-                    url: "/volume/" + volumeLevel,
-                    type: "GET",
-                    success: function (response) {
-                        $(".settings-button[data-type='volume']").each(function () {
-                            var btn = $(this);
-                            var btnVolume = btn.data("volume");
-                            if (btnVolume === volumeLevel) {
-                                btn.addClass("clicked");
-                                btn.prop("disabled", true);
-                            } else {
-                                btn.removeClass("clicked");
-                                btn.prop("disabled", false);
-                            }
-                        });
-                    },
-                    error: function (error) {
-                        console.log("Error setting volume:", error);
-                    },
-                });
-            }
+        const hourEl = $("#hour-display");
+        const minuteEl = $("#minute-display");
+        const hourInput = $("#hour");
+        const minuteInput = $("#minute");
 
-            if (buttonType === "voice") {
-                var voiceType = button.data("voice");
+        let hour = parseInt(hourEl.text(), 10);
+        let minute = parseInt(minuteEl.text(), 10);
 
-                $.ajax({
-                    url: "/voice/" + voiceType,
-                    type: "GET",
-                    success: function (response) {
-                        $(".settings-button[data-type='voice']").each(function () {
-                            var btn = $(this);
-                            var btnVoice = btn.data("voice");
-                            if (btnVoice === voiceType) {
-                                btn.addClass("clicked");
-                                btn.prop("disabled", true);
-                            } else {
-                                btn.removeClass("clicked");
-                                btn.prop("disabled", false);
-                            }
-                        });
-                    },
-                    error: function (error) {
-                        console.log("Error setting voice:", error);
-                    },
-                });
-            }
-        });
+        if (type === "hour") {
+            hour += increment;
+            if (hour < 1) hour = 12;
+            if (hour > 12) hour = 1;
+            hourEl.text(hour);
+            hourInput.val(hour);
+        } else if (type === "minute") {
+            minute += increment;
+            if (minute < 0) minute = 59;
+            if (minute >= 60) minute = 0;
+            // Pad minutes with leading zero
+            const paddedMin = minute.toString().padStart(2, "0");
+            minuteEl.text(paddedMin);
+            minuteInput.val(paddedMin);
+        }
+    }
 
+    // Attach event listeners for buttons
+    $(".hour-increment").on("click", function () {
+        adjustTime("hour", 1);
+    });
 
+    $(".hour-decrement").on("click", function () {
+        adjustTime("hour", -1);
+    });
 
-        const slider = document.querySelector("#myRange");
+    $(".minute-increment").on("click", function () {
+        adjustTime("minute", 1);
+    });
 
-        slider.addEventListener("input", (event) => {
-            const brightness_level = event.target.value;
+    $(".minute-decrement").on("click", function () {
+        adjustTime("minute", -1);
+    });
 
-            $.ajax({
-                url: "/brightness/" + brightness_level,
-                type: "GET",
-                success: function (response) {
-                    console.log(response); // Optional: Log the success response
-                },
-                error: function (error) {
-                    // Log any error in the console
-                    console.log("Error setting brightness:", error);
-                },
-            });
-        });
+    // ========================
+    // AM/PM Toggle Function
+    // ========================
+    function toggleAmPm() {
+        const ampmDisplay = $("#ampm-display");
+        const ampmInput = $("#ampm");
+        const toggle = $("#ampm-toggle");
 
+        if (toggle.is(":checked")) {
+            ampmDisplay.text("PM");
+            ampmInput.val("PM");
+        } else {
+            ampmDisplay.text("AM");
+            ampmInput.val("AM");
+        }
+    }
 
+    $(".ampm-toggle").on("click", function () {
+        toggleAmPm();
+    });
 
+    // ========================
+    // Check in time (Submit Buttons) Handler
+    // ========================
+    // When submit button is clicked, send an AJAX request
+    $("form").on("submit", function (event) {
+        event.preventDefault(); // Prevent the default form submission
 
+        const data = {
+            hour: $("#hour").val(),
+            minute: $("#minute").val(),
+            ampm: $("#ampm").val(),
+        };
 
-
-        // Enable click-and-drag scrolling for the entire page
-        const settingsPage = document.querySelector(".settings-page");
-
-        let isDragging = false;
-        let startY = 0; // Initial Y position of the pointer
-        let scrollTop = 0; // Initial scroll position of the container
-
-        settingsPage.addEventListener("mousedown", (e) => {
-            // Ignore drag if clicking on interactive elements
-            if (
-                e.target.tagName === "BUTTON" ||
-                e.target.tagName === "INPUT" ||
-                e.target.tagName === "LABEL"
-            ) {
-                return;
-            }
-
-            isDragging = true;
-            startY = e.pageY - settingsPage.offsetTop;
-            scrollTop = settingsPage.scrollTop;
-            settingsPage.style.cursor = "grabbing"; // Change cursor to grabbing
-        });
-
-        settingsPage.addEventListener("mouseleave", () => {
-            isDragging = false;
-            settingsPage.style.cursor = "default"; // Reset cursor
-        });
-
-        settingsPage.addEventListener("mouseup", () => {
-            isDragging = false;
-            settingsPage.style.cursor = "default"; // Reset cursor
-        });
-
-        settingsPage.addEventListener("mousemove", (e) => {
-            if (!isDragging) return;
-            e.preventDefault();
-            const y = e.pageY - settingsPage.offsetTop;
-            const walk = (y - startY) * 2; // Adjust scroll speed
-            settingsPage.scrollTop = scrollTop - walk;
-        });
-
-        // Optional: Add touch support for mobile
-        let touchStartY = 0;
-        let touchScrollTop = 0;
-
-        settingsPage.addEventListener("touchstart", (e) => {
-            // Ignore drag if touching on interactive elements
-            if (
-                e.target.tagName === "BUTTON" ||
-                e.target.tagName === "INPUT" ||
-                e.target.tagName === "LABEL"
-            ) {
-                return;
-            }
-
-            touchStartY = e.touches[0].pageY;
-            touchScrollTop = settingsPage.scrollTop;
-        });
-
-        settingsPage.addEventListener("touchmove", (e) => {
-            e.preventDefault();
-            const y = e.touches[0].pageY;
-            const walk = (y - touchStartY) * 2; // Adjust scroll speed
-            settingsPage.scrollTop = touchScrollTop - walk;
+        $.post("/action_page", data, function (response) {
+            console.log("Server response:", response);
+        }).fail(function (error) {
+            console.error("Error submitting form:", error);
         });
     });
 
-</script>
+    // ========================
+    // Color (Radio Buttons) Handler
+    // ========================
+    // When a color radio button changes, send an AJAX request
+    $("input.custom-radio").on("change", function () {
+        const colorValue = $(this).val();
+        $.ajax({
+            url: "/colour/" + colorValue,
+            type: "GET",
+            success: function (response) {
+                console.log("Color changed:", response);
+            },
+            error: function (error) {
+                console.log("Error changing color:", error);
+            },
+        });
+    });
 
+    // ========================
+    // Volume and Voice Buttons
+    // ========================
+    // Handle clicks for volume/voice buttons
+    $(".settings-button").on("click", function (event) {
+        event.preventDefault();
+        const button = $(this);
+        const buttonType = button.data("type");
+        const value = buttonType === "volume" ? button.data("volume") : button.data("voice");
+        const url = buttonType === "volume" ? "/volume/" + value : "/voice/" + value;
+
+        $.ajax({
+            url: url,
+            type: "GET",
+            success: function (response) {
+                console.log(buttonType + " updated:", response);
+
+                // Update UI states for buttons
+                const selector = buttonType === "volume" ? "[data-type='volume']" : "[data-type='voice']";
+                $(selector).each(function () {
+                    const btn = $(this);
+                    const btnValue = buttonType === "volume" ? btn.data("volume") : btn.data("voice");
+
+                    if (btnValue === value) {
+                        btn.addClass("clicked").prop("disabled", true);
+                    } else {
+                        btn.removeClass("clicked").prop("disabled", false);
+                    }
+                });
+            },
+            error: function (error) {
+                console.log("Error updating " + buttonType + ":", error);
+            },
+        });
+    });
+
+    // ========================
+    // Brightness Slider Handler
+    // ========================
+    $("#myRange").on("input", function () {
+        const brightness = $(this).val();
+        $.ajax({
+            url: "/brightness/" + brightness,
+            type: "GET",
+            success: function (response) {
+                console.log("Brightness changed:", response);
+            },
+            error: function (error) {
+                console.log("Error setting brightness:", error);
+            },
+        });
+    });
+
+    // ========================
+    // Drag-and-Scroll for the Entire Page
+    // ========================
+    const settingsPage = document.querySelector(".settings-page");
+    let isDragging = false;
+    let startY = 0;
+    let scrollTop = 0;
+
+    // Mouse Events
+    settingsPage.addEventListener("mousedown", (e) => {
+        // Only start drag if not clicking on interactive elements
+        if (["BUTTON", "INPUT", "LABEL"].includes(e.target.tagName)) return;
+
+        isDragging = true;
+        startY = e.pageY - settingsPage.offsetTop;
+        scrollTop = settingsPage.scrollTop;
+        settingsPage.style.cursor = "grabbing";
+    });
+
+    settingsPage.addEventListener("mouseleave", () => {
+        isDragging = false;
+        settingsPage.style.cursor = "default";
+    });
+
+    settingsPage.addEventListener("mouseup", () => {
+        isDragging = false;
+        settingsPage.style.cursor = "default";
+    });
+
+    settingsPage.addEventListener("mousemove", (e) => {
+        if (!isDragging) return;
+        e.preventDefault();
+        const y = e.pageY - settingsPage.offsetTop;
+        const walk = (y - startY) * 2;
+        settingsPage.scrollTop = scrollTop - walk;
+    });
+
+    // Touch Events for Scrolling
+    let touchStartY = 0;
+    let touchScrollTop = 0;
+
+    settingsPage.addEventListener("touchstart", (e) => {
+        if (["BUTTON", "INPUT", "LABEL"].includes(e.target.tagName)) return;
+
+        touchStartY = e.touches[0].pageY;
+        touchScrollTop = settingsPage.scrollTop;
+    });
+
+    settingsPage.addEventListener("touchmove", (e) => {
+        e.preventDefault();
+        const y = e.touches[0].pageY;
+        const walk = (y - touchStartY) * 2;
+        settingsPage.scrollTop = touchScrollTop - walk;
+    });
+});
+</script>
 {% endblock %}
