@@ -29,7 +29,7 @@ class CommunicationInterface(MQTTClientBase):
         self.service_control_cmd = "robot_control_control_cmd"
         self.robot_volume = "robot_volume"
         self.robot_colour = "robot_colour"
-        self.tts_topic = "speech_recognition/robot_speech"
+        self.recive_robot_tts_topic = "robot_tts"
         self.animation_topic = "robot/animation"
         # self.activate_camera_topic = "robot/activate_camera"
         self.robot_behaviour_topic = "robot_behaviour_command"
@@ -46,7 +46,7 @@ class CommunicationInterface(MQTTClientBase):
         self.subscribe(self.service_control_cmd, self._handle_control_command)
         self.subscribe(self.robot_volume, self._handle_volume_command)
         self.subscribe(self.robot_colour, self._handle_colour_command)
-        self.subscribe(self.tts_topic, self._handle_tts_command)
+        self.subscribe(self.recive_robot_tts_topic, self._handle_tts_command)
         self.subscribe(self.animation_topic, self._handle_animation_command)
         self.subscribe(self.robot_behaviour_topic, self._handle_behaviour_request)
         # self.subscribe(self.activate_camera_topic, self._process_camera_active)
@@ -95,6 +95,7 @@ class CommunicationInterface(MQTTClientBase):
             text = payload.get("content", "")
             if sender == "orchestrator":
                 self.dispatcher.dispatch_event("tts_command", text)
+                payload["sender"] = "robot"
                 self.publish(self.conversation_history_topic, json.dumps(payload))
             response = {
                     "behaviour_name": message_type,
