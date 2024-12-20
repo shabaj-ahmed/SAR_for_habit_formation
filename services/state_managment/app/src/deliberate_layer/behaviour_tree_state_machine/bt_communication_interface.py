@@ -53,7 +53,7 @@ class CommunicationInterface(MQTTClientBase):
         # Publish topics
         self.request_service_status_topic = "request/service_status"
         self.publish_system_status_topic = "publish/system_status"
-        self.robot_speech_topic = "speech_recognition/robot_speech"
+        self.robot_speech_topic = "robot_tts"
         self.robot_behaviour_topic = "robot_behaviour_command"
         self.service_control_command_topic = lambda service_name : service_name + "_control_cmd"
         self.record_response_topic = "speech_recognition/record_response"
@@ -135,8 +135,9 @@ class CommunicationInterface(MQTTClientBase):
         self.robot_behaviour_completion_status[behaviour_name] = behaviour_status
 
     def _handle_user_response(self, client, userdata, message):
+        self.logger.info(f"the user response is {message.payload.decode()}")
         payload = json.loads(message.payload.decode("utf-8"))
-        self.user_response = payload.get("content", "")
+        self.user_response = payload.get("content", None)
 
     def _send_reminder(self, client, userdata, message):
         self.logger.info("Processing reminder request")
@@ -160,10 +161,6 @@ class CommunicationInterface(MQTTClientBase):
         '''
         # self.logger.info("Publishing system status")
         self.publish(self.publish_system_status_topic, json.dumps(self.systemStatus))
-    
-    def _handle_robot_speech(self, client, userdata, message):
-        # Forwards the robot speech to the conversation history
-        self.publish(self.conversation_history_topic, message.payload.decode("utf-8"))
 
     def publish_robot_speech(self, content, message_type="request"):
         message = {
@@ -218,9 +215,11 @@ class CommunicationInterface(MQTTClientBase):
 
     def get_robot_behaviour_completion_status(self, behaviour_name):
         status = self.robot_behaviour_completion_status.get(behaviour_name, "")
-        if status != "":
-            self.robot_behaviour_completion_status.pop(behaviour_name)
+        self.logger.info(f"getting behaviour status for {behaviour_name}, status = {status}")
         return status
+    
+    def acknowledge_robot_behaviour_completion_status(self, behaviour_name):
+        self.robot_behaviour_completion_status.pop(behaviour_name)
     
     def get_user_response(self):
         return self.user_response

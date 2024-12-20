@@ -43,12 +43,12 @@ class CheckInScenario:
         # Step 2: Weekday-specific questions
         if self.step == 3:
             if not self.waiting_for_response:
-                self.logger.info("Not waiting for response, checking for current question.")
                 if self.current_question is not None:
                     self.logger.info("Current question exists, checking for response.")
                     # Check if the user has responded
-                    self.response = self.communication_interface.get_user_response()  # TODO: Delete the response once it has been processed
-                    if self.response == "":
+                    self.response = self.communication_interface.get_user_response()
+                    self.logger.debug(f"In check in scenario and response received: {self.response}")
+                    if not self.response.strip():
                         # Ask the same question again
                         self.logger.info("Invalid response received, asking the same question again.")
                     else:
@@ -73,8 +73,12 @@ class CheckInScenario:
                 self.waiting_for_response = True
 
             elif self.communication_interface.get_robot_behaviour_completion_status("user response") == "complete":
+                self.communication_interface.acknowledge_robot_behaviour_completion_status("user response")
+                self.logger.info("User response failed, asking the same question again.")
                 self.waiting_for_response = False
             elif self.communication_interface.get_robot_behaviour_completion_status("user response") == "failed":
+                self.communication_interface.acknowledge_robot_behaviour_completion_status("user response")
+                self.logger.info("User response failed, asking the same question again.")
                 self.waiting_for_response = False
                     
         
