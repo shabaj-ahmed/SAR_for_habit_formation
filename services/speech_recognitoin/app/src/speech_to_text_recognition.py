@@ -37,6 +37,8 @@ class SpeechToText:
             # Check if the response is a valid number
             try:
                 response = self._extract_number_from(response)
+                if int(response) < 0 and int(response) > 10:
+                    return ""
             except ValueError:
                 self.logger.debug(f"Invalid response: {response}. Expected a number.")
                 return ""
@@ -111,7 +113,7 @@ class SpeechToText:
         # Use regex to find the first occurrence of a number (integer)
         match = re.search(r'\d+', response)
         if match:
-            return int(match.group())
+            return match.group()
         else:
             return None
 

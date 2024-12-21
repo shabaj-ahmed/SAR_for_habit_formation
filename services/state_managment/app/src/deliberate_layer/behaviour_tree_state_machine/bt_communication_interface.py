@@ -215,7 +215,6 @@ class CommunicationInterface(MQTTClientBase):
 
     def get_robot_behaviour_completion_status(self, behaviour_name):
         status = self.robot_behaviour_completion_status.get(behaviour_name, "")
-        self.logger.info(f"getting behaviour status for {behaviour_name}, status = {status}")
         return status
     
     def acknowledge_robot_behaviour_completion_status(self, behaviour_name):
