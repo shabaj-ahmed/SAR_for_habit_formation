@@ -16,8 +16,6 @@ from orchestrations.reminder_scenario import ReminderScenario
 class BehaviourTree:
     def __init__(self, finite_state_machine_event_queue, behaviour_tree_event_queue):
         self.logger = logging.getLogger(self.__class__.__name__)
-        self.first_run = True
-        self.all_services_running = False
 
         self.communication_interface = CommunicationInterface(
             broker_address = str(os.getenv('MQTT_BROKER_ADDRESS')),
@@ -61,6 +59,9 @@ class BehaviourTree:
         self.configurations_branch.add_service(Databse)
         self.add_branch(self.behaviours[2], self.configurations_branch)
 
+        # Step 1: Check if all services are running
+        self.check_if_all_services_are_running()
+
     def _set_current_state(self, state):
         self.current_state = state
 
@@ -95,9 +96,6 @@ class BehaviourTree:
 
     def update(self):
         """Update the behaviour tree"""
-        # Step 1: Check if all services are running
-        self.check_if_all_services_are_running()
-
         # Step 2: Check the high-level state in the finite state machine
         self.check_finite_state_machine_event_queue()
 
@@ -134,24 +132,35 @@ class BehaviourTree:
                 elif state == 'Error':
                     pass
                     # Handle error state if required
-    
+
     def check_if_all_services_are_running(self):
-        while self.first_run:
-            self.all_services_running = True
-            services = self.communication_interface.get_system_status()
+        all_services_running = False
+        all_services_awake = False
+        while not all_services_running:
+            all_services_running = True
+            all_services_awake = True
+
             self.communication_interface.request_service_status() # Request all services to provide their status
-            self.communication_interface.publish_system_status() # Publish the system status so services know the system health and can respond accordingly
+            time.sleep(0.5) # Give the services time to process the request
 
-            time.sleep(0.4)
-
+            # Step 1: Check if all services are running
+            services = self.communication_interface.get_system_status()
             for service in services:
                 if services[service] != "Awake":
-                    self.all_services_running = False
-            
-            if self.all_services_running:
-                self.logger.info("All services are running")
-                self.communication_interface.publish_system_status() # Publish the system status so services know the system health and can respond accordingly
-                self.first_run = False
+                    all_services_running = False
+                    all_services_awake = False
+
+            # Step 2: Ensure that the database has updated the system states
+            if all_services_awake:
+                self.logger.info("All services are abehaviour_controllerwake and ready")
+                self.communication_interface.behaviour_controller("database", "update_system_state")
+                time.sleep(0.5) # Give the database time to process the request
+                # wait for the database to update the system state
+                # Once all services have recived their states they will send an ackowledgement that they are set up
+                # if all systems are set up, break the loop
+                        
+            self.communication_interface.publish_system_status() # Let the user interface know which services are ready
+        self.logger.info("All services are running and ready")
 
     def check_for_user_requested_events(self):
         ''' Check if the user has requested a behaviour '''
