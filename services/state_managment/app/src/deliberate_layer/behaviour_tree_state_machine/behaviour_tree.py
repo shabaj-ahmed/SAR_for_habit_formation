@@ -1,4 +1,4 @@
-from .leaf_nodes import UserInterface, Reminder, VoiceAssistant, RobotController, Configurations
+from .leaf_nodes import UserInterface, Reminder, VoiceAssistant, RobotController, Configurations, Databse
 from .behaviour_branch import BehaviourBranch
 from .bt_communication_interface import CommunicationInterface
 import os
@@ -42,6 +42,7 @@ class BehaviourTree:
         self.reminder_branch = BehaviourBranch(self.behaviours[0], self.communication_interface, orchestrator = reminder_scenario)
         self.reminder_branch.add_service(UserInterface)
         self.reminder_branch.add_service(Reminder)
+        self.reminder_branch.add_service(Databse)
         self.add_branch(self.behaviours[0], self.reminder_branch)
 
         # Check-in
@@ -49,6 +50,7 @@ class BehaviourTree:
         self.check_in_dialog_branch = BehaviourBranch(self.behaviours[1], self.communication_interface, orchestrator = check_in_scenario)
         self.check_in_dialog_branch.add_service(UserInterface)
         self.check_in_dialog_branch.add_service(VoiceAssistant)
+        self.check_in_dialog_branch.add_service(Databse)
         self.check_in_dialog_branch.add_service(RobotController, priority="optional")
         self.add_branch(self.behaviours[1], self.check_in_dialog_branch)
 
@@ -56,6 +58,7 @@ class BehaviourTree:
         self.configurations_branch = BehaviourBranch(self.behaviours[2], self.communication_interface)
         self.configurations_branch.add_service(UserInterface)
         self.configurations_branch.add_service(Configurations)
+        self.configurations_branch.add_service(Databse)
         self.add_branch(self.behaviours[2], self.configurations_branch)
 
     def _set_current_state(self, state):

@@ -29,7 +29,8 @@ class CommunicationInterface(MQTTClientBase):
             "speech_recognition": "",
             "robot_control": "",
             "user_interface": "",
-            "reminder": ""
+            "reminder": "",
+            "database": ""
         }
 
         self.robot_behaviour_completion_status = {}
@@ -49,6 +50,7 @@ class CommunicationInterface(MQTTClientBase):
         self.robot_control_status_topic = "robot_control_status"
         self.conversation_history_topic = "conversation/history"
         self.send_reminder_topic = "start_reminder"
+        self.database_status_topic = "database_status"
 
         # Publish topics
         self.request_service_status_topic = "request/service_status"
@@ -71,6 +73,7 @@ class CommunicationInterface(MQTTClientBase):
         # self.subscribe(self.user_interface_status_topic, self._process_heartbeat)
         self.subscribe(self.reminder_status_topic, self._process_service_status)
         # self.subscribe(self.reminder_heartbeat_topic, self._process_heartbeat)
+        self.subscribe(self.database_status_topic, self._process_service_status)
         self.subscribe(self.configure_topic, self._process_configurations)
         self.subscribe(self.service_error_topic, self._process_error_message)
         self.subscribe(self.robot_control_status_topic, self._process_robot_behaviour_status)
