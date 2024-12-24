@@ -1,36 +1,59 @@
 from contextlib import contextmanager
-from sqlmodel import create_engine, SQLModel, Session
+from sqlmodel import create_engine, Session, SQLModel
+from .persistent_data_db_schema import UserProfile, ServiceState
+from .study_data_db_schema import StudyMeta, CheckIn, Reminder
 
-# Database connection
-user_profile_file_name = "services/database/app/database/hri_study.db"
-user_profile_url = f"sqlite:///{user_profile_file_name}"
-user_profile_engine = create_engine(user_profile_url)
+# Study data database connection
+study_data_file_name = "services/database/app/database/hri_study.db"
+study_data_url = f"sqlite:///{study_data_file_name}"
+study_data_engine = create_engine(study_data_url)
 
-# Initialise user profile database
-def init_db():
-    SQLModel.metadata.create_all(user_profile_engine)
 
-# Session helper
+# Persistent data database connection
+persistent_data_file_name = "services/database/app/database/persistent.db"
+persistent_data_url = f"sqlite:///{persistent_data_file_name}"
+persistent_data_engine = create_engine(persistent_data_url)
+
+
+def init_study_db():
+    """
+    Initializes the study data database with only study-related tables.
+    """
+    SQLModel.metadata.create_all(
+        study_data_engine,
+        tables=[
+            SQLModel.metadata.tables["studymeta"],
+            SQLModel.metadata.tables["checkin"],
+            SQLModel.metadata.tables["reminder"],
+        ],
+    )
+
+
+def init_persistent_db():
+    """
+    Initializes the persistent data database with only persistent tables.
+    """
+    SQLModel.metadata.create_all(
+        persistent_data_engine,
+        tables=[
+            SQLModel.metadata.tables["userprofile"],
+            SQLModel.metadata.tables["servicestate"],
+        ],
+    )
+
+
 @contextmanager
-def get_user_profile_session():
-    session = Session(user_profile_engine)
+def get_study_data_session():
+    session = Session(study_data_engine)
     try:
         yield session
     finally:
         session.close()
 
-# Service state database connection
-service_state_file_name = "services/database/app/database/service_state.db"
-service_state_url = f"sqlite:///{service_state_file_name}"
-service_state_engine = create_engine(service_state_url)
 
-# Initialise ServiceState database
-def init_service_state_db():
-    SQLModel.metadata.create_all(service_state_engine)
-
-# Session helper
-def get_service_state_session():
-    session = Session(user_profile_engine)
+@contextmanager
+def get_persistent_data_session():
+    session = Session(persistent_data_engine)
     try:
         yield session
     finally:

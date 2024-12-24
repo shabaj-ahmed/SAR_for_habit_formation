@@ -1,7 +1,5 @@
 import json
 import time
-from PIL import Image
-import io
 import sys
 import os
 import logging
@@ -37,6 +35,13 @@ class CommunicationInterface(MQTTClientBase):
         # Subscribe to necessary topics
         self.subscribe(self.service_status_requested_topic, self._respond_with_service_status)
         self.subscribe(self.service_control_cmd, self._handle_control_command)
+
+        self._register_event_handlers()
+
+    def _register_event_handlers(self):
+        """Register event handlers for robot actions."""
+        if self.dispatcher:
+            self.dispatcher.register_event("publish_service_state", self.publish_service_states)
     
     def _respond_with_service_status(self, client, userdata, message):
         self.publish_database_status(self.service_status)
@@ -45,19 +50,31 @@ class CommunicationInterface(MQTTClientBase):
         try:
             payload = json.loads(message.payload.decode("utf-8"))
             command = payload.get("cmd", "")
-            self.dispatcher.dispatch_event("control_command", command)
+
+            if command == "update_system_state":
+                self.dispatcher.dispatch_event("service_control_command", command)
+                self.logger.info("Sending update system state to all services")
 
             status_response = {
                 "set_up": "ready",
                 "start": "running",
-                "end": "completed"
+                "end": "completed",
+                "update_system_state": "processing"
             }
-
             self.publish_database_status(status_response.get(command, "running"))
         except json.JSONDecodeError:
             self.logger.error("Invalid JSON payload. Using default retry parameters.")
     
-    
+    def publish_service_states(self, clustered_states):
+        """
+        Clusters service states and publishes them to the appropriate MQTT topics.
+        """
+        self.logger.info(f"Publishing service states: {clustered_states}")
+        for service_name, states_names in clustered_states.items():
+            topic = f"service/{service_name}/update"
+            payload = {"service_name": service_name, "states": states_names}
+            print(f"Published states for {service_name} to topic {topic}")
+                      
     def publish_database_status(self, status, message="", details=None):
         logging.info(f"Publishing database status: {status}")        
         payload = {

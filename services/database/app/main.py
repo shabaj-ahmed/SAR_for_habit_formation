@@ -1,9 +1,9 @@
-from src.database import init_db, get_user_profile_session, init_service_state_db
 from src.communication_interface import CommunicationInterface
 from src.event_dispatcher import EventDispatcher
-from src.database_manager import DatabaseManager
-from src.user_profile_db_schema import UserProfile
-from src.system_state_db_profile import ServiceState
+from src.study_data_db_manager import StudyDatabaseManager
+from src.persistent_data_db_manager import PersistentDataManager
+from src.persistent_data_db_schema import UserProfile, ServiceState
+from src.database import init_persistent_db, get_study_data_session, init_study_db, get_persistent_data_session
 
 from sqlmodel import select
 import logging
@@ -20,7 +20,7 @@ sys.path.insert(0, project_root)
 from configurations.initial_configurations import StudyConfigs
 from shared_libraries.logging_config import setup_logger
 
-def initialise_user_profile_database(session, db_manager):
+def initialise_persistent_database(session):
     # Load the initial configurations
     configs = StudyConfigs()
 
@@ -49,8 +49,20 @@ def initialise_user_profile_database(session, db_manager):
 
         # Add the new user profile to the database
         session.add(new_user_profile)
-        session.commit()
         print("User profile initialised successfully.")
+
+        service_states = [
+            ServiceState(service_name="robot_controller", state_name="status", state_value="running", user_id=1),
+            ServiceState(service_name="user_interface", state_name="status", state_value="running", user_id=1),
+            ServiceState(service_name="speech_recognition", state_name="status", state_value="running", user_id=1),
+            ServiceState(service_name="reminder", state_name="status", state_value="running", user_id=1),
+        ]
+        
+        session.add_all(service_states)
+        print("Service states added to the database.")
+        session.commit()
+        print("ServiceState database initialized with default values.")
+        
 
 def publish_heartbeat():
     while True:
@@ -65,10 +77,20 @@ if __name__ == "__main__":
         logger = logging.getLogger("Main")
 
         dispatcher = EventDispatcher()
+        
+        # Initialise the databases
+        init_study_db()
+        init_persistent_db()
+
+        with get_persistent_data_session() as persistent_data_session:
+            PersistentDataManager(persistent_data_session, dispatcher)
+            initialise_persistent_database(persistent_data_session)
+        with get_study_data_session() as study_data_session:
+            StudyDatabaseManager(study_data_session, dispatcher)
 
         communication_interface = CommunicationInterface(
             broker_address=str(os.getenv("MQTT_BROKER_ADDRESS")),
-            port=int(os.getenv("MQTT_BROKER_PORT")),
+            port=1883,
             event_dispatcher=dispatcher
         )
 
@@ -76,14 +98,7 @@ if __name__ == "__main__":
 
         heart_beat_thread = threading.Thread(target=publish_heartbeat, daemon=True)
         heart_beat_thread.start()
-
-        # Initialise the databases
-        init_db()
-        init_service_state_db()
-
-        with get_user_profile_session() as session:
-            db_manager = DatabaseManager(session, dispatcher)
-            initialise_user_profile_database(session, db_manager)
+        print("Database service started.")
 
         # Keep the main thread alive
         while True:
