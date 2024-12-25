@@ -2,7 +2,7 @@ from src.communication_interface import CommunicationInterface
 from src.event_dispatcher import EventDispatcher
 from src.study_data_db_manager import StudyDatabaseManager
 from src.persistent_data_db_manager import PersistentDataManager
-from src.persistent_data_db_schema import UserProfile, ServiceState
+from src.persistent_data_db_schema import ServiceState
 from src.database import init_persistent_db, get_study_data_session, init_study_db, get_persistent_data_session
 
 from sqlmodel import select
@@ -24,38 +24,34 @@ def initialise_persistent_database(session):
     # Load the initial configurations
     configs = StudyConfigs()
 
-    # Check if the user profile already exists
-    existing_user = session.exec(select(UserProfile).where(UserProfile.id == 1)).first()
-    
-    if existing_user:
+    # Check if the database already exists
+    existing_service_states = session.exec(select(ServiceState)).all()
+
+    if existing_service_states:
         print("User profile already exists. No action taken.")
     else:
         print("No user profile found. Initializing database with default configuration.")
 
         # Prepare data for the new UserProfile
         reminder_time = configs.get_reminder_time()
-        new_user_profile = UserProfile(
-            id=1,  # Assuming single-user database
-            study_duration=configs.get_study_duration(),
-            reminder_time_hr=str(reminder_time["hours"]),
-            reminder_time_min=str(reminder_time["minutes"]),
-            reminder_time_ampm=reminder_time["ampm"],
-            implementation_intention=configs.get_implementation_intention(),
-            robot_colour="default",  # Default values, can be modified
-            robot_volume="medium",
-            screen_brightness="medium",
-            robot_voice="default"
-        )
-
-        # Add the new user profile to the database
-        session.add(new_user_profile)
-        print("User profile initialised successfully.")
 
         service_states = [
-            ServiceState(service_name="robot_controller", state_name="status", state_value="running", user_id=1),
-            ServiceState(service_name="user_interface", state_name="status", state_value="running", user_id=1),
-            ServiceState(service_name="speech_recognition", state_name="status", state_value="running", user_id=1),
-            ServiceState(service_name="reminder", state_name="status", state_value="running", user_id=1),
+            ServiceState(service_name="reminder", state_name="user_name", state_value=str(configs.get_user_name())),
+            ServiceState(service_name="reminder", state_name="study_duration", state_value=str(configs.get_study_duration())),
+            ServiceState(service_name="reminder", state_name="reminder_time_hr", state_value=str(reminder_time["hours"])),
+            ServiceState(service_name="reminder", state_name="reminder_time_min", state_value=str(reminder_time["minutes"])),
+            ServiceState(service_name="reminder", state_name="reminder_time_ampm", state_value=reminder_time["ampm"]),
+            ServiceState(service_name="reminder", state_name="implementation_intention", state_value=configs.get_implementation_intention()),
+
+            ServiceState(service_name="robot_controller", state_name="robot_colour", state_value="green"),
+            ServiceState(service_name="robot_controller", state_name="robot_volume", state_value="medium"),
+            ServiceState(service_name="robot_controller", state_name="robot_voice", state_value="default"),
+
+            ServiceState(service_name="user_interface", state_name="screen_brightness", state_value="medium"),
+            ServiceState(service_name="user_interface", state_name="sleep_timer", state_value=configs.get_sleep_timer()),
+
+            ServiceState(service_name="speech_recognition", state_name="user_name", state_value=str(configs.get_user_name())),
+
         ]
         
         session.add_all(service_states)

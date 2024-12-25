@@ -9,6 +9,8 @@ class ReminderController:
         self.todays_reminder_sent = False
         self.reminder_date = datetime.datetime.now().date()
         self.enable_reminder = True
+        self.user_name = ""
+        self.study_duration = 0
 
         self.logger = logging.getLogger(self.__class__.__name__)
         self._register_event_handlers()
@@ -16,6 +18,27 @@ class ReminderController:
     def _register_event_handlers(self):
         if self.dispatcher:
             self.dispatcher.register_event("set_reminder", self.set_reminder_time)
+            self.dispatcher.register_event("update_service_state", self._update_service_state)
+
+    def _update_service_state(self, payload):
+        state_name = payload.get("state_name", "")
+        state_value = payload.get("state_value", "")
+        if state_name == "user_name":
+            self.user_name = state_value
+        elif state_name == "study_duration":
+            self.study_duration = state_value
+        elif state_name == "reminder_time_hr":
+            self.reminder_time = self.reminder_time.replace(hour=int(state_value))
+            print(f"Reminder time updated to {self.reminder_time}")
+        elif state_name == "reminder_time_min":
+            self.reminder_time = self.reminder_time.replace(minute=int(state_value))
+            print(f"Reminder time updated to {self.reminder_time}")
+        elif state_name == "reminder_time_ampm":
+            if state_value == "PM" and self.reminder_time.hour < 12:
+                self.reminder_time = self.reminder_time.replace(hour=self.reminder_time.hour + 12)
+                print(f"Reminder time updated to {self.reminder_time}")
+        elif state_name == "implementation_intention":
+            pass
     
     def is_reminder_enabled(func):
         '''

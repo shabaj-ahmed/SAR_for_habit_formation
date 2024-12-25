@@ -136,6 +136,7 @@ class BehaviourTree:
     def check_if_all_services_are_running(self):
         all_services_running = False
         all_services_awake = False
+        all_set_up = False
         while not all_services_running:
             all_services_running = True
             all_services_awake = True
@@ -151,11 +152,11 @@ class BehaviourTree:
                     all_services_awake = False
 
             # Step 2: Ensure that the database has updated the system states
-            if all_services_awake:
+            # wait for the database to update the system state
+            if all_services_awake and not all_set_up:
                 self.logger.info("All services are abehaviour_controllerwake and ready")
                 self.communication_interface.behaviour_controller("database", "update_system_state")
                 time.sleep(0.5) # Give the database time to process the request
-                # wait for the database to update the system state
                 # Once all services have recived their states they will send an ackowledgement that they are set up
                 # if all systems are set up, break the loop
                         

@@ -9,6 +9,7 @@ class StudyConfigs:
             "ampm": "AM"
         }
         self.implementation_intention = ""
+        self.sleep_timer = 5
     
     def get_study_duration(self):
         return self.study_duration
@@ -24,3 +25,6 @@ class StudyConfigs:
     
     def get_implementation_intention(self):
         return self.implementation_intention
+    
+    def get_sleep_timer(self):
+        return self.sleep_timer

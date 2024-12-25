@@ -74,6 +74,7 @@ class CommunicationInterface(MQTTClientBase):
             topic = f"service/{service_name}/update_state"
             for state in state_values:
                 payload = {"state_name": state["state_name"], "state_value": state["state_value"]}
+                print(f"Publishing state for {service_name} to topic {topic}")
                 self.publish(topic, json.dumps(payload))
             print(f"Published states for {service_name} to topic {topic}")
                       

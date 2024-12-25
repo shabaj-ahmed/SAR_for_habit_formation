@@ -1,7 +1,5 @@
 from sqlmodel import Field, SQLModel, Relationship
 from typing import List, Optional
-from sqlalchemy import MetaData
-
 
 class StudyMeta(SQLModel, table=True):
     """
@@ -14,11 +12,10 @@ class StudyMeta(SQLModel, table=True):
     checkin_duration: str
     timestamp: str
 
-    # Foreign Key
-    user_id: int = Field(default=None, foreign_key="userprofile.id")
 
     # Relationship with CheckIn
     checkins: List["CheckIn"] = Relationship(back_populates="study_meta")
+    reminder: List["Reminder"] = Relationship(back_populates="study_meta")
 
 
 class CheckIn(SQLModel, table=True):
@@ -43,4 +40,5 @@ class Reminder(SQLModel, table=True ):
     reminder_message: str
 
     # Foreign Key
-    user_id: int = Field(default=None, foreign_key="userprofile.id")
+    user_id: int = Field(default=None, foreign_key="studymeta.id")
+    study_meta: Optional[StudyMeta] = Relationship(back_populates="reminder")

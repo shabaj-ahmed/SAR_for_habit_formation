@@ -1,6 +1,7 @@
 from sqlmodel import Session, select
-from .persistent_data_db_schema import UserProfile, ServiceState
+from .persistent_data_db_schema import ServiceState
 from collections import defaultdict
+import datetime
 
 class PersistentDataManager:
     def __init__(self, session: Session, dispatcher=None):
@@ -16,18 +17,20 @@ class PersistentDataManager:
     def _register_event_handlers(self):
         """Register event handlers for robot actions."""
         if self.dispatcher:
-            self.dispatcher.register_event("update_user_profile", self.update_user_profile_field)
+            self.dispatcher.register_event("update_service_states", self.update_specific_service_states_field)
             self.dispatcher.register_event("service_control_command", self._process_control_command)
 
     def _process_control_command(self, command):
         """
         Retrieves all service states. Clusters service states by `service_name`.
         """
+        print(f"Processing control command: {command}")
         if command == "update_system_state":
             # Step 1: Go through each row of the ServiceStates and get the data
             states = self.session.exec(select(ServiceState)).all()
             clustered_states = defaultdict(list)
             for state in states:
+                print(f"Processing state: {state}")
                 clustered_states[state.service_name].append(
                     {
                         "service_name": state.service_name,
@@ -43,30 +46,23 @@ class PersistentDataManager:
             # Step 2: Publish the clustered states
             self.dispatcher.dispatch_event("publish_service_state", clustered_states)
 
-    # Create if one does not exist
-    def create_user_profile(session: Session, profile: UserProfile):
-        session.add(profile)
-        session.commit()
-        session.refresh(profile)
-        return profile
-
     # Read
-    def get_user_profile(session: Session, user_id: int):
-        return session.get(UserProfile, user_id)
+    def get_all_service_states_fields(self):
+        return self.session.get(select(ServiceState)).all()
     
     # I might need to create some shared libraries with enums of something to store all these string values for retriving data
     # Get any field required from the user profile
-    def get_user_profile_field(session: Session, user_id: int, field: str):
-        user_profile = session.get(UserProfile, user_id)
-        if not user_profile:
+    def get_specific_service_states(self, state_name: str):
+        statement = select(ServiceState).where(ServiceState.state_name == state_name)
+        service_states = self.session.exec(statement).one_or_none()
+        if not service_states:
             return None
-        if hasattr(user_profile, field):
-            return getattr(user_profile, field)
+        if hasattr(service_states, state_name):
+            return getattr(service_states, "state_value")
         else:
-            raise AttributeError(f"{field} is not a valid attribute of UserProfile")
+            raise AttributeError(f"{state_name} is not a valid attribute of UserProfile")
 
-
-    def get_service_state(self, service_name: str):
+    def get_specific_service_state(self, service_name: str):
         """
         Retrieves the state of a specific service.
         """
@@ -76,36 +72,34 @@ class PersistentDataManager:
     
     #Update
     # UserProfile Operations
-    def update_user_profile_field(self, user_id: int, field: str, value):
-        user_profile = self.session.get(UserProfile, user_id)
-        if not user_profile:
+    def update_specific_service_states_field(self, state_name: str, value):
+        statement = select(ServiceState).where(ServiceState.state_name == state_name)
+        service_states = self.session.exec(statement).one_or_none()
+        if not service_states:
             return None
-        if hasattr(user_profile, field):
-            setattr(user_profile, field, value)
+        if hasattr(service_states, state_name): # Check if object has the field
+            setattr(state_name, value) # Update the field in the object
             self.session.commit()
-            self.session.refresh(user_profile)
-            return user_profile
+            self.session.refresh(service_states)
+            return service_states
         else:
-            raise AttributeError(f"{field} is not a valid attribute of UserProfile")
+            raise AttributeError(f"{state_name} is not a valid attribute of UserProfile")
 
-    def update_service_state(self, service_name: str, state_name: str, status: str, timestamp: str):
+    def update_service_state(self, service_name: str, state_name: str, state_value):
         """
         Updates or inserts a service state.
         """
         service_state = self.session.exec(
-            select(ServiceState).where(ServiceState.service_name == service_name)
+            select(ServiceState).where(ServiceState.service_name == service_name and ServiceState.state_name == state_name)
         ).one_or_none()
 
         if service_state:
-            service_state.state_name = state_name
-            service_state.status = status
-            service_state.timestamp = timestamp
+            service_state.state_value = state_value
         else:
             service_state = ServiceState(
                 service_name=service_name,
                 state_name=state_name,
-                status=status,
-                timestamp=timestamp,
+                state_value=state_value,
             )
             self.session.add(service_state)
 

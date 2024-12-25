@@ -1,7 +1,7 @@
 from contextlib import contextmanager
 from sqlmodel import create_engine, Session, SQLModel
-from .persistent_data_db_schema import UserProfile, ServiceState
-from .study_data_db_schema import StudyMeta, CheckIn, Reminder
+# from .persistent_data_db_schema import ServiceState
+# from .study_data_db_schema import StudyMeta, CheckIn, Reminder
 
 # Study data database connection
 study_data_file_name = "services/database/app/database/hri_study.db"
@@ -36,7 +36,6 @@ def init_persistent_db():
     SQLModel.metadata.create_all(
         persistent_data_engine,
         tables=[
-            SQLModel.metadata.tables["userprofile"],
             SQLModel.metadata.tables["servicestate"],
         ],
     )
