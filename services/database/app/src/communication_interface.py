@@ -70,9 +70,11 @@ class CommunicationInterface(MQTTClientBase):
         Clusters service states and publishes them to the appropriate MQTT topics.
         """
         self.logger.info(f"Publishing service states: {clustered_states}")
-        for service_name, states_names in clustered_states.items():
-            topic = f"service/{service_name}/update"
-            payload = {"service_name": service_name, "states": states_names}
+        for service_name, state_values in clustered_states.items():
+            topic = f"service/{service_name}/update_state"
+            for state in state_values:
+                payload = {"state_name": state["state_name"], "state_value": state["state_value"]}
+                self.publish(topic, json.dumps(payload))
             print(f"Published states for {service_name} to topic {topic}")
                       
     def publish_database_status(self, status, message="", details=None):
