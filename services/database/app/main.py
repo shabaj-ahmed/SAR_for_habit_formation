@@ -48,7 +48,7 @@ def initialise_persistent_database(session):
             ServiceState(service_name="robot_controller", state_name="robot_voice", state_value="default"),
 
             ServiceState(service_name="user_interface", state_name="screen_brightness", state_value="medium"),
-            ServiceState(service_name="user_interface", state_name="sleep_timer", state_value=configs.get_sleep_timer()),
+            ServiceState(service_name="user_interface", state_name="sleep_timer", state_value=configs.get_system_sleep_timer()),
 
             ServiceState(service_name="speech_recognition", state_name="user_name", state_value=str(configs.get_user_name())),
 
