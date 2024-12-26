@@ -134,34 +134,67 @@ class BehaviourTree:
                     # Handle error state if required
 
     def check_if_all_services_are_running(self):
-        all_services_running = False
-        all_services_awake = False
-        all_set_up = False
-        while not all_services_running:
-            all_services_running = True
+        self.logger.info("Checking if all services are Awake...")
+        while True:
             all_services_awake = True
 
-            self.communication_interface.request_service_status() # Request all services to provide their status
-            time.sleep(0.5) # Give the services time to process the request
+            # Request service status
+            self.communication_interface.request_service_status()
+            
+            time.sleep(1)
 
-            # Step 1: Check if all services are running
             services = self.communication_interface.get_system_status()
-            for service in services:
-                if services[service] != "Awake":
-                    all_services_running = False
+            for service, status in services.items():
+                if status != "Awake":
                     all_services_awake = False
+                    self.logger.warning(f"Service {service} is not Awake. Current status: {status}")
+            
+            # Notify the user interface about the system status
+            self.communication_interface.publish_system_status()
 
-            # Step 2: Ensure that the database has updated the system states
-            # wait for the database to update the system state
-            if all_services_awake and not all_set_up:
-                self.logger.info("All services are abehaviour_controllerwake and ready")
-                self.communication_interface.behaviour_controller("database", "update_system_state")
-                time.sleep(0.5) # Give the database time to process the request
-                # Once all services have recived their states they will send an ackowledgement that they are set up
-                # if all systems are set up, break the loop
-                        
-            self.communication_interface.publish_system_status() # Let the user interface know which services are ready
-        self.logger.info("All services are running and ready")
+            if all_services_awake:
+                self.logger.info("All services are Awake.")
+                break  # Exit the loop if all services are Awake
+
+        self.logger.info("Ensuring all services are set_up...")
+        timer = 0 # seconds
+        while True:
+            all_services_set_up = True
+
+            # Publish "update_system_state" to the database
+            self.communication_interface.behaviour_controller("database", "update_system_state")
+
+            time.sleep(1)
+
+            # Check if all services are "set_up"
+            while True:
+                # Request service status
+                self.communication_interface.request_service_status()
+
+                time.sleep(1)
+
+                services = self.communication_interface.get_system_status()
+                for service, status in services.items():
+                    if status != "set_up":
+                        all_services_set_up = False
+                        self.logger.warning(f"Service {service} is not set_up. Current status: {status}")
+                
+                # Notify the user interface about the system status
+                self.communication_interface.publish_system_status()
+                
+                if all_services_set_up:
+                    self.logger.info("All services are set_up.")
+                    break  # Exit the loop if all services are set_up
+                
+                timer += 1
+                if timer > 3: break
+            timer = 0
+
+            if all_services_set_up:
+                    self.logger.info("All services are set_up.")
+                    break  # Exit the loop if all services are set_up
+
+        self.logger.info("All services are running and ready.")
 
     def check_for_user_requested_events(self):
         ''' Check if the user has requested a behaviour '''

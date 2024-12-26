@@ -75,7 +75,7 @@ def home():
     still_loading = False
     print(f"serviceStatus: {serviceStatus}")
     for key, value in serviceStatus.items():
-        if value != "Awake":
+        if value != "set_up":
             still_loading = True
     if still_loading or serviceStatus == {}:
         return render_template('system_boot_up.html')
@@ -170,7 +170,7 @@ def volume_button_click(button_name):
         # Only set the state of the clicked button to True
         volume_button_states[button_name] = True
         logger.info(f"Volume button clicked: {button_name}")
-        # Call the function in robot_controller
+        # Call the function in robot_control
         communication_interface.change_volume(button_name)
     return jsonify({'status': 'success'})
 

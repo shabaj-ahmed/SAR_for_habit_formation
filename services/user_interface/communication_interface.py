@@ -43,6 +43,7 @@ class CommunicationInterface(MQTTClientBase):
         self.camera_active_topic = "robot/cameraActive"
         self.audio_active_topic = "audio_active"
         self.robot_error_topic = "robot/error"
+        self.update_state_topic = "service/user_interface/update_state"
 
         # Publish topics
         self.user_interface_status_topic = "user_interface_status"
@@ -64,6 +65,7 @@ class CommunicationInterface(MQTTClientBase):
         self.subscribe(self.camera_active_topic, self._process_camera_active)
         self.subscribe(self.audio_active_topic, self._process_audio_active)
         self.subscribe(self.robot_error_topic, self._process_error_message)
+        self.subscribe(self.update_state_topic, self._update_service_state)
 
     def _respond_with_service_status(self, client, userdata, message):
         self.publish_UI_status(self.service_status)
@@ -74,8 +76,9 @@ class CommunicationInterface(MQTTClientBase):
         self.socketio.emit('service_status', serviceStatus)
         self.system_status = serviceStatus
         still_loading = False
+        self.logger.info(f"Service status: {serviceStatus}")
         for key, value in serviceStatus.items():
-            if value != "Awake":
+            if value != "set_up":
                 still_loading = True
         if still_loading == False:
             self.logger.info("Sending loading_complete event")
@@ -105,7 +108,7 @@ class CommunicationInterface(MQTTClientBase):
                 self.publish_UI_status("running")
             elif message == "end":
                 # put the screen in stand-by or go to home page
-                # self.robot_controller.disengage_user()
+                # self.robot_control.disengage_user()
                 self.publish_UI_status("completed")
         except json.JSONDecodeError:
             self.logger.error("Invalid JSON payload. Using default retry parameters.")
@@ -141,6 +144,17 @@ class CommunicationInterface(MQTTClientBase):
 
     def _process_error_message(self, client, userdata, message):
         error_message = message.payload.decode()
+
+    def _update_service_state(self, client, userdata, message):
+        try:
+            payload = json.loads(message.payload.decode("utf-8"))
+            state_name = payload.get("state_name", "")
+            state = payload.get("state_value", [])
+            self.logger.info(f"Received state update for {state_name}: {state}")
+            # self.dispatcher.dispatch_event("update_service_state", payload)
+            self.service_status = "set_up"
+        except json.JSONDecodeError:
+            self.logger.error("Invalid JSON payload for updating service state. Using default retry parameters.")
 
     def start_check_in(self):
         if self.check_in_status != True:

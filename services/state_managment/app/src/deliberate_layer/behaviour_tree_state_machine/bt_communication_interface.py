@@ -68,7 +68,7 @@ class CommunicationInterface(MQTTClientBase):
         self.subscribe(self.speech_recognition_status_topic, self._process_service_status)
         # self.subscribe(self.speech_recognition_heartbeat_topic, self._process_heartbeat)
         self.subscribe(self.robot_status_topic, self._process_service_status)
-        # self.subscribe(self.robot_controller_status_topic, self._process_heartbeat)
+        # self.subscribe(self.robot_control_status_topic, self._process_heartbeat)
         self.subscribe(self.user_interface_status_topic, self._process_service_status)
         # self.subscribe(self.user_interface_status_topic, self._process_heartbeat)
         self.subscribe(self.reminder_status_topic, self._process_service_status)
@@ -162,7 +162,7 @@ class CommunicationInterface(MQTTClientBase):
         '''
         Publish the system status to all services
         '''
-        # self.logger.info("Publishing system status")
+        self.logger.info("Publishing system status")
         self.publish(self.publish_system_status_topic, json.dumps(self.systemStatus))
 
     def publish_robot_speech(self, content, message_type="request"):

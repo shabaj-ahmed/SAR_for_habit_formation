@@ -61,7 +61,7 @@ class CommunicationInterface(MQTTClientBase):
                 "set_up": "ready",
                 "start": "running",
                 "end": "completed",
-                "update_system_state": "processing"
+                "update_system_state": "set_up"
             }
             self.publish_database_status(status_response.get(command, "running"))
         except json.JSONDecodeError:
@@ -86,8 +86,7 @@ class CommunicationInterface(MQTTClientBase):
                 payload = {"state_name": state["state_name"], "state_value": state["state_value"]}
                 print(f"Publishing state for {service_name} to topic {topic}")
                 self.publish(topic, json.dumps(payload))
-            print(f"Published states for {service_name} to topic {topic}")
-                      
+                              
     def publish_database_status(self, status, message="", details=None):
         logging.info(f"Publishing database status: {status}")        
         payload = {

@@ -25,7 +25,7 @@ class CommunicationInterface(MQTTClientBase):
         self.service_status_requested_topic = "request/service_status"
         self.control_cmd = "reminder_control_cmd"
         self.update_reminder_time = "update_reminder_time"
-        self.update_state = "service/reminder/update_state"
+        self.update_state_topic = "service/reminder/update_state"
 
         # Publish topics
         self.reminder_status_topic = "reminder_status"
@@ -36,7 +36,7 @@ class CommunicationInterface(MQTTClientBase):
         self.subscribe(self.service_status_requested_topic, self._respond_with_service_status)
         self.subscribe(self.control_cmd, self._handle_command)
         self.subscribe(self.update_reminder_time, self._update_reminder_time)
-        self.subscribe(self.update_state, self._update_service_state)
+        self.subscribe(self.update_state_topic, self._update_service_state)
 
         self._register_event_handlers()
 
@@ -85,6 +85,7 @@ class CommunicationInterface(MQTTClientBase):
             state = payload.get("state_value", [])
             self.logger.info(f"Remender received state update for {state_name}: {state}")
             self.dispatcher.dispatch_event("update_service_state", payload)
+            self.service_status = "set_up"
         except json.JSONDecodeError:
             self.logger.error("Invalid JSON payload for updating service state. Using default retry parameters.")
 

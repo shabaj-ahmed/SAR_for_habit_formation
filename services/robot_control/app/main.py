@@ -3,7 +3,7 @@ import threading
 
 import anki_vector
 
-from src.robot_controller import VectorRobotController
+from src.robot_control import VectorRobotController
 from src.event_dispatcher import EventDispatcher
 from src.communication_interface import CommunicationInterface
 
