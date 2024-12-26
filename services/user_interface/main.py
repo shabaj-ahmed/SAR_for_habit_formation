@@ -2,11 +2,13 @@ from flask import Flask, render_template, request, jsonify
 from flask_socketio import SocketIO, emit
 import threading
 import time
+from datetime import datetime
 from .communication_interface import CommunicationInterface
 import logging
 import os
 import sys
 import subprocess
+from .event_dispatcher import EventDispatcher
 
 app = Flask(__name__)
 app.config['SYSTEM_IS_STILL_LOADING'] = True
@@ -23,15 +25,10 @@ setup_logger()
 
 logger = logging.getLogger(__name__)
 
+
+
 # Persistent message storage
 chat_history = []
-
-communication_interface = CommunicationInterface(
-    broker_address=os.getenv("MQTT_BROKER_ADDRESS"),
-    port=int(os.getenv("MQTT_BROKER_PORT"))
-)
-
-communication_interface.socketio = socketio
 
 volume_button_states = {
     'quiet': False,
@@ -42,6 +39,83 @@ voice_button_states = {
     'robotic': False,
     'human': False,
 }
+
+dispatcher = EventDispatcher()
+
+communication_interface = CommunicationInterface(
+    broker_address=os.getenv("MQTT_BROKER_ADDRESS"),
+    port=int(os.getenv("MQTT_BROKER_PORT")),
+    event_dispatcher=dispatcher
+)
+
+communication_interface.socketio = socketio
+
+def _register_event_handlers():
+    dispatcher.register_event("update_service_state", update_state)
+
+implementationIntention = ""
+start_date = None
+study_duration = None
+days_remaining = None
+brightness_value = 50
+reminder_time = datetime.now().time()
+reminder_time_ampm = "AM"
+    
+def update_state(payload):
+    global implementationIntention, start_date, study_duration, days_remaining, brightness_value, reminder_time, reminder_time_ampm
+    logger.info(f"State update received in UI: {payload}")
+    state_name = payload.get("state_name", "")
+    if state_name== "implementation_intention":
+        implementationIntention = payload.get("state_value", "")
+        logger.info(f"Implementation intention updated: {implementationIntention}")
+    elif state_name == "start_date":
+        start_date = datetime.strptime(payload.get("state_value", ""), "%Y-%m-%d").date()
+        if study_duration:
+            days_remaining()
+        logger.info(f"Start date updated: {start_date}")
+    elif state_name == "study_duration":
+        study_duration = int(payload.get("state_value", ""))
+        logger.info(f"Study duration updated: {study_duration}")
+        if start_date:
+            days_remaining()
+    elif state_name == "reminder_time_hr":
+        reminder_time = reminder_time.replace(hour=int(payload.get("state_value", "")))
+        logger.info(f"Reminder time updated: {reminder_time}")
+    elif state_name == "reminder_time_min":
+        reminder_time = reminder_time.replace(minute=int(payload.get("state_value", "")))
+        logger.info(f"Reminder time updated: {reminder_time}")
+    elif state_name == "reminder_time_ampm":
+        reminder_time_ampm = payload.get("state_value", "")
+        if reminder_time_ampm == "PM" and reminder_time.hour < 12:
+            reminder_time = reminder_time.replace(hour=reminder_time.hour + 12)
+            logger.info(f"Reminder time updated: {reminder_time}")
+    elif state_name == "screen_brightness":
+        brightness_value = int(payload.get("state_value", ""))
+        logger.info(f"Brightness updated: {brightness_value}")
+        # Map the brightness value from 1-255 to 1-100
+        mapped_value = int((int(brightness_value) - 20) * 99 / 235 + 1)
+        # try:
+        #     subprocess.run(
+        #         f'echo {mapped_value} | sudo tee /sys/class/backlight/6-0045/brightness',
+        #         shell=True,
+        #         check=True
+        #     )
+        # except subprocess.CalledProcessError as e:
+        #     logger.error(f"Failed to set brightness: {e}")
+        logger.info(f"Mapped brightness value: {mapped_value}")
+        # Emit the brightness value to connected clients
+        socketio.emit('brightness_update', mapped_value)
+
+def days_remaining():
+    global days_remaining
+
+    today = datetime.now().date()
+    delta = today - start_date
+
+    days_remaining = study_duration - delta.days
+
+    if days_remaining < 0:
+        days_remaining = 0
 
 def publish_heartbeat():
     while True:
@@ -71,6 +145,7 @@ communication_interface.message_callback = on_mqtt_message
 
 @app.route('/')
 def home():
+    _register_event_handlers()
     serviceStatus = communication_interface.get_system_status()
     still_loading = False
     print(f"serviceStatus: {serviceStatus}")
@@ -79,7 +154,7 @@ def home():
             still_loading = True
     if still_loading or serviceStatus == {}:
         return render_template('system_boot_up.html')
-    return render_template('home.html')
+    return render_template('home.html', implementationIntention=implementationIntention, days_remaining=days_remaining, reminder_time=reminder_time.strftime('%H:%M'), reminder_time_ampm=reminder_time_ampm)
 
 @socketio.on('ui_ready')
 def handle_ui_ready():
@@ -125,8 +200,6 @@ def save_check_in():
     except Exception as e:
         logging.error(f"Error while saving Check-In: {e}")
         return jsonify({"status": "error", "message": "Failed to save Check-In data"}), 500
-
-
 
 @app.route('/history')
 def history():
