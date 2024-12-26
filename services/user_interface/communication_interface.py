@@ -2,6 +2,7 @@ import json
 import sys
 import os
 import time
+import logging
 
 # Add the project root directory to sys.path
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -10,7 +11,6 @@ sys.path.insert(0, project_root)
 print(f"project_root: {project_root}")
 
 from shared_libraries.mqtt_client_base import MQTTClientBase
-import logging
 
 class CommunicationInterface(MQTTClientBase):
     def __init__(self, broker_address, port):
@@ -49,6 +49,7 @@ class CommunicationInterface(MQTTClientBase):
         self.robot_volume_topic = "robot_volume"
         self.robot_colour_topic = "robot_colour"
         self.update_reminder_time = "update_reminder_time"
+        self.save_check_in_topic = "save_check_in"
 
         # Subscriber and publisher topics
         self.check_in_controls_topic = "check_in_controller"
@@ -165,6 +166,10 @@ class CommunicationInterface(MQTTClientBase):
         self.publish(self.user_interface_status_topic, json.dumps(payload))
 
         self.service_status = status
+
+    def save_check_in(self, check_in_data):
+        self.publish(self.save_check_in_topic, json.dumps(check_in_data))
+        self.logger.info(f"Check-in data sent to the database service, Payload: {check_in_data}")
 
     def set_reminder_time(self, hours = 0, minutes = 0, ampm = "AM"):
         payload = {

@@ -10,8 +10,7 @@ class StudyMeta(SQLModel, table=True):
     total_duration_of_interaction: str
     checkin_time: str
     checkin_duration: str
-    timestamp: str
-
+    date: str
 
     # Relationship with CheckIn
     checkins: List["CheckIn"] = Relationship(back_populates="study_meta")

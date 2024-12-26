@@ -57,6 +57,7 @@ def on_mqtt_message(message):
     formatted_message = {
         "sender": message.get("sender", "robot"),  # Default sender is robot
         "content": message.get("content", ""),
+        "message_type": message.get("message_type", ""),
         "time": message.get("time", time.strftime("%H:%M %p | %B %d"))
     }
     # Add to chat history
@@ -90,6 +91,42 @@ def handle_ui_ready():
 @app.route('/check_in')
 def check_in():
     return render_template('check_in.html', chat_history=chat_history)
+
+@app.route('/save-checkin', methods=['POST'])
+def save_check_in():
+    try:
+        # Initialize lists to store questions and responses
+        questions = []
+        responses = []
+        
+        # Iterate through chat history to extract questions and responses
+        for message in chat_history:
+            print(f"Message: {message}")
+            if message.get("message_type") == "question":
+                print(f"Question: {message.get('content')}")
+                questions.append(message.get("content"))
+            elif message.get("message_type") == "response":
+                print(f"Response: {message.get('content')}")
+                responses.append(message.get("content"))
+        
+        # Ensure that questions and responses are aligned
+        if len(questions) != len(responses):
+            logging.warning("Mismatch between number of questions and responses. Data may be incomplete.")
+        
+        # Combine questions and responses into a dictionary
+        check_in_data = [{"question": q, "response": r} for q, r in zip(questions, responses)]
+        print(f"Check-in data: {check_in_data}")
+        
+        # Publish the check-in data to the MQTT broker
+        communication_interface.save_check_in(check_in_data)
+        logging.info("Check-in data sent to the database via MQTT.")
+        
+        return jsonify({"status": "success", "message": "Check-In data saved successfully"}), 200
+    except Exception as e:
+        logging.error(f"Error while saving Check-In: {e}")
+        return jsonify({"status": "error", "message": "Failed to save Check-In data"}), 500
+
+
 
 @app.route('/history')
 def history():

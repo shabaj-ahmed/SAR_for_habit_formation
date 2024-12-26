@@ -108,9 +108,24 @@
         document.getElementById('save-checkin').addEventListener('click', function () {
             console.log('Save Check-In button clicked');
             clearCountdown();
-            // Transition to home page and send a save check-in event
-            window.location.href = "/";
+            
+            fetch('/save-checkin', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        console.log("Check-In data saved successfully");
+                        window.location.href = "/"; // Transition to the home page
+                    } else {
+                        console.error("Error saving Check-In:", data.message);
+                        alert("Failed to save Check-In data.");
+                    }
+                })
+                .catch(error => {
+                    console.error("Error connecting to the server:", error);
+                    alert("Failed to save Check-In data. Please try again.");
+                });
         });
+
         
         document.getElementById('restart-checkin').addEventListener('click', function () {
             clearCountdown();

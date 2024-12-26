@@ -25,6 +25,7 @@ class CommunicationInterface(MQTTClientBase):
         self.service_status_requested_topic = "request/service_status"
         self.service_control_cmd = "database_control_cmd"
         self.update_robot_settings = "update_robot_settings"
+        self.save_check_in_topic = "save_check_in"
 
         # Publish topics
         self.database_service_status_topic = "database_status"
@@ -35,6 +36,7 @@ class CommunicationInterface(MQTTClientBase):
         # Subscribe to necessary topics
         self.subscribe(self.service_status_requested_topic, self._respond_with_service_status)
         self.subscribe(self.service_control_cmd, self._handle_control_command)
+        self.subscribe(self.save_check_in_topic, self._save_check_in)
 
         self._register_event_handlers()
 
@@ -64,6 +66,14 @@ class CommunicationInterface(MQTTClientBase):
             self.publish_database_status(status_response.get(command, "running"))
         except json.JSONDecodeError:
             self.logger.error("Invalid JSON payload. Using default retry parameters.")
+
+    def _save_check_in(self, client, userdata, message):
+        try:
+            payload = json.loads(message.payload.decode("utf-8"))
+            self.logger.info(f"Saving check-in data: {payload}")
+            self.dispatcher.dispatch_event("save_check_in", payload)
+        except json.JSONDecodeError:
+            self.logger.error("Invalid JSON payload for check-in data. Unable to save check-in data.")
     
     def publish_service_states(self, clustered_states):
         """
