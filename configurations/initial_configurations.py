@@ -1,7 +1,7 @@
 class StudyConfigs:
     def __init__(self):
-        self.start_date = "2021-01-01"
-        self.study_duration = 30
+        self.start_date = "2024-12-20"
+        self.study_duration = 21
         self.user_name = "anonymous"
         self.reminder_time = {
             "hours": 8,
@@ -28,3 +28,4 @@ class StudyConfigs:
     
     def get_system_sleep_timer(self):
         return self.system_sleep_timer
+        

@@ -13,10 +13,11 @@ print(f"project_root: {project_root}")
 from shared_libraries.mqtt_client_base import MQTTClientBase
 
 class CommunicationInterface(MQTTClientBase):
-    def __init__(self, broker_address, port):
+    def __init__(self, broker_address, port, event_dispatcher):
         # Initialize QObject explicitly (no arguments are required for QObject)
         super().__init__(broker_address, port)
         self.logger = logging.getLogger(self.__class__.__name__)
+        self.dispatcher = event_dispatcher
 
         self.service_status = "setting_up" # The UI is not active until the root page has loaded
 
@@ -149,9 +150,9 @@ class CommunicationInterface(MQTTClientBase):
         try:
             payload = json.loads(message.payload.decode("utf-8"))
             state_name = payload.get("state_name", "")
-            state = payload.get("state_value", [])
+            state = payload.get("state_value", "")
             self.logger.info(f"Received state update for {state_name}: {state}")
-            # self.dispatcher.dispatch_event("update_service_state", payload)
+            self.dispatcher.dispatch_event("update_service_state", payload)
             self.service_status = "set_up"
         except json.JSONDecodeError:
             self.logger.error("Invalid JSON payload for updating service state. Using default retry parameters.")
