@@ -11,6 +11,7 @@ class ReminderController:
         self.enable_reminder = True
         self.user_name = ""
         self.study_duration = 0
+        self.start_date = None
 
         self.logger = logging.getLogger(self.__class__.__name__)
         self._register_event_handlers()
@@ -21,10 +22,12 @@ class ReminderController:
             self.dispatcher.register_event("update_service_state", self._update_service_state)
 
     def _update_service_state(self, payload):
+        self.logger.info(f"State update received in Reminder: {payload}")
         state_name = payload.get("state_name", "")
         state_value = payload.get("state_value", "")
         if state_name == "user_name":
             self.user_name = state_value
+            self.logger.info(f"User name updated: {self.user_name}")
         elif state_name == "study_duration":
             self.study_duration = state_value
         elif state_name == "reminder_time_hr":
@@ -37,8 +40,9 @@ class ReminderController:
             if state_value == "PM" and self.reminder_time.hour < 12:
                 self.reminder_time = self.reminder_time.replace(hour=self.reminder_time.hour + 12)
                 print(f"Reminder time updated to {self.reminder_time}")
-        elif state_name == "implementation_intention":
-            pass
+        elif state_name == "start_date":
+            self.start_date = datetime.datetime.strptime(state_value, "%Y-%m-%d").date()
+            print(f"Start date updated to {self.start_date}")
     
     def is_reminder_enabled(func):
         '''
