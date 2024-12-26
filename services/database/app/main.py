@@ -41,14 +41,21 @@ def initialise_persistent_database(session):
             ServiceState(service_name="reminder", state_name="reminder_time_hr", state_value=str(reminder_time["hours"])),
             ServiceState(service_name="reminder", state_name="reminder_time_min", state_value=str(reminder_time["minutes"])),
             ServiceState(service_name="reminder", state_name="reminder_time_ampm", state_value=reminder_time["ampm"]),
-            ServiceState(service_name="reminder", state_name="implementation_intention", state_value=configs.get_implementation_intention()),
+            ServiceState(service_name="reminder", state_name="start_date", state_value=str(configs.get_start_date())),
+            ServiceState(service_name="reminder", state_name="study_duration", state_value=str(configs.get_study_duration())),
 
             ServiceState(service_name="robot_control", state_name="robot_colour", state_value="green"),
-            ServiceState(service_name="robot_control", state_name="robot_volume", state_value="medium"),
+            ServiceState(service_name="robot_control", state_name="robot_volume", state_value="default"),
             ServiceState(service_name="robot_control", state_name="robot_voice", state_value="default"),
 
-            ServiceState(service_name="user_interface", state_name="screen_brightness", state_value="medium"),
+            ServiceState(service_name="user_interface", state_name="screen_brightness", state_value="50"),
             ServiceState(service_name="user_interface", state_name="sleep_timer", state_value=configs.get_system_sleep_timer()),
+            ServiceState(service_name="user_interface", state_name="implementation_intention", state_value=configs.get_implementation_intention()),
+            ServiceState(service_name="user_interface", state_name="start_date", state_value=str(configs.get_start_date())),
+            ServiceState(service_name="user_interface", state_name="study_duration", state_value=str(configs.get_study_duration())),
+            ServiceState(service_name="user_interface", state_name="reminder_time_hr", state_value=str(reminder_time["hours"])),
+            ServiceState(service_name="user_interface", state_name="reminder_time_min", state_value=str(reminder_time["minutes"])),
+            ServiceState(service_name="user_interface", state_name="reminder_time_ampm", state_value=reminder_time["ampm"]),
 
             ServiceState(service_name="speech_recognition", state_name="user_name", state_value=str(configs.get_user_name())),
 
