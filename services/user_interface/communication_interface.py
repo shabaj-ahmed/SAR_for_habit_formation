@@ -50,7 +50,7 @@ class CommunicationInterface(MQTTClientBase):
         self.user_interface_status_topic = "user_interface_status"
         self.robot_volume_topic = "robot_volume"
         self.robot_colour_topic = "robot_colour"
-        self.update_reminder_time = "update_reminder_time"
+        self.update_persistent_data = "update_persistent_data"
         self.save_check_in_topic = "save_check_in"
 
         # Subscriber and publisher topics
@@ -187,12 +187,21 @@ class CommunicationInterface(MQTTClientBase):
         self.logger.info(f"Check-in data sent to the database service, Payload: {check_in_data}")
 
     def set_reminder_time(self, hours = 0, minutes = 0, ampm = "AM"):
-        payload = {
-            "hours": hours,
-            "minutes": minutes,
-            "ampm": ampm
-        }
-        self.publish(self.update_reminder_time, json.dumps(payload))
+        self.logger.info(f"Setting reminder time to {hours}:{minutes} {ampm}")
+        states = [
+            ["reminder_time_hr", hours],
+            ["reminder_time_min", minutes],
+            ["reminder_time_ampm", ampm]
+        ]
+
+        for state in states:
+            payload = {
+                "service_name": "reminder",
+                "state_name": state[0],
+                "state_value": state[1]
+            }
+            self.logger.info(f"Sending reminder time update: {payload}")
+            self.publish(self.update_persistent_data, json.dumps(payload))
 
     def get_system_status(self):
         return self.system_status

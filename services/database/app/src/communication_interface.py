@@ -3,6 +3,7 @@ import time
 import sys
 import os
 import logging
+import collections
 
 # Add the project root directory to sys.path
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -24,7 +25,7 @@ class CommunicationInterface(MQTTClientBase):
         # Subscription topics
         self.service_status_requested_topic = "request/service_status"
         self.service_control_cmd = "database_control_cmd"
-        self.update_robot_settings = "update_robot_settings"
+        self.update_persistent_data_topic = "update_persistent_data"
         self.save_check_in_topic = "save_check_in"
 
         # Publish topics
@@ -37,6 +38,7 @@ class CommunicationInterface(MQTTClientBase):
         self.subscribe(self.service_status_requested_topic, self._respond_with_service_status)
         self.subscribe(self.service_control_cmd, self._handle_control_command)
         self.subscribe(self.save_check_in_topic, self._save_check_in)
+        self.subscribe(self.update_persistent_data_topic, self._update_persistent_data)
 
         self._register_event_handlers()
 
@@ -74,19 +76,33 @@ class CommunicationInterface(MQTTClientBase):
             self.dispatcher.dispatch_event("save_check_in", payload)
         except json.JSONDecodeError:
             self.logger.error("Invalid JSON payload for check-in data. Unable to save check-in data.")
+
+    def _update_persistent_data(self, client, userdata, message):
+        try:
+            payload = json.loads(message.payload.decode("utf-8"))
+            self.logger.info(f"Updating persistent data: {payload}")
+            self.dispatcher.dispatch_event("update_service_states", payload)
+        except json.JSONDecodeError:
+            self.logger.error("Invalid JSON payload for persistent data. Unable to update persistent data.")
     
-    def publish_service_states(self, clustered_states):
+    def publish_service_states(self, upated_state):
         """
         Clusters service states and publishes them to the appropriate MQTT topics.
         """
-        self.logger.info(f"Publishing service states: {clustered_states}")
-        for service_name, state_values in clustered_states.items():
+        if type(upated_state) is collections.defaultdict:
+            self.logger.info(f"Publishing service states: {upated_state}")
+            for service_name, state_values in upated_state.items():
+                topic = f"service/{service_name}/update_state"
+                for state in state_values:
+                    payload = {"state_name": state["state_name"], "state_value": state["state_value"]}
+                    self.publish(topic, json.dumps(payload))
+                # Publish that database has completed setting up the service
+        else:
+            payload = {"state_name": upated_state["state_name"], "state_value": upated_state["state_value"]}
+            service_name = upated_state["service_name"]
             topic = f"service/{service_name}/update_state"
-            for state in state_values:
-                payload = {"state_name": state["state_name"], "state_value": state["state_value"]}
-                print(f"Publishing state for {service_name} to topic {topic}")
-                self.publish(topic, json.dumps(payload))
-                              
+            self.publish(topic, json.dumps(payload))
+    
     def publish_database_status(self, status, message="", details=None):
         logging.info(f"Publishing database status: {status}")        
         payload = {

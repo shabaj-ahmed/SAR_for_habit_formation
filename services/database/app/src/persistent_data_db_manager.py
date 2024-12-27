@@ -70,20 +70,32 @@ class PersistentDataManager:
             select(ServiceState).where(ServiceState.service_name == service_name)
         ).one_or_none()
     
-    #Update
+    # Update
     # UserProfile Operations
-    def update_specific_service_states_field(self, state_name: str, value):
+    def update_specific_service_states_field(self, payload):
+        state_name = payload.get("state_name", "")
+        value = payload.get("state_value", "")
+
         statement = select(ServiceState).where(ServiceState.state_name == state_name)
-        service_states = self.session.exec(statement).one_or_none()
-        if not service_states:
-            return None
-        if hasattr(service_states, state_name): # Check if object has the field
-            setattr(state_name, value) # Update the field in the object
-            self.session.commit()
-            self.session.refresh(service_states)
-            return service_states
-        else:
-            raise AttributeError(f"{state_name} is not a valid attribute of UserProfile")
+        service_states = self.session.exec(statement).all()
+
+        print(f"All service states to be updated: {service_states}")
+
+        updated_services = []
+        for service_state in service_states:
+            setattr(service_state, "state_value", value)  # Update the field in the object
+            updated_services.append(service_state)
+
+        self.session.commit()
+
+        for service_state in updated_services:
+            self.session.refresh(service_state)
+            update_state = {
+                "service_name": service_state.service_name,
+                "state_name": service_state.state_name,
+                "state_value": service_state.state_value
+            }
+            self.dispatcher.dispatch_event("publish_service_state", update_state)
 
     def update_service_state(self, service_name: str, state_name: str, state_value):
         """
