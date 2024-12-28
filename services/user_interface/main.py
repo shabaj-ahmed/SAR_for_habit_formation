@@ -25,8 +25,6 @@ setup_logger()
 
 logger = logging.getLogger(__name__)
 
-
-
 # Persistent message storage
 chat_history = []
 
@@ -165,6 +163,8 @@ def handle_ui_ready():
 
 @app.route('/check_in')
 def check_in():
+    global chat_history
+    chat_history = []
     return render_template('check_in.html', chat_history=chat_history)
 
 @app.route('/save-checkin', methods=['POST'])

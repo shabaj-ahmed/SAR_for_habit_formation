@@ -1,5 +1,5 @@
 from sqlmodel import Session, select
-from .study_data_db_schema import StudyMeta, CheckIn, Reminder
+from .study_data_db_schema import StudyMeta, CheckInMeta, CheckIn
 from datetime import datetime
 
 class StudyDatabaseManager:
@@ -15,15 +15,12 @@ class StudyDatabaseManager:
         """Register event handlers for robot actions."""
         if self.dispatcher:
             self.dispatcher.register_event("save_check_in", self.save_check_in)
-            self.dispatcher.register_event("upsert_reminder", self.upsert_reminder)
-
-    def get_user_responses(self):
-        return self.session.exec(select(CheckIn)).all()
+            self.dispatcher.register_event("create_new_reminder", self.create_new_reminder)
 
     def save_check_in(self, responses):
         print("Saving check-in data")
-        # Get today's date
-        today_date = str(datetime.now().date())
+
+        today_date = datetime.now().date().strftime("%Y-%m-%d")
 
         # Check if a StudyMeta entry exists for today
         statement = select(StudyMeta).where(StudyMeta.date == today_date)
@@ -33,49 +30,65 @@ class StudyDatabaseManager:
         if not study_meta:
             study_meta = StudyMeta(
                 number_of_interactions_in_a_day=0,  # Initial values
-                total_duration_of_interaction="01:00:00",
-                checkin_time="",
-                checkin_duration="",
-                date=today_date
+                total_duration_of_interaction="00:00",
+                date=today_date,
+                reminder_message="",
             )
             self.session.add(study_meta)
             self.session.commit()  # Commit to generate an ID for the new StudyMeta
             self.session.refresh(study_meta)
 
+        # Check if a CheckInMeta entry already exists for today's StudyMeta
+        checkin_meta = (
+            self.session.exec(
+                select(CheckInMeta)
+                .where(CheckInMeta.study_meta_id == study_meta.id)
+            ).one_or_none()
+        )
+
+        if not checkin_meta:
+            # If no CheckInMeta exists, create one
+            checkin_meta = CheckInMeta(
+                checkin_time=today_date,
+                checkin_duration="00:00",  # Placeholder duration
+                study_meta_id=study_meta.id,
+            )
+            self.session.add(checkin_meta)
+            self.session.commit()  # Commit to generate an ID for the new CheckInMeta
+            self.session.refresh(checkin_meta)
+        
         print(f"responses received: {responses}")
         # Add CheckIn responses and associate them with StudyMeta
         for response in responses:
-            new_response = CheckIn(
+            new_checkin = CheckIn(
                 question=response["question"],
                 response=response["response"],
-                study_meta_id=study_meta.id  # Link to the correct StudyMeta entry
+                study_meta_id=checkin_meta.id  # Link to the correct StudyMeta entry
             )
-            self.session.add(new_response)
+            checkin_meta.checkins.append(new_checkin)
+
+        self.session.commit()
 
         # Update StudyMeta fields (e.g., number of interactions)
-        study_meta.number_of_interactions_in_a_day += len(responses)
+        study_meta.number_of_interactions_in_a_day += 1
         self.session.commit()
 
+    def create_new_reminder(self, reminder_time: str, reminder_message: str):
+        print("Creating new reminder")
+        today_date = datetime.now().date().strftime("%Y-%m-%d")
 
+        # Check if a StudyMeta entry exists for today
+        statement = select(StudyMeta).where(StudyMeta.date == today_date)
+        study_meta = self.session.exec(statement).one_or_none()
 
-    def upsert_reminder(self, reminder_id: int, reminder_time: str, reminder_message: str):
-        reminder = self.session.get(Reminder, reminder_id)
-        if reminder:
-            reminder.reminder_time = reminder_time
-            reminder.reminder_message = reminder_message
-        else:
-            reminder = Reminder(
-                id=reminder_id, reminder_time=reminder_time, reminder_message=reminder_message
+        # If no StudyMeta entry exists, create one
+        if not study_meta:
+            study_meta = StudyMeta(
+                number_of_interactions_in_a_day=0,  # Initial values
+                total_duration_of_interaction="",
+                date=today_date,
+                reminder_message = reminder_message,
             )
-            self.session.add(reminder)
-        self.session.commit()
-        self.session.refresh(reminder)
-        return reminder
-
-    def delete_user_responses(self, response_id: int = None, date: str = None):
-        responses = self.session.exec(
-            select(CheckIn).where(CheckIn.timestamp == date)
-        ).all()
-        for response in responses:
-            self.session.delete(response)
-        self.session.commit()
+            self.session.add(study_meta)
+            self.session.commit()  # Commit to generate an ID for the new StudyMeta
+            self.session.refresh(study_meta)

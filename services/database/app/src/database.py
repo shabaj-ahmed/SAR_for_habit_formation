@@ -23,8 +23,8 @@ def init_study_db():
         study_data_engine,
         tables=[
             SQLModel.metadata.tables["studymeta"],
+            SQLModel.metadata.tables["checkinmeta"],
             SQLModel.metadata.tables["checkin"],
-            SQLModel.metadata.tables["reminder"],
         ],
     )
 
