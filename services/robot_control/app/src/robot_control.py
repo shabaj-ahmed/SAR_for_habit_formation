@@ -76,6 +76,7 @@ class VectorRobotController:
             self.dispatcher.register_event("volume_command", self.set_volume)
             self.dispatcher.register_event("tts_command", self.handle_tts_command)
             self.dispatcher.register_event("eye_colour_command", self.handle_eye_colour_command)
+            self.dispatcher.register_event("update_service_state", self.update_service_state)
 
     def handle_control_command(self, command):
         '''
@@ -182,9 +183,21 @@ class VectorRobotController:
         
         self.robot.behavior.set_eye_color(hue=selected_colour[0], saturation=selected_colour[1])
 
+
+    def update_service_state(self, payload):
+        state_name = payload.get("state_name", "")
+        state = payload.get("state_value", "")
+        self.logger.info(f"Received state update for {state_name}: {state}")
+        if state_name == "robot_colour":
+            self.handle_eye_colour_command(state)
+        elif state_name == "robot_volume":
+            self.set_volume(state, silent=True)
+        elif state_name == "robot_voice":
+            self.logger.info(f"Voice command received: {state}")
+
     @run_if_robot_is_enabled
     @reconnect_on_fail
-    def set_volume(self, volume):
+    def set_volume(self, volume, silent=False):
         '''
         Set the robot's volume level.
 
@@ -201,7 +214,8 @@ class VectorRobotController:
         
         self.robot.audio.set_master_volume(RobotVolumeLevel[volume])
 
-        self.handle_tts_command(f"Volume has been set to {volume}")
+        if not silent:
+            self.handle_tts_command(f"Volume has been set to {volume}")
 
     @run_if_robot_is_enabled
     @reconnect_on_fail

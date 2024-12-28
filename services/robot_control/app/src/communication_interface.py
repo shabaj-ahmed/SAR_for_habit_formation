@@ -153,7 +153,7 @@ class CommunicationInterface(MQTTClientBase):
             state_name = payload.get("state_name", "")
             state = payload.get("state_value", [])
             self.logger.info(f"Received state update for {state_name}: {state}")
-            # self.dispatcher.dispatch_event("update_service_state", payload)
+            self.dispatcher.dispatch_event("update_service_state", payload)
             self.service_status = "set_up"
         except json.JSONDecodeError:
             self.logger.error("Invalid JSON payload for updating service state. Using default retry parameters.")
