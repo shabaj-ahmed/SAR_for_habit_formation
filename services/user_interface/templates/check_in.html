@@ -28,11 +28,22 @@
             .then((response) => response.json())
             .then((data) => {
                 // Remove the place holder message
+                const messagesContainer = document.getElementById('messages');
                 const noMessages = document.getElementById('no-messages');
                 if (noMessages) noMessages.remove();
+
+                const loadingState = document.createElement('div');
+                loadingState.classList.add('loading-state');
+                loadingState.innerHTML = `
+                        <div class="loading"></div>
+                `; // Show loding indicator in chat container
+                messagesContainer.appendChild(loadingState);
+
                 // Remove the chat controls
                 const chatControls = document.querySelector('.chat-controls');
-                if (chatControls) chatControls.remove();                
+                if (chatControls) chatControls.remove();
+
+                
 
                 // Add the progress bar
                 const chatContainer = document.querySelector('.chat-container');
@@ -132,9 +143,6 @@
             fetch('/start_check_in', { method: 'POST' })
             .then((response) => response.json())
             .then((data) => {
-                // Remove the place holder message
-                const noMessages = document.getElementById('no-messages');
-                if (noMessages) noMessages.remove();
                 // Remove the chat controls
                 const chatControls = document.querySelector('.chat-controls');
                 if (chatControls) chatControls.remove();                
@@ -158,8 +166,8 @@
 
     // Listen for new messages
     window.socket.on('new_message', function(message) {
-        const noMessages = document.getElementById('no-messages');
-        if (noMessages) noMessages.remove(); // Remove placeholder if it exists
+        const loading = document.getElementsByClassName('loading-state')[0];
+        if (loading) loading.remove(); // Remove placeholder if it exists
         if (message.sender === 'robot') {
             appendReceivedMessage(message.content, message.time);
         } else {
