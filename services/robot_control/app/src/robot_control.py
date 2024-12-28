@@ -130,6 +130,14 @@ class VectorRobotController:
 
     @run_if_robot_is_enabled
     @reconnect_on_fail
+    def enable_free_play(self, enable=True):
+        if enable:
+            self.robot.conn.release_control()
+        else:
+            self.robot.conn.request_control()
+
+    @run_if_robot_is_enabled
+    @reconnect_on_fail
     def disengage_user(self):
         self.robot.behavior.drive_on_charger()
 
@@ -194,6 +202,9 @@ class VectorRobotController:
             self.set_volume(state, silent=True)
         elif state_name == "robot_voice":
             self.logger.info(f"Voice command received: {state}")
+        elif state_name == "free_play":
+            self.logger.info(f"Free play mode {'enabled' if state == 'enable' else 'disabled'}")
+            self.enable_free_play(state=="enable")
 
     @run_if_robot_is_enabled
     @reconnect_on_fail

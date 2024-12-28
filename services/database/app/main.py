@@ -47,8 +47,8 @@ def initialise_persistent_database(session):
             ServiceState(service_name="robot_control", state_name="robot_colour", state_value="green"),
             ServiceState(service_name="robot_control", state_name="robot_volume", state_value="default"),
             ServiceState(service_name="robot_control", state_name="robot_voice", state_value="default"),
+            ServiceState(service_name="robot_control", state_name="free_play", state_value="disable"),
 
-            ServiceState(service_name="user_interface", state_name="screen_brightness", state_value="50"),
             ServiceState(service_name="user_interface", state_name="sleep_timer", state_value=configs.get_system_sleep_timer()),
             ServiceState(service_name="user_interface", state_name="implementation_intention", state_value=configs.get_implementation_intention()),
             ServiceState(service_name="user_interface", state_name="start_date", state_value=str(configs.get_start_date())),
