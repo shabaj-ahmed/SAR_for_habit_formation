@@ -59,6 +59,7 @@ class CommunicationInterface(MQTTClientBase):
         self.robot_behaviour_topic = "robot_behaviour_command"
         self.service_control_command_topic = lambda service_name : service_name + "_control_cmd"
         self.record_response_topic = "speech_recognition/record_response"
+        self.save_reminder_topic = "save_reminder"
 
         # Subscriber and publisher topics
         self.check_in_controls_topic = "check_in_controller"
@@ -190,6 +191,10 @@ class CommunicationInterface(MQTTClientBase):
     def publish_collect_response(self, expected_format):
         self.logger.info("Publishing record response")
         self.publish(self.record_response_topic, expected_format)
+
+    def publish_reminder_sent(self, payload):
+        self.logger.info("Saving reminder message to the database")
+        self.publish(self.save_reminder_topic, json.dumps(payload))
 
     def behaviour_controller(self, service_name, cmd):
         payload = {

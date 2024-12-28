@@ -27,6 +27,7 @@ class CommunicationInterface(MQTTClientBase):
         self.service_control_cmd = "database_control_cmd"
         self.update_persistent_data_topic = "update_persistent_data"
         self.save_check_in_topic = "save_check_in"
+        self.save_reminder_topic = "save_reminder"
 
         # Publish topics
         self.database_service_status_topic = "database_status"
@@ -39,6 +40,7 @@ class CommunicationInterface(MQTTClientBase):
         self.subscribe(self.service_control_cmd, self._handle_control_command)
         self.subscribe(self.save_check_in_topic, self._save_check_in)
         self.subscribe(self.update_persistent_data_topic, self._update_persistent_data)
+        self.subscribe(self.save_reminder_topic, self._save_reminder)
 
         self._register_event_handlers()
 
@@ -76,6 +78,15 @@ class CommunicationInterface(MQTTClientBase):
             self.dispatcher.dispatch_event("save_check_in", payload)
         except json.JSONDecodeError:
             self.logger.error("Invalid JSON payload for check-in data. Unable to save check-in data.")
+    
+    def _save_reminder(self, client, userdata, message):
+        try:
+            payload = json.loads(message.payload.decode("utf-8"))
+            self.logger.info(f"Saving reminder: {payload}")
+            reminder_message = payload.get("reminder_message", "")
+            self.dispatcher.dispatch_event("create_new_reminder", reminder_message)
+        except json.JSONDecodeError:
+            self.logger.error("Invalid JSON payload for reminder. Unable to save reminder data.")
 
     def _update_persistent_data(self, client, userdata, message):
         try:

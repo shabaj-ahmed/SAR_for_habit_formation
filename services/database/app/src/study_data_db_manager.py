@@ -73,7 +73,7 @@ class StudyDatabaseManager:
         study_meta.number_of_interactions_in_a_day += 1
         self.session.commit()
 
-    def create_new_reminder(self, reminder_time: str, reminder_message: str):
+    def create_new_reminder(self, reminder_message: str):
         print("Creating new reminder")
         today_date = datetime.now().date().strftime("%Y-%m-%d")
 
@@ -87,8 +87,11 @@ class StudyDatabaseManager:
                 number_of_interactions_in_a_day=0,  # Initial values
                 total_duration_of_interaction="",
                 date=today_date,
-                reminder_message = reminder_message,
+                reminder_message = "",
             )
-            self.session.add(study_meta)
-            self.session.commit()  # Commit to generate an ID for the new StudyMeta
-            self.session.refresh(study_meta)
+        
+        study_meta.reminder_message = reminder_message
+        
+        self.session.add(study_meta)
+        self.session.commit()  # Commit to generate an ID for the new StudyMeta
+        self.session.refresh(study_meta)
