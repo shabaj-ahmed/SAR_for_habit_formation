@@ -86,21 +86,35 @@ class VectorRobotController:
             command (str): The control command to handle.
         '''
         self.logger.info(f"Handling control command: {command}")
-        if command == "set_up":
-            # self.drive_off_charger()
-            pass
-        elif command == "start":
-            # self.handle_tts_command("Starting check-in")
-            pass
-        elif command == "end":
-            # self.disengage_user()
-            pass
-        elif command == "drive off charger":
-            self.logger.debug("Processing drive off charger request")
-            self.drive_off_charger()
-        elif command == "return home":
-            self.logger.debug("Processing drive off charger request")
-            self.drive_on_charger()
+        status = "complete"
+        try:
+            if command == "set_up":
+                # self.drive_off_charger()
+                pass
+            elif command == "start":
+                # self.handle_tts_command("Starting check-in")
+                pass
+            elif command == "end":
+                # self.disengage_user()
+                pass
+            elif command == "drive off charger":
+                self.logger.debug("Processing drive off charger request")
+                self.drive_off_charger()
+                self.logger.info("Drive off charger request has been fulfilled..")
+            elif command == "return_home":
+                self.logger.debug("Processing return home request")
+                self.drive_on_charger()
+        except Exception as e:
+            self.logger.error(f"Error processing control command: {e}")
+            status = "failed"
+        
+        # Send acknowledgement to the state machine that the command has been processed
+        response = {
+                    "behaviour_name": command,
+                    "status": status, # "complete" or "failed"
+                    "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+                }
+        self.dispatcher.dispatch_event("behaviour_completion_status", response)
     
     def run_if_robot_is_enabled(func):
         def wrapper(self, *args, **kwargs):
@@ -143,9 +157,25 @@ class VectorRobotController:
 
     @run_if_robot_is_enabled
     @reconnect_on_fail
-    def handle_tts_command(self, text):
-        self.logger.info(f"In handel tts command func, text to be said is: {text}")
-        self.robot.behavior.say_text(text)
+    def handle_tts_command(self, payload):
+        status = "complete"
+        try: 
+            self.logger.info(f"In handel tts command func, text from {payload['sender']} is: {payload['content']}")
+            self.robot.behavior.say_text(payload["content"])
+            # Add delay to allow the robot to finish speaking before sending completion status
+            delay = len(payload["content"].split()) / 3 # Assuming robot can speak 3 words per second
+            self.logger.info(f"Delaying for {delay} seconds")
+            time.sleep(delay)
+        except Exception as e:
+            self.logger.error(f"Error processing TTS command {e}")
+            status = "failed"
+        
+        response = {
+                    "behaviour_name": payload["message_type"],
+                    "status": status, # "complete" or "failed"
+                    "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+                }
+        self.dispatcher.dispatch_event("behaviour_completion_status", response)
 
     @run_if_robot_is_enabled
     @reconnect_on_fail
@@ -190,7 +220,6 @@ class VectorRobotController:
         self.robot.behavior.set_lift_height(0.0)
         
         self.robot.behavior.set_eye_color(hue=selected_colour[0], saturation=selected_colour[1])
-
 
     def update_service_state(self, payload):
         state_name = payload.get("state_name", "")

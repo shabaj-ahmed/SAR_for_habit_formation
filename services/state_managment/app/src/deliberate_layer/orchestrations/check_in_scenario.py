@@ -69,13 +69,18 @@ class CheckInScenario:
                     message_type="question",
                     content=self.current_question['question']
                 )
-                self.communication_interface.publish_collect_response(self.current_question["expected_format"])
+                # self.communication_interface.publish_collect_response(self.current_question["expected_format"])
                 self.waiting_for_response = True
 
             elif self.communication_interface.get_robot_behaviour_completion_status("user response") == "complete" or self.communication_interface.get_robot_behaviour_completion_status("user response") == "failed":
                 self.communication_interface.acknowledge_robot_behaviour_completion_status("user response")
                 self.logger.info("User response acknowledged")
                 self.waiting_for_response = False
+
+            if self.communication_interface.get_robot_behaviour_completion_status("question") == "complete":
+                    self.communication_interface.acknowledge_robot_behaviour_completion_status("question")
+                    self.communication_interface.publish_collect_response(self.current_question["expected_format"])
+                    self.waiting_for_response = True
                     
         
         elif self.step == 4:
@@ -107,13 +112,15 @@ class CheckInScenario:
                     message_type = "question",
                     content = self.current_question.get('ValueError', self.current_question.get('question', ''))
                 )
-                self.communication_interface.publish_collect_response(self.current_question["expected_format"])
                 self.waiting_for_response = True
-
             elif self.communication_interface.get_robot_behaviour_completion_status("user response") == "complete" or self.communication_interface.get_robot_behaviour_completion_status("user response") == "failed":
                 self.communication_interface.acknowledge_robot_behaviour_completion_status("user response")
                 self.logger.info("User response acknowledged")
                 self.waiting_for_response = False
+
+            if self.communication_interface.get_robot_behaviour_completion_status("question") == "complete":
+                    self.communication_interface.acknowledge_robot_behaviour_completion_status("question")
+                    self.communication_interface.publish_collect_response(self.current_question["expected_format"])
         
         # # Step 4: Summarise the conversation
         
@@ -141,10 +148,10 @@ class CheckInScenario:
             self.waiting_for_response = True
         
         if self.communication_interface.get_robot_behaviour_completion_status("drive off charger") == "complete":
+            self.communication_interface.acknowledge_robot_behaviour_completion_status("drive off charger")
             self.waiting_for_response = False
             self.logger.info("No longer wating, moving to step 2 to greet user")
             return True
-        
         return False
     
     def _greet_user(self):
@@ -157,6 +164,7 @@ class CheckInScenario:
             self.waiting_for_response = True
         
         if self.communication_interface.get_robot_behaviour_completion_status("greeting") == "complete":
+            self.communication_interface.acknowledge_robot_behaviour_completion_status("greeting")
             self.logger.info("Greetings complete")
             self.waiting_for_response = False
             return True

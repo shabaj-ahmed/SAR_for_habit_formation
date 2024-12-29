@@ -34,6 +34,7 @@ class CommunicationInterface(MQTTClientBase):
         # self.activate_camera_topic = "robot/activate_camera"
         self.robot_behaviour_topic = "robot_behaviour_command"
         self.update_state_topic = "service/robot_control/update_state"
+        self.save_check_in_topic = "save_check_in"
 
         # Publish topics
         self.conversation_history_topic = "conversation/history"
@@ -52,6 +53,14 @@ class CommunicationInterface(MQTTClientBase):
         self.subscribe(self.robot_behaviour_topic, self._handle_behaviour_request)
         # self.subscribe(self.activate_camera_topic, self._process_camera_active)
         self.subscribe(self.update_state_topic, self._update_service_state)
+        self.subscribe(self.save_check_in_topic, self._save_check_in)
+
+        self._register_event_handlers()
+
+    def _register_event_handlers(self):
+        """Register event handlers for robot actions."""
+        if self.dispatcher:
+            self.dispatcher.register_event("behaviour_completion_status", self._update_behaviour_status)
     
     def _respond_with_service_status(self, client, userdata, message):
         self.publish_robot_status(self.service_status)
@@ -93,27 +102,13 @@ class CommunicationInterface(MQTTClientBase):
         try:
             payload = json.loads(message.payload.decode("utf-8"))
             sender = payload.get("sender", "")
-            message_type = payload.get("message_type", "")
-            text = payload.get("content", "")
             if sender == "orchestrator":
-                self.dispatcher.dispatch_event("tts_command", text)
+                self.dispatcher.dispatch_event("tts_command", payload)
                 payload["sender"] = "robot"
                 self.publish(self.conversation_history_topic, json.dumps(payload))
-            response = {
-                    "behaviour_name": message_type,
-                    "status": "complete",
-                    "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
-                }
         except json.JSONDecodeError:
             self.logger.error("Invalid JSON payload for TTS command.")
-            response = {
-                    "behaviour_name": message_type,
-                    "status": "failed",
-                    "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
-                }
-        
-        self.publish(self.robot_control_status_topic, json.dumps(response))
-    
+            
     def _handle_animation_command(self, client, userdata, message):
         try:
             payload = json.loads(message.payload.decode("utf-8"))
@@ -132,20 +127,11 @@ class CommunicationInterface(MQTTClientBase):
             if behaviour_name:
                 self.dispatcher.dispatch_event("control_command", behaviour_name)
             self.logger.info("Behaviour control command processed")
-            response = {
-                    "behaviour_name": behaviour_name,
-                    "status": "complete",
-                    "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
-                }
         except json.JSONDecodeError:
             self.logger.error("Invalid JSON payload for animation command.")
-            response = {
-                    "behaviour_name": behaviour_name,
-                    "status": "failed",
-                    "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
-                }
         
-        self.publish(self.robot_control_status_topic, json.dumps(response))
+    def _update_behaviour_status(self, message):
+        self.publish(self.robot_control_status_topic, json.dumps(message))
     
     def _update_service_state(self, client, userdata, message):
         try:
@@ -157,6 +143,9 @@ class CommunicationInterface(MQTTClientBase):
             self.service_status = "set_up"
         except json.JSONDecodeError:
             self.logger.error("Invalid JSON payload for updating service state. Using default retry parameters.")
+
+    def _save_check_in(self, client, userdata, message):
+        self.dispatcher.dispatch_event("control_command", "return_home")
 
     # def _process_camera_active(self, client, userdata, message):
     #     camera_active = message.payload.decode() == '1'
