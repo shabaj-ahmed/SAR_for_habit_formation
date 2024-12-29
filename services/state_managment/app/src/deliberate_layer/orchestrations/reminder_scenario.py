@@ -83,7 +83,7 @@ class ReminderScenario:
     def _farewell_user(self):
         self.logger.info("Sending farewell.")
         # Drive back to the charging station
-        self.communication_interface.publish_robot_behaviour_command("return home")
+        self.communication_interface.publish_robot_behaviour_command("return_home")
         self.communication_interface.set_behaviour_running_status("reminder", "standby")
         self.logger.info("Sending reminder has completed successfully.")
         time.sleep(0.5)
