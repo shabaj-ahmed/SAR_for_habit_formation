@@ -129,6 +129,30 @@ class Reminder(Leaf):
         self.logger.info("Exiting reminder")
         pass
 
+class Databse(Leaf):
+    def __init__(self, communication_interface=None, priority='critical', branch_name=''):
+        super().__init__(communication_interface, priority, branch_name)
+        self.logger = logging.getLogger(self.__class__.__name__)
+        self.name = "database"
+
+    def set_up(self):
+        self.comm_interface.behaviour_controller(self.name, "set_up")
+        pass
+
+    def start(self):
+        self.logger.info("Starting database")
+        self.comm_interface.behaviour_controller(self.name, "start")
+        # Check if its time to provide a reminder
+        pass
+                    
+    def update(self):
+        # Check if its time to provide a reminder
+            # Start reminder
+        pass
+    
+    def end(self):
+        self.logger.info("Exiting database")
+        pass
 
 class Configurations(Leaf):
     def __init__(self, communication_interface=None, priority='critical', branch_name=''):

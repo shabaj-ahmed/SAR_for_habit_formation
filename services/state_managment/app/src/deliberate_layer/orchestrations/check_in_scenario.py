@@ -43,12 +43,12 @@ class CheckInScenario:
         # Step 2: Weekday-specific questions
         if self.step == 3:
             if not self.waiting_for_response:
-                self.logger.info("Not waiting for response, checking for current question.")
                 if self.current_question is not None:
                     self.logger.info("Current question exists, checking for response.")
                     # Check if the user has responded
-                    self.response = self.communication_interface.get_user_response()  # TODO: Delete the response once it has been processed
-                    if self.response == "":
+                    self.response = self.communication_interface.get_user_response()
+                    self.logger.debug(f"In check in scenario and response received: {self.response}")
+                    if not self.response.strip():
                         # Ask the same question again
                         self.logger.info("Invalid response received, asking the same question again.")
                     else:
@@ -69,13 +69,18 @@ class CheckInScenario:
                     message_type="question",
                     content=self.current_question['question']
                 )
-                self.communication_interface.publish_collect_response(self.current_question["expected_format"])
+                # self.communication_interface.publish_collect_response(self.current_question["expected_format"])
                 self.waiting_for_response = True
 
-            elif self.communication_interface.get_robot_behaviour_completion_status("user response") == "complete":
+            elif self.communication_interface.get_robot_behaviour_completion_status("user response") == "complete" or self.communication_interface.get_robot_behaviour_completion_status("user response") == "failed":
+                self.communication_interface.acknowledge_robot_behaviour_completion_status("user response")
+                self.logger.info("User response acknowledged")
                 self.waiting_for_response = False
-            elif self.communication_interface.get_robot_behaviour_completion_status("user response") == "failed":
-                self.waiting_for_response = False
+
+            if self.communication_interface.get_robot_behaviour_completion_status("question") == "complete":
+                    self.communication_interface.acknowledge_robot_behaviour_completion_status("question")
+                    self.communication_interface.publish_collect_response(self.current_question["expected_format"])
+                    self.waiting_for_response = True
                     
         
         elif self.step == 4:
@@ -85,7 +90,7 @@ class CheckInScenario:
                     self.logger.info("Current question exists, checking for response.")
                     # Check if the user has responded
                     self.response = self.communication_interface.get_user_response()  # TODO: Delete the response once it has been processed
-                    if self.response == "":
+                    if not self.response.strip():
                         # Ask the same question again
                         self.logger.info("Invalid response received, asking the same question again.")
                     else:
@@ -100,19 +105,22 @@ class CheckInScenario:
                     self.logger.info("No current question, getting the first question for the day.")
                     # No question was asked yet, ask the first one
                     self.next_question = self._experience_sampling_questions()
+                    self.logger.info(f"Next question: {self.next_question}")
                     self.current_question = self.next_question
         
                 self.communication_interface.publish_robot_speech(
-                    message_type="question",
-                    content=self.current_question['question']
+                    message_type = "question",
+                    content = self.current_question.get('ValueError', self.current_question.get('question', ''))
                 )
-                self.communication_interface.publish_collect_response(self.current_question["expected_format"])
                 self.waiting_for_response = True
+            elif self.communication_interface.get_robot_behaviour_completion_status("user response") == "complete" or self.communication_interface.get_robot_behaviour_completion_status("user response") == "failed":
+                self.communication_interface.acknowledge_robot_behaviour_completion_status("user response")
+                self.logger.info("User response acknowledged")
+                self.waiting_for_response = False
 
-            elif self.communication_interface.get_robot_behaviour_completion_status("user response") == "complete":
-                self.waiting_for_response = False
-            elif self.communication_interface.get_robot_behaviour_completion_status("user response") == "failed":
-                self.waiting_for_response = False
+            if self.communication_interface.get_robot_behaviour_completion_status("question") == "complete":
+                    self.communication_interface.acknowledge_robot_behaviour_completion_status("question")
+                    self.communication_interface.publish_collect_response(self.current_question["expected_format"])
         
         # # Step 4: Summarise the conversation
         
@@ -140,10 +148,10 @@ class CheckInScenario:
             self.waiting_for_response = True
         
         if self.communication_interface.get_robot_behaviour_completion_status("drive off charger") == "complete":
+            self.communication_interface.acknowledge_robot_behaviour_completion_status("drive off charger")
             self.waiting_for_response = False
             self.logger.info("No longer wating, moving to step 2 to greet user")
             return True
-        
         return False
     
     def _greet_user(self):
@@ -156,6 +164,7 @@ class CheckInScenario:
             self.waiting_for_response = True
         
         if self.communication_interface.get_robot_behaviour_completion_status("greeting") == "complete":
+            self.communication_interface.acknowledge_robot_behaviour_completion_status("greeting")
             self.logger.info("Greetings complete")
             self.waiting_for_response = False
             return True
@@ -223,17 +232,17 @@ class CheckInScenario:
             return {"question": "How would you rate your progress on a scale of 1 to 10?", "expected_format": "short"}
         elif question == "How would you rate your progress on a scale of 1 to 10?":
             try:
-                if response is None or response == "" or response < 1 or response > 10:
+                if response is None or response == "" or int(response) < 1 or int(response) > 10:
                     # Handle the case where no valid number was found
                     return {"question": "Please provide a valid number between 1 and 10.", "expected_format": "short"}
-                elif response < 5:
+                elif int(response) < 5:
                     return {"question": "What obstacles kept you from meeting your goals?", "expected_format": "open-ended"}
-                elif 5 <= response <= 7:
+                elif 5 <= int(response) <= 7:
                     return {"question": "What can you improve next week?", "expected_format": "open-ended"}
                 else:
                     return {"question": "Great! What strategies worked well for you?", "expected_format": "open-ended"}
             except ValueError:
-                return {"question": "Please provide a valid number between 1 and 10.", "expected_format": "short"}
+                return {"question": question, "ValueError": "Please provide a valid number between 1 and 10.", "expected_format": "short"}
         # Branching based on responses for obstacles
         elif question == "What obstacles kept you from meeting your goals?":
             if "time" in response.lower():

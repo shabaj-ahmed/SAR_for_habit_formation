@@ -28,11 +28,22 @@
             .then((response) => response.json())
             .then((data) => {
                 // Remove the place holder message
+                const messagesContainer = document.getElementById('messages');
                 const noMessages = document.getElementById('no-messages');
                 if (noMessages) noMessages.remove();
+
+                const loadingState = document.createElement('div');
+                loadingState.classList.add('loading-state');
+                loadingState.innerHTML = `
+                        <div class="loading"></div>
+                `; // Show loding indicator in chat container
+                messagesContainer.appendChild(loadingState);
+
                 // Remove the chat controls
                 const chatControls = document.querySelector('.chat-controls');
-                if (chatControls) chatControls.remove();                
+                if (chatControls) chatControls.remove();
+
+                
 
                 // Add the progress bar
                 const chatContainer = document.querySelector('.chat-container');
@@ -108,18 +119,30 @@
         document.getElementById('save-checkin').addEventListener('click', function () {
             console.log('Save Check-In button clicked');
             clearCountdown();
-            // Transition to home page and send a save check-in event
-            window.location.href = "/";
+            
+            fetch('/save-checkin', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        console.log("Check-In data saved successfully");
+                        window.location.href = "/"; // Transition to the home page
+                    } else {
+                        console.error("Error saving Check-In:", data.message);
+                        alert("Failed to save Check-In data.");
+                    }
+                })
+                .catch(error => {
+                    console.error("Error connecting to the server:", error);
+                    alert("Failed to save Check-In data. Please try again.");
+                });
         });
+
         
         document.getElementById('restart-checkin').addEventListener('click', function () {
             clearCountdown();
             fetch('/start_check_in', { method: 'POST' })
             .then((response) => response.json())
             .then((data) => {
-                // Remove the place holder message
-                const noMessages = document.getElementById('no-messages');
-                if (noMessages) noMessages.remove();
                 // Remove the chat controls
                 const chatControls = document.querySelector('.chat-controls');
                 if (chatControls) chatControls.remove();                
@@ -143,8 +166,8 @@
 
     // Listen for new messages
     window.socket.on('new_message', function(message) {
-        const noMessages = document.getElementById('no-messages');
-        if (noMessages) noMessages.remove(); // Remove placeholder if it exists
+        const loading = document.getElementsByClassName('loading-state')[0];
+        if (loading) loading.remove(); // Remove placeholder if it exists
         if (message.sender === 'robot') {
             appendReceivedMessage(message.content, message.time);
         } else {
@@ -157,7 +180,7 @@
         const messages = document.getElementById('messages');
         
         const receivedChat = document.createElement('div');
-        receivedChat.classList.add('received-message'); // Apply received message styling
+        receivedChat.classList.add('received-message');
         receivedChat.innerHTML = `
             <p>${content}</p>
             <span class="time">${time}</span>
@@ -171,7 +194,7 @@
         const messages = document.getElementById('messages');
 
         const outgoingChat = document.createElement('div');
-        outgoingChat.classList.add('outgoing-message'); // Apply outgoing message styling
+        outgoingChat.classList.add('outgoing-message');
         outgoingChat.innerHTML = `
         <p>${content}</p>
         <span class="time">${time}</span>

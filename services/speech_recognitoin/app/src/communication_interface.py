@@ -31,6 +31,7 @@ class CommunicationInterface(MQTTClientBase):
         self.service_status_requested_topic = "request/service_status"
         self.control_cmd = "speech_recognition_control_cmd"
         self.record_response_topic = "speech_recognition/record_response"
+        self.update_state_topic = "service/speech_recognition/update_state"
 
         # Publish topics
         self.speech_recognition_status_topic = "speech_recognition_status"
@@ -45,6 +46,7 @@ class CommunicationInterface(MQTTClientBase):
         self.subscribe(self.service_status_requested_topic, self._respond_with_service_status)
         self.subscribe(self.control_cmd, self._handle_command)
         self.subscribe(self.record_response_topic, self._handle_record_response)
+        self.subscribe(self.update_state_topic, self._update_service_state)
 
     def _respond_with_service_status(self, client, userdata, message):
         self.publish_speech_recognition_status(self.service_status)
@@ -77,7 +79,19 @@ class CommunicationInterface(MQTTClientBase):
         self.collect_response = True
         self.format = message.payload.decode("utf-8")
 
+    def _update_service_state(self, client, userdata, message):
+        try:
+            payload = json.loads(message.payload.decode("utf-8"))
+            state_name = payload.get("state_name", "")
+            state = payload.get("state_value", [])
+            self.logger.info(f"Received state update for {state_name}: {state}")
+            # self.dispatcher.dispatch_event("update_service_state", payload)
+            self.service_status = "set_up"
+        except json.JSONDecodeError:
+            self.logger.error("Invalid JSON payload for updating service state. Using default retry parameters.")
+
     def publish_user_response(self, content, message_type="response"):
+        self.logger.info(f"Publishing User response to conversation history topic: {content}")
         self.collect_response = False
 
         message = {

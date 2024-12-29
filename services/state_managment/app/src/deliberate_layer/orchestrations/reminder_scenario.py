@@ -7,6 +7,7 @@ class ReminderScenario:
         self.communication_interface = communication_interface
         self.step = 0
         self.complete = False
+        self.reminder_message = "Hello! Welcome to your daily reminder."
 
     def start(self):
         self.step = 1
@@ -43,6 +44,10 @@ class ReminderScenario:
             self.logger.info("Reminder Scenario Complete")
             self.step = 0
             # Possibly also send completion signals if needed
+            payload = {
+                "reminder_message": self.reminder_message
+            }
+            self.communication_interface.publish_reminder_sent(payload)
             return
         
     # Helper methods for each step
@@ -64,7 +69,7 @@ class ReminderScenario:
             self.logger.info("Requesting robot to speak")
             self.communication_interface.publish_robot_speech(
                 message_type="greeting",
-                content="Hello! Welcome to your daily reminder."
+                content=self.reminder_message
             )
             self.waiting_for_response = True
         
@@ -78,7 +83,7 @@ class ReminderScenario:
     def _farewell_user(self):
         self.logger.info("Sending farewell.")
         # Drive back to the charging station
-        self.communication_interface.publish_robot_behaviour_command("return home")
+        self.communication_interface.publish_robot_behaviour_command("return_home")
         self.communication_interface.set_behaviour_running_status("reminder", "standby")
         self.logger.info("Sending reminder has completed successfully.")
         time.sleep(0.5)

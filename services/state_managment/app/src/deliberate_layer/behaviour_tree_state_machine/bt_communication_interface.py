@@ -29,7 +29,8 @@ class CommunicationInterface(MQTTClientBase):
             "speech_recognition": "",
             "robot_control": "",
             "user_interface": "",
-            "reminder": ""
+            "reminder": "",
+            "database": ""
         }
 
         self.robot_behaviour_completion_status = {}
@@ -49,14 +50,16 @@ class CommunicationInterface(MQTTClientBase):
         self.robot_control_status_topic = "robot_control_status"
         self.conversation_history_topic = "conversation/history"
         self.send_reminder_topic = "start_reminder"
+        self.database_status_topic = "database_status"
 
         # Publish topics
         self.request_service_status_topic = "request/service_status"
         self.publish_system_status_topic = "publish/system_status"
-        self.robot_speech_topic = "speech_recognition/robot_speech"
+        self.robot_speech_topic = "robot_tts"
         self.robot_behaviour_topic = "robot_behaviour_command"
         self.service_control_command_topic = lambda service_name : service_name + "_control_cmd"
         self.record_response_topic = "speech_recognition/record_response"
+        self.save_reminder_topic = "save_reminder"
 
         # Subscriber and publisher topics
         self.check_in_controls_topic = "check_in_controller"
@@ -66,11 +69,12 @@ class CommunicationInterface(MQTTClientBase):
         self.subscribe(self.speech_recognition_status_topic, self._process_service_status)
         # self.subscribe(self.speech_recognition_heartbeat_topic, self._process_heartbeat)
         self.subscribe(self.robot_status_topic, self._process_service_status)
-        # self.subscribe(self.robot_controller_status_topic, self._process_heartbeat)
+        # self.subscribe(self.robot_control_status_topic, self._process_heartbeat)
         self.subscribe(self.user_interface_status_topic, self._process_service_status)
         # self.subscribe(self.user_interface_status_topic, self._process_heartbeat)
         self.subscribe(self.reminder_status_topic, self._process_service_status)
         # self.subscribe(self.reminder_heartbeat_topic, self._process_heartbeat)
+        self.subscribe(self.database_status_topic, self._process_service_status)
         self.subscribe(self.configure_topic, self._process_configurations)
         self.subscribe(self.service_error_topic, self._process_error_message)
         self.subscribe(self.robot_control_status_topic, self._process_robot_behaviour_status)
@@ -135,8 +139,9 @@ class CommunicationInterface(MQTTClientBase):
         self.robot_behaviour_completion_status[behaviour_name] = behaviour_status
 
     def _handle_user_response(self, client, userdata, message):
+        self.logger.info(f"the user response is {message.payload.decode()}")
         payload = json.loads(message.payload.decode("utf-8"))
-        self.user_response = payload.get("content", "")
+        self.user_response = payload.get("content", None)
 
     def _send_reminder(self, client, userdata, message):
         self.logger.info("Processing reminder request")
@@ -158,12 +163,8 @@ class CommunicationInterface(MQTTClientBase):
         '''
         Publish the system status to all services
         '''
-        # self.logger.info("Publishing system status")
+        self.logger.info("Publishing system status")
         self.publish(self.publish_system_status_topic, json.dumps(self.systemStatus))
-    
-    def _handle_robot_speech(self, client, userdata, message):
-        # Forwards the robot speech to the conversation history
-        self.publish(self.conversation_history_topic, message.payload.decode("utf-8"))
 
     def publish_robot_speech(self, content, message_type="request"):
         message = {
@@ -190,6 +191,10 @@ class CommunicationInterface(MQTTClientBase):
     def publish_collect_response(self, expected_format):
         self.logger.info("Publishing record response")
         self.publish(self.record_response_topic, expected_format)
+
+    def publish_reminder_sent(self, payload):
+        self.logger.info("Saving reminder message to the database")
+        self.publish(self.save_reminder_topic, json.dumps(payload))
 
     def behaviour_controller(self, service_name, cmd):
         payload = {
@@ -218,9 +223,10 @@ class CommunicationInterface(MQTTClientBase):
 
     def get_robot_behaviour_completion_status(self, behaviour_name):
         status = self.robot_behaviour_completion_status.get(behaviour_name, "")
-        if status != "":
-            self.robot_behaviour_completion_status.pop(behaviour_name)
         return status
+    
+    def acknowledge_robot_behaviour_completion_status(self, behaviour_name):
+        self.robot_behaviour_completion_status.pop(behaviour_name)
     
     def get_user_response(self):
         return self.user_response

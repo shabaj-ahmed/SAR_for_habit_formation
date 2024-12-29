@@ -48,7 +48,7 @@
 
         // Process the service statuses
         for (const [service, status] of Object.entries(serviceStatus)) {
-            if (status === "Awake") {
+            if (status === "set_up") {
                 // Remove the service from the pending set if it's Awake
                 pendingServices.delete(service);
             } else {

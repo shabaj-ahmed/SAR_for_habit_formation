@@ -1,4 +1,4 @@
-from .leaf_nodes import UserInterface, Reminder, VoiceAssistant, RobotController, Configurations
+from .leaf_nodes import UserInterface, Reminder, VoiceAssistant, RobotController, Configurations, Databse
 from .behaviour_branch import BehaviourBranch
 from .bt_communication_interface import CommunicationInterface
 import os
@@ -16,8 +16,6 @@ from orchestrations.reminder_scenario import ReminderScenario
 class BehaviourTree:
     def __init__(self, finite_state_machine_event_queue, behaviour_tree_event_queue):
         self.logger = logging.getLogger(self.__class__.__name__)
-        self.first_run = True
-        self.all_services_running = False
 
         self.communication_interface = CommunicationInterface(
             broker_address = str(os.getenv('MQTT_BROKER_ADDRESS')),
@@ -42,6 +40,7 @@ class BehaviourTree:
         self.reminder_branch = BehaviourBranch(self.behaviours[0], self.communication_interface, orchestrator = reminder_scenario)
         self.reminder_branch.add_service(UserInterface)
         self.reminder_branch.add_service(Reminder)
+        self.reminder_branch.add_service(Databse)
         self.add_branch(self.behaviours[0], self.reminder_branch)
 
         # Check-in
@@ -49,6 +48,7 @@ class BehaviourTree:
         self.check_in_dialog_branch = BehaviourBranch(self.behaviours[1], self.communication_interface, orchestrator = check_in_scenario)
         self.check_in_dialog_branch.add_service(UserInterface)
         self.check_in_dialog_branch.add_service(VoiceAssistant)
+        self.check_in_dialog_branch.add_service(Databse)
         self.check_in_dialog_branch.add_service(RobotController, priority="optional")
         self.add_branch(self.behaviours[1], self.check_in_dialog_branch)
 
@@ -56,7 +56,11 @@ class BehaviourTree:
         self.configurations_branch = BehaviourBranch(self.behaviours[2], self.communication_interface)
         self.configurations_branch.add_service(UserInterface)
         self.configurations_branch.add_service(Configurations)
+        self.configurations_branch.add_service(Databse)
         self.add_branch(self.behaviours[2], self.configurations_branch)
+
+        # Step 1: Check if all services are running
+        self.check_if_all_services_are_running()
 
     def _set_current_state(self, state):
         self.current_state = state
@@ -92,9 +96,6 @@ class BehaviourTree:
 
     def update(self):
         """Update the behaviour tree"""
-        # Step 1: Check if all services are running
-        self.check_if_all_services_are_running()
-
         # Step 2: Check the high-level state in the finite state machine
         self.check_finite_state_machine_event_queue()
 
@@ -131,24 +132,69 @@ class BehaviourTree:
                 elif state == 'Error':
                     pass
                     # Handle error state if required
-    
+
     def check_if_all_services_are_running(self):
-        while self.first_run:
-            self.all_services_running = True
-            services = self.communication_interface.get_system_status()
-            self.communication_interface.request_service_status() # Request all services to provide their status
-            self.communication_interface.publish_system_status() # Publish the system status so services know the system health and can respond accordingly
+        self.logger.info("Checking if all services are Awake...")
+        while True:
+            all_services_awake = True
 
-            time.sleep(0.4)
-
-            for service in services:
-                if services[service] != "Awake":
-                    self.all_services_running = False
+            # Request service status
+            self.communication_interface.request_service_status()
             
-            if self.all_services_running:
-                self.logger.info("All services are running")
-                self.communication_interface.publish_system_status() # Publish the system status so services know the system health and can respond accordingly
-                self.first_run = False
+            time.sleep(1)
+
+            services = self.communication_interface.get_system_status()
+            for service, status in services.items():
+                if status != "Awake":
+                    all_services_awake = False
+                    self.logger.warning(f"Service {service} is not Awake. Current status: {status}")
+            
+            # Notify the user interface about the system status
+            self.communication_interface.publish_system_status()
+
+            if all_services_awake:
+                self.logger.info("All services are Awake.")
+                break  # Exit the loop if all services are Awake
+
+        self.logger.info("Ensuring all services are set_up...")
+        timer = 0 # seconds
+        while True:
+            all_services_set_up = True
+
+            # Publish "update_system_state" to the database
+            self.communication_interface.behaviour_controller("database", "update_system_state")
+
+            time.sleep(1)
+
+            # Check if all services are "set_up"
+            while True:
+                # Request service status
+                self.communication_interface.request_service_status()
+
+                time.sleep(1)
+
+                services = self.communication_interface.get_system_status()
+                for service, status in services.items():
+                    if status != "set_up":
+                        all_services_set_up = False
+                        self.logger.warning(f"Service {service} is not set_up. Current status: {status}")
+                
+                # Notify the user interface about the system status
+                self.communication_interface.publish_system_status()
+                
+                if all_services_set_up:
+                    self.logger.info("All services are set_up.")
+                    break  # Exit the loop if all services are set_up
+                
+                timer += 1
+                if timer > 3: break
+            timer = 0
+
+            if all_services_set_up:
+                    self.logger.info("All services are set_up.")
+                    break  # Exit the loop if all services are set_up
+
+        self.logger.info("All services are running and ready.")
 
     def check_for_user_requested_events(self):
         ''' Check if the user has requested a behaviour '''
