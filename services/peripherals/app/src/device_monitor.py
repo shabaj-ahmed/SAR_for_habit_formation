@@ -6,7 +6,8 @@ class NetworkMonitor:
         self.servers = []
         self.threads = None
         self.speed_test = speedtest.Speedtest()
-        self.event_dispatcher = event_dispatcher
+        self.dispatcher = event_dispatcher
+        self._register_event_handlers()
 
     def _register_event_handlers(self):
         if self.dispatcher:
@@ -35,18 +36,21 @@ class NetworkMonitor:
         return self.speed_test.results.dict()
     
     def check_internet_speed(self):
+        print("Checking internet speed")
         self.run_speed_test()
         results = self.get_results()
-        self.event_dispatcher.dispatch_event("send_network_speed", results)
+        self.dispatcher.dispatch_event("send_network_speed", results)
     
     def check_internet_connection(self):
-        ps = subprocess.Popen(['iwgetid'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        try:
-            output = subprocess.check_output(('grep', 'ESSID'), stdin=ps.stdout)
-            if 'TP-Link_A5BE' in str(output):
-                print("Connected to the TP-Link_A5BE network")
-                self.dispatcher.dispatch_event("send_network_status", "connected")
-            print(f"Could not find the TP-Link_A5BE network in the output: {str(output)}")
-        except subprocess.CalledProcessError:
-            # grep did not match any lines
-            print("No wireless networks connected")
+        print("Checking internet connection")
+        self.dispatcher.dispatch_event("send_network_status", "connected")
+        # ps = subprocess.Popen(['iwgetid'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        # try:
+        #     output = subprocess.check_output(('grep', 'ESSID'), stdin=ps.stdout)
+        #     if 'TP-Link_A5BE' in str(output):
+        #         print("Connected to the TP-Link_A5BE network")
+        #         self.dispatcher.dispatch_event("send_network_status", "connected")
+        #     print(f"Could not find the TP-Link_A5BE network in the output: {str(output)}")
+        # except subprocess.CalledProcessError:
+        #     # grep did not match any lines
+        #     print("No wireless networks connected")

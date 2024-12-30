@@ -11,11 +11,11 @@ sys.path.insert(0, project_root)
 from shared_libraries.mqtt_client_base import MQTTClientBase
 
 class CommunicationInterface(MQTTClientBase):
-    def __init__(self, broker_address, port):
+    def __init__(self, broker_address, port, event_dispatcher=None):
         super().__init__(broker_address, port)
         self.logger = logging.getLogger(self.__class__.__name__)
 
-        self.command = "" # used in main loop to determine what to do
+        self.dispatcher = event_dispatcher
 
         self.service_status = "Awake" # As soon as the reminder starts, it is awake
 
@@ -49,16 +49,24 @@ class CommunicationInterface(MQTTClientBase):
             cmd = payload.get("cmd", "")
             logging.info(f"peripherals received the command: {cmd}")
             self.logger.info(f"cmd = {cmd}")
-            if cmd == "end":
-                self.command = ""
-            elif cmd == "set_up" or cmd == "start":
-                self.dispatcher.dispatch_event("check_network_speed")
-            else:
-                self.command = ""
+            if cmd == "check_network_speed":
+                self.dispatcher.dispatch_event(cmd)
+            elif cmd == "check_network_status":
+                self.dispatcher.dispatch_event(cmd)
+
+            status = {
+                "end": "ended",
+                "set_up": "ready",
+                "start": "running",
+                "check_network_speed": "running",
+                "check_network_status": "running"
+            }
+            self.publish_peripherals_status(status[cmd])
         except Exception as e:
             logging.error(f"Error handling command: {e}")
 
     def publish_peripherals_status(self, status):
+        self.service_status = status
         self.publish(self.peripherals_status_topic, status)
 
     def publish_peripherals_heartbeat(self):
@@ -67,14 +75,10 @@ class CommunicationInterface(MQTTClientBase):
     def publish_network_status(self, status):
         self.logger.info(f"Network status: {status}")
         self.publish(self.network_status_topic, status)
+        self.publish_peripherals_status("completed")
 
     def publish_network_speed(self, speed):
         self.logger.info(f"Download = {speed['download']/1000000}Mbps and upload = {speed['upload']/1000000}Mbps")
         self.publish(self.network_speed_topic, speed)
-
-    def get_system_status(self):
-        return self.service_status
-    
-    def get_command(self):
-        return self.command
+        self.publish_peripherals_status("completed")
     

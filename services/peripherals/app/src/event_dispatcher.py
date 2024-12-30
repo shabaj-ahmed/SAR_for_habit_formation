@@ -13,9 +13,12 @@ class EventDispatcher:
             self.event_handlers[event_name] = []
         self.event_handlers[event_name].append(handler)
 
-    def dispatch_event(self, event_name, payload):
+    def dispatch_event(self, event_name, payload = None):
         """Calls all handlers for a specific event."""
         handlers = self.event_handlers.get(event_name, [])
         for handler in handlers:
-            handler(payload)
+            try:
+                handler(payload) if payload else handler()
+            except Exception as e:
+                print(f"Error dispatching event {event_name}: {e}")
     
