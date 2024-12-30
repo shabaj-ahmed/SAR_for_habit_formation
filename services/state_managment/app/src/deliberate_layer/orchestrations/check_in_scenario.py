@@ -22,6 +22,11 @@ class CheckInScenario:
         self.next_question = None
         self.response = None
         self.logger.info("Check-in scenario started")
+        self.communication_interface.get_peripherals_status("check_network_speed")
+        self.logger.info("Checked network speed")
+        self.communication_interface.get_peripherals_status("check_network_status")
+        self.logger.info("Checked network status")
+        time.sleep(10)
         pass
     
     def update(self):
