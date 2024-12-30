@@ -8,7 +8,6 @@ import logging
 import os
 import sys
 import subprocess
-from .event_dispatcher import EventDispatcher
 
 app = Flask(__name__)
 app.config['SYSTEM_IS_STILL_LOADING'] = True
@@ -19,6 +18,7 @@ project_root = os.path.abspath(os.path.join(current_dir, "../../../../"))
 sys.path.insert(0, project_root)
 
 from shared_libraries.logging_config import setup_logger
+from shared_libraries.event_dispatcher import EventDispatcher
 
 # Setup logger
 setup_logger()
@@ -58,7 +58,7 @@ days_remaining = None
 brightness_value = 50
 reminder_time = datetime.now().time()
 reminder_time_ampm = "AM"
-    
+
 def update_state(payload):
     global implementationIntention, start_date, study_duration, days_remaining, brightness_value, reminder_time, reminder_time_ampm
     logger.info(f"State update received in UI: {payload}")
@@ -203,6 +203,9 @@ def save_check_in():
 
 @app.route('/history')
 def history():
+    # Step 1: Load history page and show loading spinner
+    # Step 2: Fetch history data from database
+    # Step 3: Display history data on page and hide loading spinner
     return render_template('history.html')
 
 @app.route('/settings')

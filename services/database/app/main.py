@@ -1,5 +1,4 @@
 from src.communication_interface import CommunicationInterface
-from src.event_dispatcher import EventDispatcher
 from src.study_data_db_manager import StudyDatabaseManager
 from src.persistent_data_db_manager import PersistentDataManager
 from src.persistent_data_db_schema import ServiceState
@@ -19,6 +18,7 @@ sys.path.insert(0, project_root)
 
 from configurations.initial_configurations import StudyConfigs
 from shared_libraries.logging_config import setup_logger
+from shared_libraries.event_dispatcher import EventDispatcher
 
 def initialise_persistent_database(session):
     # Load the initial configurations

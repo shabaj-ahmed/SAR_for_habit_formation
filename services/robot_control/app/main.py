@@ -4,7 +4,6 @@ import threading
 import anki_vector
 
 from src.robot_control import VectorRobotController
-from src.event_dispatcher import EventDispatcher
 from src.communication_interface import CommunicationInterface
 
 import logging
@@ -17,6 +16,7 @@ project_root = os.path.abspath(os.path.join(current_dir, "../../../../"))
 sys.path.insert(0, project_root)
 
 from shared_libraries.logging_config import setup_logger
+from shared_libraries.event_dispatcher import EventDispatcher
 
 def publish_heartbeat():
     while True:
