@@ -154,14 +154,12 @@ class VectorRobotController:
     @reconnect_on_fail
     def disengage_user(self):
         self.robot.behavior.drive_on_charger()
-
-    @run_if_robot_is_enabled
-    @reconnect_on_fail
+    
     def handle_tts_command(self, payload):
         status = "complete"
         try: 
             self.logger.info(f"In handel tts command func, text from {payload['sender']} is: {payload['content']}")
-            self.robot.behavior.say_text(payload["content"])
+            self.tts(payload["content"])
             # Add delay to allow the robot to finish speaking before sending completion status
             delay = len(payload["content"].split()) / 3 # Assuming robot can speak 3 words per second
             self.logger.info(f"Delaying for {delay} seconds")
@@ -176,6 +174,11 @@ class VectorRobotController:
                     "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
                 }
         self.dispatcher.dispatch_event("behaviour_completion_status", response)
+
+    @run_if_robot_is_enabled
+    @reconnect_on_fail
+    def tts(self, text):
+        self.robot.behavior.say_text(text)
 
     @run_if_robot_is_enabled
     @reconnect_on_fail
