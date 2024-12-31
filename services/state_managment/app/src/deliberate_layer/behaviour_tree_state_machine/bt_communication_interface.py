@@ -58,9 +58,9 @@ class CommunicationInterface(MQTTClientBase):
         self.robot_speech_topic = "robot_tts"
         self.robot_behaviour_topic = "robot_behaviour_command"
         self.service_control_command_topic = lambda service_name : service_name + "_control_cmd"
-        # self.record_response_topic = "speech_recognition/record_response"
         self.save_reminder_topic = "save_reminder"
-        self.peripheral_control_cmd = "peripherals_control_cmd"
+        self.peripheral_control_cmd = "peripherals_control_cmd" # Replace with service_control_command_topic
+        self.behaviour_status_update_topic = "behaviour_status_update"
 
         # Subscriber and publisher topics
         self.check_in_controls_topic = "check_in_controller"
@@ -204,7 +204,24 @@ class CommunicationInterface(MQTTClientBase):
         self.publish(self.save_reminder_topic, json.dumps(payload))
 
     def get_peripherals_status(self, peripheral_cmd):
+        self.logger.info(f"Getting peripherals status for command: {peripheral_cmd}")
         self.publish(self.peripheral_control_cmd, json.dumps({"cmd": peripheral_cmd}))
+
+        if peripheral_cmd == "check_network_speed":
+            message = "Network speed is beeing checked"
+        elif peripheral_cmd == "check_network_status":
+            message = "Network status is beeing checked"
+        else:
+            message = "Connecting to the network"
+        self.publish_behaviour_status_update(message)
+
+    def publish_behaviour_status_update(self, status):
+        self.logger.info(f"Publishing behaviour status update: {status}")
+        # payload = {
+        #     "status": status,
+        #     "time": time.strftime("%Y-%m-%d %H:%M:%S")
+        # }
+        self.publish(self.behaviour_status_update_topic, status)
 
     def behaviour_controller(self, service_name, cmd):
         payload = {

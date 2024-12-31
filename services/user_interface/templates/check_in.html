@@ -35,7 +35,10 @@
                 const loadingState = document.createElement('div');
                 loadingState.classList.add('loading-state');
                 loadingState.innerHTML = `
-                        <div class="loading"></div>
+                        <div class="column">
+                            <div class="loading"></div>
+                            <div id="loading-message"> Initialising... </div>
+                        </div>
                 `; // Show loding indicator in chat container
                 messagesContainer.appendChild(loadingState);
 
@@ -60,6 +63,14 @@
 
     window.socket.on('connect', function () {
         console.log("Connected to Socket.IO server");
+    });
+
+    // Listen for loading updates
+    window.socket.on('loading_status', function (data) {
+        const loadingMessage = document.getElementById('loading-message');
+        if (loadingMessage) {
+            loadingMessage.textContent = data.message; // Update the loading text
+        }
     });
 
     // Listen for check-in completion
