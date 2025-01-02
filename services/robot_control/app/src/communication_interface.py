@@ -42,6 +42,7 @@ class CommunicationInterface(MQTTClientBase):
         self.video_topic = "robot/video_feed"
         self.robot_service_status_topic = "robot_status"
         self.robot_control_status_topic = "robot_control_status"
+        self.service_error_topic = "service_error"
 
         # Subscribe to necessary topics
         self.subscribe(self.service_status_requested_topic, self._respond_with_service_status)
@@ -61,6 +62,8 @@ class CommunicationInterface(MQTTClientBase):
         """Register event handlers for robot actions."""
         if self.dispatcher:
             self.dispatcher.register_event("behaviour_completion_status", self._update_behaviour_status)
+            self.dispatcher.register_event("service_error", self.publish_service_error)
+            self.dispatcher.register_event("send_service_error", self.publish_service_error)
     
     def _respond_with_service_status(self, client, userdata, message):
         self.publish_robot_status(self.service_status)
@@ -70,13 +73,12 @@ class CommunicationInterface(MQTTClientBase):
             payload = json.loads(message.payload.decode("utf-8"))
             command = payload.get("cmd", "")
             self.dispatcher.dispatch_event("control_command", command)
-
+            
             status_response = {
                 "set_up": "ready",
                 "start": "running",
                 "end": "completed"
             }
-
             self.publish_robot_status(status_response.get(command, "running"))
         except json.JSONDecodeError:
             self.logger.error("Invalid JSON payload. Using default retry parameters.")
@@ -188,3 +190,13 @@ class CommunicationInterface(MQTTClientBase):
         self.publish(self.robot_service_status_topic, json.dumps(payload))
 
         self.service_status = status
+
+    def publish_service_error(self, error_message):
+        # self.publish(self.service_error_topic, error_message)
+        self.logger.info(f"sending error from robot controller: {error_message}")
+        payload = {
+            "error_message": f"Error processing control command: {error_message}",
+            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+            "service_name": "robot_control"
+            }
+        self.publish("error_message", json.dumps(payload))
