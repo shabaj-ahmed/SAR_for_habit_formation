@@ -33,6 +33,7 @@ class CommunicationInterface(MQTTClientBase):
 
         # Set up the message callbacks
         self.message_callback = None
+        self.error_callback = None
         self.socketio = None
 
         # Subscription topics
@@ -43,8 +44,9 @@ class CommunicationInterface(MQTTClientBase):
         self.conversation_history_topic = "conversation/history"
         self.camera_active_topic = "robot/cameraActive"
         self.audio_active_topic = "audio_active"
-        self.robot_error_topic = "robot/error"
         self.update_state_topic = "service/user_interface/update_state"
+        self.error_message_topic = "error_message"
+        self.behaviour_status_update_topic = "behaviour_status_update"
 
         # Publish topics
         self.user_interface_status_topic = "user_interface_status"
@@ -52,6 +54,8 @@ class CommunicationInterface(MQTTClientBase):
         self.robot_colour_topic = "robot_colour"
         self.update_persistent_data = "update_persistent_data"
         self.save_check_in_topic = "save_check_in"
+        self.service_error_topic = "service_error"
+        self.reconnect_request_topic = "reconnect_robot_request"
 
         # Subscriber and publisher topics
         self.check_in_controls_topic = "check_in_controller"
@@ -65,8 +69,14 @@ class CommunicationInterface(MQTTClientBase):
         self.subscribe(self.conversation_history_topic, self._on_message)
         self.subscribe(self.camera_active_topic, self._process_camera_active)
         self.subscribe(self.audio_active_topic, self._process_audio_active)
-        self.subscribe(self.robot_error_topic, self._process_error_message)
+        self.subscribe(self.error_message_topic, self._process_error_message)
         self.subscribe(self.update_state_topic, self._update_service_state)
+        self.subscribe(self.behaviour_status_update_topic, self._process_behaviour_status_update)
+
+        self._register_event_handlers()
+
+    def _register_event_handlers(self):
+        self.dispatcher.register_event("send_service_error", self.publish_service_error)
 
     def _respond_with_service_status(self, client, userdata, message):
         self.publish_UI_status(self.service_status)
@@ -136,7 +146,7 @@ class CommunicationInterface(MQTTClientBase):
             self.socketio.emit('cam_status', {'active': camera_active})
 
     def _process_audio_active(self, client, userdata, message):
-        audio_active = message.payload.decode() == '1'
+        audio_active = json.loads(message.payload.decode("utf-8")) == '1'
         self.logger.info(f"Microphone active: {audio_active}")
         self.inputs['audioActive'] = audio_active
         if self.socketio:
@@ -144,7 +154,13 @@ class CommunicationInterface(MQTTClientBase):
             self.socketio.emit('mic_status', {'active': audio_active})
 
     def _process_error_message(self, client, userdata, message):
-        error_message = message.payload.decode()
+        try:
+            payload = json.loads(message.payload.decode("utf-8"))
+            self.logger.info(f"###################################RECIVED ERROR MESSAGE: {payload}")
+            self.logger.info(f"Error message received on '{self.error_message_topic}, payload: {payload}")
+            self.socketio.emit('error_message', payload)
+        except json.JSONDecodeError as e:
+            self.logger.error(f"Error decoding JSON payload: {e}")
 
     def _update_service_state(self, client, userdata, message):
         try:
@@ -156,6 +172,26 @@ class CommunicationInterface(MQTTClientBase):
             self.service_status = "set_up"
         except json.JSONDecodeError:
             self.logger.error("Invalid JSON payload for updating service state. Using default retry parameters.")
+            
+    def _process_behaviour_status_update(self, client, userdata, message):
+        # try:
+        # payload = json.loads(message.payload.decode("utf-8"))
+        message = message.payload.decode("utf-8")
+        self.logger.info(f"Behaviour status update received: {message}")
+        self.socketio.emit("loading_status", {'message': message})
+        # except json.JSONDecodeError as e:
+        #     self.logger.error(f"Error decoding JSON payload: {e}")
+
+    def publish_service_error(self, error_message):
+        self.publish(self.service_error_topic, error_message)
+
+    def publish_reconnect_request(self, sender):
+        payload = {
+            "sender": sender,
+            "service_name": "user_interface",
+            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+        }
+        self.publish(self.reconnect_request_topic, json.dumps(payload))
 
     def start_check_in(self):
         if self.check_in_status != True:

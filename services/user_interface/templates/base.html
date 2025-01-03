@@ -46,7 +46,6 @@
             <!-- Modal content -->
             <div class="modal-content">
                 <div class="modal-header">
-                    <!-- <span class="close" onclick="closeModal()">&times;</span> -->
                     <h2>Modal Header</h2>
                 </div>
                 <div class="modal-body">
@@ -54,7 +53,7 @@
                     <p>Some other text...</p>
                 </div>
                 <div class="modal-footer">
-                    <button onclick="closeModal()">Close</button>
+                    <button onclick="reconnect()">Close</button>
                 </div>
             </div>
         </div>
@@ -85,17 +84,42 @@
                 <p>Location: ${data.service_name || 'N/A'}</p>
             `;
             modalFooter.innerHTML = `
-                <button onclick="closeModal()">Close</button>
+                <button onclick="reconnect()">Close</button>
             `;
 
             // Display the modal
             modal.style.display = "flex"; // Set to flex to align and center
         });
-
+        
         // Close modal function
-        function closeModal() {
+        function reconnect() {
             const modal = document.getElementById("myModal");
             modal.style.display = "none";
+
+            // Display a loading indicator (optional)
+            console.log("Attempting to reconnect...");
+
+            // Send the reconnect request to the Flask route
+            fetch('/reconnect', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ action: 'reconnect' }), // Optional data
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                }
+                throw new Error("Failed to initiate reconnect");
+            })
+            .then(data => {
+                console.log("Reconnect initiated:", data);
+                // Optionally update the UI to show the reconnect is in progress
+            })
+            .catch(error => {
+                console.error("Error during reconnect initiation:", error);
+            });
         }
 
         function openNav() {

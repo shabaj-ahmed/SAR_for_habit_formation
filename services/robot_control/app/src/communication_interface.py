@@ -35,6 +35,7 @@ class CommunicationInterface(MQTTClientBase):
         self.robot_behaviour_topic = "robot_behaviour_command"
         self.update_state_topic = "service/robot_control/update_state"
         self.save_check_in_topic = "save_check_in"
+        self.reconnect_request_topic = "reconnect_robot_request"
 
         # Publish topics
         self.conversation_history_topic = "conversation/history"
@@ -55,6 +56,7 @@ class CommunicationInterface(MQTTClientBase):
         # self.subscribe(self.activate_camera_topic, self._process_camera_active)
         self.subscribe(self.update_state_topic, self._update_service_state)
         self.subscribe(self.save_check_in_topic, self._save_check_in)
+        self.subscribe(self.reconnect_request_topic, self._reconnect_to_robot)
     
     def _respond_with_service_status(self, client, userdata, message):
         self.publish_robot_status(self.service_status)
@@ -139,6 +141,9 @@ class CommunicationInterface(MQTTClientBase):
 
     def _save_check_in(self, client, userdata, message):
         self.robot_controler.handle_control_command("return_home")
+
+    def _reconnect_to_robot(self, client, userdata, message):
+        self.robot_controler.connect()
 
     # def _process_camera_active(self, client, userdata, message):
     #     camera_active = message.payload.decode() == '1'

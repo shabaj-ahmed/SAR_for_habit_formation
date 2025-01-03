@@ -10,7 +10,6 @@ import logging
 from functools import wraps
 
 TIMEOUT_WARNING = 5  # Seconds to issue a warning
-TIMEOUT_RECONNECT = 8  # Seconds to force reconnect
 RETRY_DELAY = 3
 
 class VectorRobotController:
@@ -24,6 +23,7 @@ class VectorRobotController:
         self.connected = False
         self.error = None
         self.max_retries = 1
+        self.timeout = 8
         # self.check_connection()
 
     def reconnect_on_fail(func):
@@ -36,9 +36,11 @@ class VectorRobotController:
 
             if func.__name__ == "connect":
                 self.max_retries = 10
+                self.timeout = 15
             else:
                 self.max_retries = 1
-
+                self.timeout = 8
+                
             while attempt_counter < self.max_retries:
                 thread = None
                 result = None
@@ -65,7 +67,7 @@ class VectorRobotController:
 
                 # Wait for the function to complete or timeout
                 self.logger.info(f"Waiting for {func.__name__} to complete or timeout...")
-                thread.join(TIMEOUT_RECONNECT)
+                thread.join(self.timeout)
                 
                 if func_executed.is_set():
                     # Function completed successfully

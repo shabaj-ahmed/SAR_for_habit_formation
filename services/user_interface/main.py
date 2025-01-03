@@ -123,8 +123,8 @@ def publish_heartbeat():
 # Start heartbeat thread
 threading.Thread(target=publish_heartbeat, daemon=True).start()
 
-# MQTT message handler
-def on_mqtt_message(message):
+# message handler
+def dialogue_message_handler(message):
     # Format the message
     formatted_message = {
         "sender": message.get("sender", "robot"),  # Default sender is robot
@@ -139,7 +139,7 @@ def on_mqtt_message(message):
     socketio.emit('new_message', formatted_message)
 
 # Register the MQTT message handler
-communication_interface.message_callback = on_mqtt_message
+communication_interface.message_callback = dialogue_message_handler
 
 @app.route('/')
 def home():
@@ -160,6 +160,18 @@ def handle_ui_ready():
 
     # Publish the UI status to the MQTT broker
     communication_interface.publish_UI_status("Awake")
+
+@app.route('/reconnect', methods=['POST'])
+def reconnect():
+    logger.info("Received a reconnect request")
+    communication_interface.publish_reconnect_request("UI_error_message")
+    
+    # Trigger the reconnect process asynchronously (e.g., send a message to a worker or robot controller)
+    # Example: robot_controller.start_reconnect() or publish an MQTT message
+    success = True  # Simulated for this example
+    
+    return jsonify({"status": "initiated", "message": "Reconnection process started"}), 202
+
 
 @app.route('/check_in')
 def check_in():
@@ -266,7 +278,13 @@ def brightness_slider_change(brightness_value):
         return f"Brightness successfully set to {mapped_value}", 200
     except subprocess.CalledProcessError as e:
         # Return an error response if the command fails
-        return f"Failed to set brightness: {e}", 500
+        payload = {
+            "error": f"Failed to set brightness: {e}",
+            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+            "service_name": "user_interface"
+        }
+        dispatcher.dispatch_event("send_service_error", payload)
+        return f"send_service_error: {e}", 500
 
 @app.route('/profile')
 def profile():
