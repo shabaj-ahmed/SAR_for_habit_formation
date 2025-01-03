@@ -14,15 +14,15 @@ sys.path.insert(0, project_root)
 from shared_libraries.mqtt_client_base import MQTTClientBase
 
 class CommunicationInterface(MQTTClientBase):
-    def __init__(self, broker_address, port, event_dispatcher):
+    def __init__(self, broker_address, port, controller):
         super().__init__(broker_address, port)
         self.logger = logging.getLogger(self.__class__.__name__)
-        self.dispatcher = event_dispatcher
+        self.robot_controler = controller
 
         self.start_command = ""
         self.is_streaming = False
 
-        self.service_status = "Awake" # As soon as the robot controller starts, it is awake
+        self.service_status = "" # As soon as the robot controller starts, it is awake
 
         # Subscription topics
         self.service_status_requested_topic = "request/service_status"
@@ -55,15 +55,6 @@ class CommunicationInterface(MQTTClientBase):
         # self.subscribe(self.activate_camera_topic, self._process_camera_active)
         self.subscribe(self.update_state_topic, self._update_service_state)
         self.subscribe(self.save_check_in_topic, self._save_check_in)
-
-        self._register_event_handlers()
-
-    def _register_event_handlers(self):
-        """Register event handlers for robot actions."""
-        if self.dispatcher:
-            self.dispatcher.register_event("behaviour_completion_status", self._update_behaviour_status)
-            self.dispatcher.register_event("service_error", self.publish_service_error)
-            self.dispatcher.register_event("send_service_error", self.publish_service_error)
     
     def _respond_with_service_status(self, client, userdata, message):
         self.publish_robot_status(self.service_status)
@@ -72,7 +63,7 @@ class CommunicationInterface(MQTTClientBase):
         try:
             payload = json.loads(message.payload.decode("utf-8"))
             command = payload.get("cmd", "")
-            self.dispatcher.dispatch_event("control_command", command)
+            self.robot_controler.handle_control_command(command)
             
             status_response = {
                 "set_up": "ready",
@@ -87,7 +78,7 @@ class CommunicationInterface(MQTTClientBase):
         try:
             volume = message.payload.decode("utf-8")
             self.logger.info(f"Volume command received: {volume}")
-            self.dispatcher.dispatch_event("volume_command", volume)
+            self.robot_controler.set_volume(volume)
         except json.JSONDecodeError:
             self.logger.error("Invalid JSON payload for volume command.")
     
@@ -96,7 +87,7 @@ class CommunicationInterface(MQTTClientBase):
         try:
             self.logger.info(f"Colour received: {selected_colour}")
             if selected_colour:
-                self.dispatcher.dispatch_event("eye_colour_command", selected_colour)
+                self.robot_controler.handle_eye_colour_command(selected_colour)
         except json.JSONDecodeError:
             self.logger.error("Invalid JSON payload for colour command.")
     
@@ -105,7 +96,7 @@ class CommunicationInterface(MQTTClientBase):
             payload = json.loads(message.payload.decode("utf-8"))
             sender = payload.get("sender", "")
             if sender == "orchestrator":
-                self.dispatcher.dispatch_event("tts_command", payload)
+                self.robot_controler.handle_tts_command(payload)
                 payload["sender"] = "robot"
                 self.publish(self.conversation_history_topic, json.dumps(payload))
         except json.JSONDecodeError:
@@ -116,8 +107,8 @@ class CommunicationInterface(MQTTClientBase):
             payload = json.loads(message.payload.decode("utf-8"))
             animation_name = payload.get("animation", "")
             self.logger.info(f"Animation command received: {animation_name}")
-            if animation_name:
-                self.dispatcher.dispatch_event("animation_command", animation_name)
+            # if animation_name:
+            #     self.robot_controler.dispatch_event("animation_command", animation_name)
         except json.JSONDecodeError:
             self.logger.error("Invalid JSON payload for animation command.")
 
@@ -127,12 +118,12 @@ class CommunicationInterface(MQTTClientBase):
             behaviour_name = payload.get("cmd", "")
             self.logger.info(f"behaviour command received: {behaviour_name}")
             if behaviour_name:
-                self.dispatcher.dispatch_event("control_command", behaviour_name)
+                self.robot_controler.handle_control_command(behaviour_name)
             self.logger.info("Behaviour control command processed")
         except json.JSONDecodeError:
             self.logger.error("Invalid JSON payload for animation command.")
         
-    def _update_behaviour_status(self, message):
+    def update_behaviour_status(self, message):
         self.publish(self.robot_control_status_topic, json.dumps(message))
     
     def _update_service_state(self, client, userdata, message):
@@ -141,13 +132,13 @@ class CommunicationInterface(MQTTClientBase):
             state_name = payload.get("state_name", "")
             state = payload.get("state_value", [])
             self.logger.info(f"Received state update for {state_name}: {state}")
-            self.dispatcher.dispatch_event("update_service_state", payload)
+            self.robot_controler.update_service_state(payload)
             self.service_status = "set_up"
         except json.JSONDecodeError:
             self.logger.error("Invalid JSON payload for updating service state. Using default retry parameters.")
 
     def _save_check_in(self, client, userdata, message):
-        self.dispatcher.dispatch_event("control_command", "return_home")
+        self.robot_controler.handle_control_command("return_home")
 
     # def _process_camera_active(self, client, userdata, message):
     #     camera_active = message.payload.decode() == '1'
@@ -191,11 +182,12 @@ class CommunicationInterface(MQTTClientBase):
 
         self.service_status = status
 
-    def publish_service_error(self, error_message):
+    def publish_service_error(self, error):
         # self.publish(self.service_error_topic, error_message)
-        self.logger.info(f"sending error from robot controller: {error_message}")
+        self.logger.info(f"sending error from robot controller: {error}")
         payload = {
-            "error_message": f"Error processing control command: {error_message}",
+            "error_message": error["message"],
+            "response type": error["response"],
             "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
             "service_name": "robot_control"
             }
