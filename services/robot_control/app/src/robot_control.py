@@ -14,18 +14,16 @@ TIMEOUT_RECONNECT = 8  # Seconds to force reconnect
 RETRY_DELAY = 3
 
 class VectorRobotController:
-    def __init__(self, dispatcher=None):
+    def __init__(self):
         self.logger = logging.getLogger(self.__class__.__name__)
-        self.dispatcher = dispatcher
-        self._register_event_handlers()
+        self.communication_interface = None
 
         self.robot_serial = str(os.getenv("SDK_CONFIGURATION"))
         self.robot_enabled = str(os.getenv("ROBOT_ENABLED")) == 'True'
         self.logger.info(f"Robot enabled: {self.robot_enabled}")
         self.connected = False
         self.error = None
-        self.max_retries = 10
-        self.connect()
+        self.max_retries = 1
         # self.check_connection()
 
     def reconnect_on_fail(func):
@@ -34,14 +32,19 @@ class VectorRobotController:
         '''
         @wraps(func)
         def wrapper(self, *args, **kwargs):
-            retries = 0
+            attempt_counter = 0
 
-            while retries < self.max_retries:
+            if func.__name__ == "connect":
+                self.max_retries = 10
+            else:
+                self.max_retries = 1
+
+            while attempt_counter < self.max_retries:
                 thread = None
                 result = None
                 func_executed = threading.Event()  # Flag to track if `func()` completed
                 exception_raised = None
-
+                
                 def issue_warning():
                     self.logger.warning(f"{func.__name__} is taking too long. Please wait or check the robot.")
                 
@@ -71,17 +74,19 @@ class VectorRobotController:
                     return result
                 else:
                     self.logger.warning(f"{func.__name__} did not complete in time (timeout).")
-                    if self.connected:
-                        self.connected = False
-                        try:
-                            self.disconnect_robot()
-                        except Exception as e:
-                            self.logger.debug(f"Attempted to disconnect but recived an error: {e}")
-                            retries += 1
-                            continue # If there is an error during disconnect assume the robot is not connected
+                    # if self.connected:
+                    #     self.connected = False
+                    #     try:
+                    #         self.communication_interface.publish_service_error({"message": "Connection to robot lost.\nAttempting to reconnect", "response": "reconnect"})
+                    #         self.disconnect_robot()
+                    #     except Exception as e:
+                    #         self.logger.debug(f"Attempted to disconnect but recived an error: {e}")
+                    #         retries += 1
+                    #         # If there is an error during disconnect assume the robot is not connected
                     
+                    self.logger.info(f"Attempt {attempt_counter} of {self.max_retries}")
                     self.logger.warning(f"{func.__name__} took too long. Forcing a reconnect...")
-                
+
                     try:
                         self.logger.warning(f"{func.__name__} is being directly invoked to avoid recursion.")
                         self._direct_connect()  # Direct method for `connect` logic
@@ -89,11 +94,10 @@ class VectorRobotController:
                             return True  # Return after successful direct invocation
                     except Exception as e:
                         self.logger.error(f"Direct connect() invocation failed: {e}")
-                        retries += 1
+                        attempt_counter += 1
                         time.sleep(RETRY_DELAY)
-                        continue  # Retry the decorator logic
             
-            self.dispatcher.dispatch_event("send_service_error", f"Failed after {self.max_retries} retries.")
+            self.communication_interface.publish_service_error({"message": "Connection to robot lost.\nEnsure the robot and router are turned on.", "response": "reconnect"})
             # Exhausted retries
             self.logger.error(f"Failed to execute {func.__name__} after {self.max_retries} retries.")
             return False
@@ -112,7 +116,6 @@ class VectorRobotController:
     def connect(self):
         """Wrapper for connection logic."""
         self._direct_connect()
-        self.max_retries = 1
 
     def _direct_connect(self):
         """Direct connection logic without decorator."""
@@ -133,16 +136,7 @@ class VectorRobotController:
         """Disconnects from the Vector robot."""
         if self.robot:
             self.robot.disconnect()
-    
-    def _register_event_handlers(self):
-        """Register event handlers for robot actions."""
-        if self.dispatcher:
-            self.dispatcher.register_event("control_command", self.handle_control_command)
-            self.dispatcher.register_event("volume_command", self.set_volume)
-            self.dispatcher.register_event("tts_command", self.handle_tts_command)
-            self.dispatcher.register_event("eye_colour_command", self.handle_eye_colour_command)
-            self.dispatcher.register_event("update_service_state", self.update_service_state)
-
+        
     def handle_control_command(self, command):
         '''
         handels the control commands received from the state machine.
@@ -151,34 +145,37 @@ class VectorRobotController:
             command (str): The control command to handle.
         '''
         self.logger.info(f"Handling control command: {command}")
-        status = "complete"
-        try:
-            if command == "set_up":
-                # self.drive_off_charger()
-                pass
-            elif command == "start":
-                # self.handle_tts_command("Starting check-in")
-                pass
-            elif command == "end":
-                # self.disengage_user()
-                pass
-            elif command == "drive off charger":
-                self.logger.debug("Processing drive off charger request")
-                self.drive_off_charger()
-                self.logger.info("Drive off charger request has been fulfilled..")
-            elif command == "return_home":
-                self.logger.debug("Processing return home request")
-                self.drive_on_charger()
-        except Exception as e:
-            self.logger.error(f"Error processing control command: {e}")
-            payload = {
-                "error": f"Error processing control command: {e}",
-                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-                "service_name": "robot_control"
-            }
-            self.dispatcher.dispatch_event("send_service_error", payload)
+        if self.connected:
+            status = "complete"
+            try:
+                if command == "set_up":
+                    # self.drive_off_charger()
+                    pass
+                elif command == "start":
+                    # self.handle_tts_command("Starting check-in")
+                    pass
+                elif command == "end":
+                    # self.disengage_user()
+                    pass
+                elif command == "drive off charger":
+                    self.logger.debug("Processing drive off charger request")
+                    self.drive_off_charger()
+                    self.logger.info("Drive off charger request has been fulfilled..")
+                elif command == "return_home":
+                    self.logger.debug("Processing return home request")
+                    self.drive_on_charger()
+            except Exception as e:
+                self.logger.error(f"Error processing control command: {e}")
+                payload = {
+                    "error": f"Error processing control command: {e}",
+                    "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+                    "service_name": "robot_control"
+                }
+                self.communication_interface.publish_service_error(payload)
+                status = "failed"
+                return RuntimeError(f"Failed to execute control command")
+        else:
             status = "failed"
-            return RuntimeError(f"Failed to execute control command")
         
         # Send acknowledgement to the state machine that the command has been processed
         response = {
@@ -186,7 +183,7 @@ class VectorRobotController:
                     "status": status, # "complete" or "failed"
                     "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
                 }
-        self.dispatcher.dispatch_event("behaviour_completion_status", response)
+        self.communication_interface.update_behaviour_status(response)
     
     @run_if_robot_is_enabled
     @reconnect_on_fail
@@ -242,7 +239,7 @@ class VectorRobotController:
                 "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
                 "service_name": "robot_control"
             }
-            self.dispatcher.dispatch_event("send_service_error", payload)
+            self.communication_interface.publish_service_error(payload)
             status = "failed"
             return RuntimeError(f"Failed to execute TTS command after {self.max_retries} retries")
             
@@ -252,7 +249,7 @@ class VectorRobotController:
                     "status": status, # "complete" or "failed"
                     "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
                 }
-        self.dispatcher.dispatch_event("behaviour_completion_status", response)
+        self.communication_interface.update_behaviour_status(response)
 
         return True
 
@@ -317,15 +314,16 @@ class VectorRobotController:
         state_name = payload.get("state_name", "")
         state = payload.get("state_value", "")
         self.logger.info(f"Received state update for {state_name}: {state}")
-        if state_name == "robot_colour":
-            self.handle_eye_colour_command(state)
-        elif state_name == "robot_volume":
-            self.set_volume(state, silent=True)
-        elif state_name == "robot_voice":
-            self.logger.info(f"Voice command received: {state}")
-        elif state_name == "free_play":
-            self.logger.info(f"Free play mode {'enabled' if state == 'enable' else 'disabled'}")
-            self.enable_free_play(state=="enable")
+        if self.connected:
+            if state_name == "robot_colour":
+                self.handle_eye_colour_command(state)
+            elif state_name == "robot_volume":
+                self.set_volume(state, silent=True)
+            elif state_name == "robot_voice":
+                self.logger.info(f"Voice command received: {state}")
+            elif state_name == "free_play":
+                self.logger.info(f"Free play mode {'enabled' if state == 'enable' else 'disabled'}")
+                self.enable_free_play(state=="enable")
 
     @run_if_robot_is_enabled
     @reconnect_on_fail
