@@ -32,15 +32,20 @@ if __name__ == '__main__':
 
         dispatcher = EventDispatcher()
 
-        controller = VectorRobotController(dispatcher)
-        
+        controller = VectorRobotController()
+
         communication_interface = CommunicationInterface(
             broker_address=str(os.getenv("MQTT_BROKER_ADDRESS")),
             port=int(os.getenv("MQTT_BROKER_PORT")),
-            event_dispatcher=dispatcher
+            controller=controller,
         )
 
-        communication_interface.publish_robot_status("Awake")
+        controller.communication_interface = communication_interface
+        connected = controller.connect()
+        if not connected:
+            logger.error("################## Failed to connect to robot")
+        else:
+            communication_interface.publish_robot_status("Awake")
 
         heart_beat_thread = threading.Thread(target=publish_heartbeat, daemon=True)
         heart_beat_thread.start()
