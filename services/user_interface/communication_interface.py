@@ -48,6 +48,8 @@ class CommunicationInterface(MQTTClientBase):
         self.error_message_topic = "error_message"
         self.behaviour_status_update_topic = "behaviour_status_update"
         self.robot_connection_status_topic = "robot_connection_status"
+        self.network_status_topic = "network_status"
+        self.network_speed_topic = "network_speed"
 
         # Publish topics
         self.user_interface_status_topic = "user_interface_status"
@@ -74,6 +76,8 @@ class CommunicationInterface(MQTTClientBase):
         self.subscribe(self.update_state_topic, self._update_service_state)
         self.subscribe(self.behaviour_status_update_topic, self._process_behaviour_status_update)
         self.subscribe(self.robot_connection_status_topic, self._process_robot_connection_status)
+        self.subscribe(self.network_status_topic, self._process_network_connection_status)
+        self.subscribe(self.network_speed_topic, self._process_network_connection_speed)
 
         self._register_event_handlers()
 
@@ -188,6 +192,11 @@ class CommunicationInterface(MQTTClientBase):
         status = json.loads(message.payload.decode("utf-8")).get("status", "") == "connected"
         self.logger.info(f"Robot connection status inn UI: {status}")
         self.dispatcher.dispatch_event("update_connectoin_status", {'key': 'robot', 'status': status})
+
+    def _process_network_connection_status(self, client, userdata, message):
+        status = json.loads(message.payload.decode("utf-8")).get("status", "") == "connected"
+        self.logger.info(f"Robot connection status inn UI: {status}")
+        self.dispatcher.dispatch_event("update_connectoin_status", {'key': 'wifi', 'status': status})
         
 
     def publish_service_error(self, error_message):

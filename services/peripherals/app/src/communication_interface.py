@@ -84,12 +84,16 @@ class CommunicationInterface(MQTTClientBase):
     
     def publish_network_status(self, status):
         self.logger.info(f"Network status: {status}")
-        self.publish(self.network_status_topic, status)
+        message = {
+            "status": status,
+            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+        }
+        self.publish(self.network_status_topic, json.dumps(message))
         self.publish_peripherals_status("completed")
 
     def publish_network_speed(self, speed):
         self.logger.info(f"Download = {speed['download']/1000000}Mbps and upload = {speed['upload']/1000000}Mbps")
-        self.publish(self.network_speed_topic, speed)
+        self.publish(self.network_speed_topic, json.dumps(speed))
         self.publish_peripherals_status("completed")
     
     def publish_service_error(self, error_message):
