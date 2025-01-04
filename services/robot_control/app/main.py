@@ -22,7 +22,12 @@ def publish_heartbeat():
     while True:
         # Publish robot controller heartbeat
         logger.info("Robot controller heartbeat")
-        time.sleep(30)  # Publish heartbeat every 30 seconds
+        time.sleep(15)  # Publish heartbeat every 30 seconds
+        status = "disconnected"
+        if controller.connected:
+            status = "connected"
+        communication_interface.publish_robot_connection_status(status)
+
 
 if __name__ == '__main__':
     try:
@@ -52,6 +57,7 @@ if __name__ == '__main__':
         heart_beat_thread.start()
         # video_thread = threading.Thread(target=communication_interface.video_stream)
         # video_thread.start()
+
 
         while True:
             pass
