@@ -14,7 +14,6 @@
 
 </head>
 <body>
-
     <!-- Side Navigation -->
     <div id="mySidenav" class="sidenav">
         <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
@@ -30,6 +29,7 @@
             <span id="menu-icon" onclick="openNav()">&#9776; Open</span>
             <!-- Indicators -->
             <div id="indicators">
+                <img id="connection-status" src="{{ url_for('static', filename='connected-icons8.png') }}" alt="Connection Status">
                 <img id="wifi-status" src="{{ url_for('static', filename='wifi-off_Freepik.png') }}" alt="WiFi Status">
                 <img id="mic-status" src="{{ url_for('static', filename='microphone-off_Dave_Gandy.png') }}" alt="Mic Status">
                 <img id="cam-status" src="{{ url_for('static', filename='videocam_off_icon_small.png') }}" alt="Cam Status">
@@ -121,7 +121,7 @@
                 console.error("Error during reconnect initiation:", error);
             });
         }
-
+        
         function openNav() {
             document.getElementById("mySidenav").style.width = "300px";
             document.getElementById("main").style.marginLeft = "300px";
@@ -132,38 +132,41 @@
             document.getElementById("main").style.marginLeft = "0";
         }
 
-        // Debugging events
-        window.socket.on('mic_status', (data) => {
-            console.log('Mic status received:', data);
+        window.addEventListener('DOMContentLoaded', () => {
+            fetch('/get_connection_status')
+                .then(response => response.json())
+                .then(data => {
+                    updateIndicators(data);
+                })
+                .catch(error => console.error('Error fetching connection status:', error));
         });
 
-        window.socket.on('cam_status', (data) => {
-            console.log('Cam status received:', data);
-        });
+        function updateIndicators(data) {
+            const connectionStatus = document.getElementById('connection-status');
+            connectionStatus.src = data.robot
+                ? "{{ url_for('static', filename='connected-icons8.png') }}"
+                : "{{ url_for('static', filename='disconnected-icons8.png') }}";
 
-        // Update microphone indicator
-        window.socket.on('mic_status', (data) => {
+            const wifiStatus = document.getElementById('wifi-status');
+            wifiStatus.src = data.wifi
+                ? "{{ url_for('static', filename='wifi-on_Freepik.png') }}"
+                : "{{ url_for('static', filename='wifi-off_Freepik.png') }}";
+
             const micStatus = document.getElementById('mic-status');
-            if (data.active) {
-                micStatus.src = "{{ url_for('static', filename='microphone-black-shape.png') }}";
-                micStatus.alt = "Mic On";
-            } else {
-                micStatus.src = "{{ url_for('static', filename='microphone-off_Dave_Gandy.png') }}";
-                micStatus.alt = "Mic Off";
-            }
+            micStatus.src = data.mic
+                ? "{{ url_for('static', filename='microphone-black-shape.png') }}"
+                : "{{ url_for('static', filename='microphone-off_Dave_Gandy.png') }}";
+
+            const camStatus = document.getElementById('cam-status');
+            camStatus.src = data.cam
+                ? "{{ url_for('static', filename='videocam_icon_small.png') }}"
+                : "{{ url_for('static', filename='videocam_off_icon_small.png') }}";
+        }
+
+        window.socket.on('connection_status_update', (data) => {
+            updateIndicators(data);
         });
 
-        // Update camera indicator
-        window.socket.on('cam_status', (data) => {
-            const camStatus = document.getElementById('cam-status');
-            if (data.active) {
-                camStatus.src = "{{ url_for('static', filename='videocam_icon_small.png') }}";
-                camStatus.alt = "Camera On";
-            } else {
-                camStatus.src = "{{ url_for('static', filename='videocam_off_icon_small.png') }}";
-                camStatus.alt = "Camera Off";
-            }
-        });
     </script>
 
     <!-- Global Scripts -->

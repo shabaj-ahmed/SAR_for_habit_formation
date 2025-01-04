@@ -47,6 +47,7 @@ class CommunicationInterface(MQTTClientBase):
         self.update_state_topic = "service/user_interface/update_state"
         self.error_message_topic = "error_message"
         self.behaviour_status_update_topic = "behaviour_status_update"
+        self.robot_connection_status_topic = "robot_connection_status"
 
         # Publish topics
         self.user_interface_status_topic = "user_interface_status"
@@ -72,6 +73,7 @@ class CommunicationInterface(MQTTClientBase):
         self.subscribe(self.error_message_topic, self._process_error_message)
         self.subscribe(self.update_state_topic, self._update_service_state)
         self.subscribe(self.behaviour_status_update_topic, self._process_behaviour_status_update)
+        self.subscribe(self.robot_connection_status_topic, self._process_robot_connection_status)
 
         self._register_event_handlers()
 
@@ -143,7 +145,7 @@ class CommunicationInterface(MQTTClientBase):
         self.logger.info(f"Camera active: {camera_active}")
         if self.socketio:
             self.logger.info("Emitting cam_status event to clients")
-            self.socketio.emit('cam_status', {'active': camera_active})
+            self.dispatcher.dispatch_event("update_connectoin_status", {'key': 'cam', 'status': camera_active})
 
     def _process_audio_active(self, client, userdata, message):
         audio_active = json.loads(message.payload.decode("utf-8")) == '1'
@@ -151,7 +153,7 @@ class CommunicationInterface(MQTTClientBase):
         self.inputs['audioActive'] = audio_active
         if self.socketio:
             self.logger.info("Emitting mic_status event to clients")
-            self.socketio.emit('mic_status', {'active': audio_active})
+            self.dispatcher.dispatch_event("update_connectoin_status", {'key': 'mic', 'status': audio_active})
 
     def _process_error_message(self, client, userdata, message):
         try:
@@ -168,7 +170,7 @@ class CommunicationInterface(MQTTClientBase):
             state_name = payload.get("state_name", "")
             state = payload.get("state_value", "")
             self.logger.info(f"Received state update for {state_name}: {state}")
-            self.dispatcher.dispatch_event("update_service_state", payload)
+            self.dispatcher.dispatch_event("update_service_state", payload)           
             self.service_status = "set_up"
         except json.JSONDecodeError:
             self.logger.error("Invalid JSON payload for updating service state. Using default retry parameters.")
@@ -181,6 +183,12 @@ class CommunicationInterface(MQTTClientBase):
         self.socketio.emit("loading_status", {'message': message})
         # except json.JSONDecodeError as e:
         #     self.logger.error(f"Error decoding JSON payload: {e}")
+    
+    def _process_robot_connection_status(self, client, userdata, message):
+        status = json.loads(message.payload.decode("utf-8")).get("status", "") == "connected"
+        self.logger.info(f"Robot connection status inn UI: {status}")
+        self.dispatcher.dispatch_event("update_connectoin_status", {'key': 'robot', 'status': status})
+        
 
     def publish_service_error(self, error_message):
         self.publish(self.service_error_topic, error_message)

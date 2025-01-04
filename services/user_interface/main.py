@@ -38,6 +38,14 @@ voice_button_states = {
     'human': False,
 }
 
+# Global variable to store connection status
+connection_status = {
+    'robot': False,
+    'wifi': False,
+    'mic': False,
+    'cam': False
+}
+
 dispatcher = EventDispatcher()
 
 communication_interface = CommunicationInterface(
@@ -50,6 +58,7 @@ communication_interface.socketio = socketio
 
 def _register_event_handlers():
     dispatcher.register_event("update_service_state", update_state)
+    dispatcher.register_event("update_connectoin_status", handle_status_update)
 
 implementationIntention = ""
 start_date = None
@@ -171,7 +180,6 @@ def reconnect():
     success = True  # Simulated for this example
     
     return jsonify({"status": "initiated", "message": "Reconnection process started"}), 202
-
 
 @app.route('/check_in')
 def check_in():
@@ -297,6 +305,33 @@ def start_check_in():
     communication_interface.start_check_in()
     return jsonify({'status': 'success', 'message': 'Check-In command sent'})
 # Asynchronous response returning true but the message channel closed before response received
+
+@app.route('/update_connection_status', methods=['POST'])
+def update_connection_status():
+    global connection_status
+    data = request.get_json()
+    key = data.get('key')
+    status = data.get('status')
+    
+    if key in connection_status:
+        connection_status[key] = status
+        return jsonify({'status': 'success', 'message': f'{key} status updated.'}), 200
+    
+    return jsonify({'status': 'error', 'message': 'Invalid key provided.'}), 400
+
+@app.route('/get_connection_status')
+def get_connection_status():
+    return jsonify(connection_status)
+
+def handle_status_update(data):
+    global connection_status
+    key = data.get('key')
+    status = data.get('status')
+    logger.info(f"Received status update for {key}: {status}")
+    
+    if key in connection_status:
+        connection_status[key] = status
+        socketio.emit('connection_status_update', connection_status)
 
 @socketio.on('disconnect')
 def handle_disconnect():

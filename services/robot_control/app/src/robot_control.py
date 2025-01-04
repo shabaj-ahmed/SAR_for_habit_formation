@@ -40,7 +40,7 @@ class VectorRobotController:
             else:
                 self.max_retries = 1
                 self.timeout = 8
-                
+
             while attempt_counter < self.max_retries:
                 thread = None
                 result = None
@@ -73,6 +73,7 @@ class VectorRobotController:
                     # Function completed successfully
                     self.logger.info("function executed sucessfully")
                     warning_timer.cancel()
+                    self.communication_interface.publish_robot_connection_status("connected")
                     return result
                 else:
                     self.logger.warning(f"{func.__name__} did not complete in time (timeout).")
@@ -100,6 +101,7 @@ class VectorRobotController:
                         time.sleep(RETRY_DELAY)
             
             self.communication_interface.publish_service_error({"message": "Connection to robot lost.\nEnsure the robot and router are turned on.", "response": "reconnect"})
+            self.communication_interface.publish_robot_connection_status("disconnected")
             # Exhausted retries
             self.logger.error(f"Failed to execute {func.__name__} after {self.max_retries} retries.")
             return False

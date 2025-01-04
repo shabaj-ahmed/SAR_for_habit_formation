@@ -44,6 +44,7 @@ class CommunicationInterface(MQTTClientBase):
         self.robot_service_status_topic = "robot_status"
         self.robot_control_status_topic = "robot_control_status"
         self.service_error_topic = "service_error"
+        self.robot_connection_status_topic = "robot_connection_status"
 
         # Subscribe to necessary topics
         self.subscribe(self.service_status_requested_topic, self._respond_with_service_status)
@@ -197,3 +198,11 @@ class CommunicationInterface(MQTTClientBase):
             "service_name": "robot_control"
             }
         self.publish("error_message", json.dumps(payload))
+
+    def publish_robot_connection_status(self, status):
+        self.logger.info(f"Robot connection status = {status}")
+        self.publish(self.robot_connection_status_topic, json.dumps({
+            "service_name": "robot_control",
+            "status": status,
+            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+        }))
