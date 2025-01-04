@@ -7,7 +7,6 @@ class NetworkMonitor:
         self.threads = None
         self.speed_test = speedtest.Speedtest()
         self.dispatcher = event_dispatcher
-        self._register_event_handlers()
 
     def get_servers(self):
         self.speed_test.get_servers(self.servers)
