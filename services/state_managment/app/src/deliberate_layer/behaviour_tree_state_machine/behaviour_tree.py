@@ -110,8 +110,8 @@ class BehaviourTree:
         self.manage_behaviour()
 
         # Step 5: Update all active behaviours in the current branch
-        self.current_branch.update()
-
+        self.current_branch.update(self.current_state)
+    
     def check_finite_state_machine_event_queue(self):
         if self.finite_state_machine_event_queue.empty() is False:
             self.logger.info("Checking FSM event queue...")
@@ -130,9 +130,11 @@ class BehaviourTree:
                 elif state == 'Active':
                     self.transition_to_branch(self.behaviours[0])  # Reminder branch
                 elif state == 'Error':
+                    # Pause all behaviours somehow...
+                    # Send message to the orchestrator to handle the error
                     pass
                     # Handle error state if required
-
+    
     def check_if_all_services_are_running(self):
         self.logger.info("Checking if all services are Awake...")
         while True:
@@ -163,6 +165,7 @@ class BehaviourTree:
 
             # Publish "update_system_state" to the database
             self.communication_interface.behaviour_controller("database", "update_system_state")
+            self.communication_interface.behaviour_controller("peripherals", "set_up")
 
             time.sleep(1)
 

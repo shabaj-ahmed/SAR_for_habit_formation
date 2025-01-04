@@ -16,35 +16,73 @@ from shared_libraries.logging_config import setup_logger
 from shared_libraries.event_dispatcher import EventDispatcher
 
 def publish_heartbeat():
+    network_connection_timer = time.time()
+    network_speed_timer = time.time()
+    
     while True:
-        logger.info("Peripherals heartbeat")
-        # network_connection = network_monitor.check_internet_connection()
-        time.sleep(120)  # Publish heartbeat every 2 minutes
+        current_time = time.time()
+
+        # Check internet connection every 1 second
+        if current_time - network_connection_timer > 5:
+            logger.info("Checking network connection")
+            network_connection = network_monitor.check_internet_connection()
+            network_connection_timer = current_time
+
+        # Check internet speed every 2 seconds
+        if current_time - network_speed_timer > 60:
+            logger.info("Checking network speed")
+            network_speed = network_monitor.get_internet_speed()
+            network_speed_timer = current_time
+
+        time.sleep(0.1)
 
 if __name__ == "__main__":
     try:
-        setup_logger()
-
-        logger = logging.getLogger("Main")
-
-        dispatcher = EventDispatcher()
-
-        network_monitor = NetworkMonitor(
-            event_dispatcher=dispatcher
-        )
-
-        communication_interface = CommunicationInterface(
-                broker_address=str(os.getenv("MQTT_BROKER_ADDRESS")),
-                port=int(os.getenv("MQTT_BROKER_PORT")),
-                event_dispatcher=dispatcher
-            )
-
-        # Start heartbeat thread
-        heart_beat_thread = threading.Thread(target=publish_heartbeat, daemon=True)
-        heart_beat_thread.start()
-
         while True:
-            time.sleep(0.4)
+            try:
+                setup_logger()
+
+                logger = logging.getLogger("Main")
+
+                dispatcher = EventDispatcher()
+
+                network_monitor = NetworkMonitor(
+                    event_dispatcher=dispatcher
+                )
+
+                    # File "/Users/shabajahmed/Documents/PhD/Final study/SAR_for_habit_formation/services/peripherals/app/main.py", line 32, in <module>
+                    #     network_monitor = NetworkMonitor(
+                    # File "/Users/shabajahmed/Documents/PhD/Final study/SAR_for_habit_formation/services/peripherals/app/src/device_monitor.py", line 8, in __init__
+                    #     self.speed_test = speedtest.Speedtest()
+                    # File "/Users/shabajahmed/Documents/PhD/Final study/SAR_for_habit_formation/.venv/lib/python3.9/site-packages/speedtest.py", line 1095, in __init__
+                    #     self.get_config()
+                    # File "/Users/shabajahmed/Documents/PhD/Final study/SAR_for_habit_formation/.venv/lib/python3.9/site-packages/speedtest.py", line 1127, in get_config
+                    #     raise ConfigRetrievalError(e)
+                    # speedtest.ConfigRetrievalError: HTTP Error 403: Forbidden
+
+                communication_interface = CommunicationInterface(
+                        broker_address=str(os.getenv("MQTT_BROKER_ADDRESS")),
+                        port=int(os.getenv("MQTT_BROKER_PORT")),
+                        event_dispatcher=dispatcher
+                    )
+                
+                communication_interface.publish_peripherals_status("Awake")
+
+                # wait to recive set up command... before running this...
+                logger.info("Waiting for set up command")
+                while not communication_interface.start_command:
+                    logger.info("Set up command not recived")
+                    time.sleep(1)
+
+                # Start heartbeat thread
+                heart_beat_thread = threading.Thread(target=publish_heartbeat, daemon=True)
+                heart_beat_thread.start()
+
+                while True:
+                    time.sleep(0.4)
+
+            except Exception as e:
+                logger.error(f"Peripherals service threw the following Error: {e}")
 
     except KeyboardInterrupt as e:
         heart_beat_thread.join()
