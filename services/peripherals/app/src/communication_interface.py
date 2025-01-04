@@ -53,11 +53,7 @@ class CommunicationInterface(MQTTClientBase):
             cmd = payload.get("cmd", "")
             logging.info(f"peripherals received the command: {cmd}")
             self.logger.info(f"cmd = {cmd}")
-            if cmd == "check_network_speed":
-                self.dispatcher.dispatch_event(cmd)
-            elif cmd == "check_network_status":
-                self.dispatcher.dispatch_event(cmd)
-            elif cmd == "set_up":
+            if cmd == "set_up":
                 self.start_command = True
 
             status = {

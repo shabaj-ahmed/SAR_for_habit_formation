@@ -25,13 +25,12 @@ def publish_heartbeat():
         # Check internet connection every 1 second
         if current_time - network_connection_timer > 5:
             logger.info("Checking network connection")
-            network_connection = network_monitor.check_internet_connection()
+            network_monitor.check_internet_connection()
             network_connection_timer = current_time
-
         # Check internet speed every 2 seconds
         if current_time - network_speed_timer > 60:
             logger.info("Checking network speed")
-            network_speed = network_monitor.get_internet_speed()
+            network_monitor.check_internet_speed()
             network_speed_timer = current_time
 
         time.sleep(0.1)

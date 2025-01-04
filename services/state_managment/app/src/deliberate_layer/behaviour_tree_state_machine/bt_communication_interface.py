@@ -30,7 +30,8 @@ class CommunicationInterface(MQTTClientBase):
             "robot_control": "",
             "user_interface": "",
             "reminder": "",
-            "database": ""
+            "database": "",
+            "peripherals": ""
         }
 
         self.robot_behaviour_completion_status = {}
@@ -51,6 +52,7 @@ class CommunicationInterface(MQTTClientBase):
         self.conversation_history_topic = "conversation/history"
         self.send_reminder_topic = "start_reminder"
         self.database_status_topic = "database_status"
+        self.peripherals_status_topic = "peripherals_status"
 
         # Publish topics
         self.request_service_status_topic = "request/service_status"
@@ -76,6 +78,7 @@ class CommunicationInterface(MQTTClientBase):
         self.subscribe(self.reminder_status_topic, self._process_service_status)
         # self.subscribe(self.reminder_heartbeat_topic, self._process_heartbeat)
         self.subscribe(self.database_status_topic, self._process_service_status)
+        self.subscribe(self.peripherals_status_topic, self._process_service_status)
         self.subscribe(self.configure_topic, self._process_configurations)
         self.subscribe(self.service_error_topic, self._process_error_message)
         self.subscribe(self.robot_control_status_topic, self._process_robot_behaviour_status)
@@ -130,7 +133,7 @@ class CommunicationInterface(MQTTClientBase):
 
     def _process_error_message(self, client, userdata, message):
         self.logger.info("Processing error message")
-        self.criticalEvents['error'] = message.payload.decode()
+        # self.criticalEvents['error'] = message.payload.decode()
 
     def _process_robot_behaviour_status(self, client, userdata, message):
         payload = json.loads(message.payload.decode("utf-8"))
@@ -202,18 +205,6 @@ class CommunicationInterface(MQTTClientBase):
     def publish_reminder_sent(self, payload):
         self.logger.info("Saving reminder message to the database")
         self.publish(self.save_reminder_topic, json.dumps(payload))
-
-    def get_peripherals_status(self, peripheral_cmd):
-        self.logger.info(f"Getting peripherals status for command: {peripheral_cmd}")
-        self.publish(self.peripheral_control_cmd, json.dumps({"cmd": peripheral_cmd}))
-
-        if peripheral_cmd == "check_network_speed":
-            message = "Network speed is beeing checked"
-        elif peripheral_cmd == "check_network_status":
-            message = "Network status is beeing checked"
-        else:
-            message = "Connecting to the network"
-        self.publish_behaviour_status_update(message)
 
     def publish_behaviour_status_update(self, status):
         self.logger.info(f"Publishing behaviour status update: {status}")

@@ -21,12 +21,6 @@ class CheckInScenario:
         self.current_question = None
         self.next_question = None
         self.response = None
-        self.logger.info("Check-in scenario started")
-        self.communication_interface.get_peripherals_status("check_network_speed")
-        self.logger.info("Checked network speed")
-        self.communication_interface.get_peripherals_status("check_network_status")
-        self.logger.info("Checked network status")
-        time.sleep(10)
         pass
     
     def update(self):
@@ -280,3 +274,14 @@ class CheckInScenario:
 
     def is_complete(self):
             return self.complete
+    
+    def error(self):
+        self.logger.error("An error occurred while processing the check-in scenario.")
+        # self.communication_interface.publish_service_error("An error occurred while processing the check-in scenario.")
+        self.step = 0
+        return
+    
+    def resume(self):
+        self.logger.info("Resuming the check-in scenario.")
+        self.step = 1
+        return

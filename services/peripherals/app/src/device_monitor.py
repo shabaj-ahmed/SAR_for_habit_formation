@@ -9,11 +9,6 @@ class NetworkMonitor:
         self.dispatcher = event_dispatcher
         self._register_event_handlers()
 
-    def _register_event_handlers(self):
-        if self.dispatcher:
-            self.dispatcher.register_event("check_network_status", self.check_internet_connection)
-            self.dispatcher.register_event("check_network_speed", self.check_internet_speed)
-    
     def get_servers(self):
         self.speed_test.get_servers(self.servers)
     
@@ -38,6 +33,8 @@ class NetworkMonitor:
     def check_internet_speed(self):
         self.run_speed_test()
         results = self.get_results()
+        if results:
+            print(f"Download = {results['download']/1000000}Mbps and upload = {results['upload']/1000000}Mbps")
         self.dispatcher.dispatch_event("send_network_speed", results)
     
     def check_internet_connection(self):
@@ -47,7 +44,8 @@ class NetworkMonitor:
             if 'TP-Link_A5BE' in str(output):
                 print("Connected to the TP-Link_A5BE network")
                 self.dispatcher.dispatch_event("send_network_status", "connected")
-            print(f"Could not find the TP-Link_A5BE network in the output: {str(output)}")
+            else:
+                print(f"Could not find the TP-Link_A5BE network in the output: {str(output)}")
         except subprocess.CalledProcessError:
             # grep did not match any lines
             print("No wireless networks connected")
