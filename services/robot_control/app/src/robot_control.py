@@ -230,7 +230,7 @@ class VectorRobotController:
         status = "complete"
         try: 
             self.logger.info(f"In handel tts command func, text from {payload['sender']} is: {payload['content']}")
-            self.tts(payload["content"])
+            self._tts(payload["content"])
             # Add delay to allow the robot to finish speaking before sending completion status
             delay = len(payload["content"].split()) / 3 # Assuming robot can speak 3 words per second
             self.logger.info(f"Delaying for {delay} seconds")
@@ -258,7 +258,7 @@ class VectorRobotController:
 
     @run_if_robot_is_enabled
     @reconnect_on_fail
-    def tts(self, text):
+    def _tts(self, text):
         self.robot.behavior.say_text(text)
         return True
 
@@ -347,7 +347,7 @@ class VectorRobotController:
         self.robot.audio.set_master_volume(RobotVolumeLevel[volume])
 
         if not silent:
-            self.handle_tts_command(f"Volume has been set to {volume}")
+            self._tts(f"Volume has been set to {volume}")
 
         return True
 
