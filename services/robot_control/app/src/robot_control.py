@@ -69,7 +69,7 @@ class VectorRobotController:
                     self.communication_interface.publish_robot_connection_status("connected")
                     return result
                 else:
-                    self.logger.warning(f"{func.__name__} did not complete in time (timeout).")
+                    self.logger.warning(f"{func.__name__} did not complete in time ({self.timeout} timeout).")
                     # if self.connected:
                     #     self.connected = False
                     #     try:
@@ -163,12 +163,6 @@ class VectorRobotController:
                 elif command == "return_home":
                     self.logger.debug("Processing return home request")
                     self.drive_on_charger()
-                elif command == "enable_timeout":
-                    self.logger.debug("Processing enable timeout request")
-                    self.set_time_out("enable")
-                elif command == "disable_timeout":
-                    self.logger.debug("Processing disable timeout request")
-                    self.set_time_out("disable")
             except Exception as e:
                 self.logger.error(f"Error processing control command: {e}")
                 payload = {
@@ -386,7 +380,9 @@ class VectorRobotController:
 
     def set_time_out(self, command):
         self.max_retries = 1
-        if command == "enable":
+        if command == "enable_timeout":
             self.timeout = 8
-        elif command == "disable":
+        elif command == "disable_timeout":
             self.timeout = 90 # Usually the robot will throw an error well before this time
+
+        self.logger.info(f"Timeout set to {self.timeout} seconds and max_retries set to {self.max_retries}")
