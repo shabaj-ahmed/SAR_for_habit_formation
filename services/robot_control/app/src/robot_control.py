@@ -234,7 +234,7 @@ class VectorRobotController:
             # Add delay to allow the robot to finish speaking before sending completion status
             delay = len(payload["content"].split()) / 3 # Assuming robot can speak 3 words per second
             self.logger.info(f"Delaying for {delay} seconds")
-            time.sleep(delay)
+            time.sleep(int(delay))
         except Exception as e:
             self.logger.error(f"Error processing TTS command {e}")
             payload = {
