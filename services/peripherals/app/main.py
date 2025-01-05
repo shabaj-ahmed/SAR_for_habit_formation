@@ -49,16 +49,6 @@ if __name__ == "__main__":
                     event_dispatcher=dispatcher
                 )
 
-                    # File "/Users/shabajahmed/Documents/PhD/Final study/SAR_for_habit_formation/services/peripherals/app/main.py", line 32, in <module>
-                    #     network_monitor = NetworkMonitor(
-                    # File "/Users/shabajahmed/Documents/PhD/Final study/SAR_for_habit_formation/services/peripherals/app/src/device_monitor.py", line 8, in __init__
-                    #     self.speed_test = speedtest.Speedtest()
-                    # File "/Users/shabajahmed/Documents/PhD/Final study/SAR_for_habit_formation/.venv/lib/python3.9/site-packages/speedtest.py", line 1095, in __init__
-                    #     self.get_config()
-                    # File "/Users/shabajahmed/Documents/PhD/Final study/SAR_for_habit_formation/.venv/lib/python3.9/site-packages/speedtest.py", line 1127, in get_config
-                    #     raise ConfigRetrievalError(e)
-                    # speedtest.ConfigRetrievalError: HTTP Error 403: Forbidden
-
                 communication_interface = CommunicationInterface(
                         broker_address=str(os.getenv("MQTT_BROKER_ADDRESS")),
                         port=int(os.getenv("MQTT_BROKER_PORT")),
@@ -82,6 +72,7 @@ if __name__ == "__main__":
 
             except Exception as e:
                 logger.error(f"Peripherals service threw the following Error: {e}")
+                time.sleep(2)
 
     except KeyboardInterrupt as e:
         heart_beat_thread.join()
