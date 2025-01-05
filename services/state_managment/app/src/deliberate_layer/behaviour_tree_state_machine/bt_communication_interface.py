@@ -214,6 +214,15 @@ class CommunicationInterface(MQTTClientBase):
         # }
         self.publish(self.behaviour_status_update_topic, status)
 
+    def behaviour_timeout(self, command):
+        payload = {
+            "service_name": "robot_control",
+            "cmd": command + "_timeout",
+            "time": time.strftime("%Y-%m-%d %H:%M:%S")
+        }
+        self.logger.info(f"Publishing service control command to {self.service_control_command_topic('robot_control')} with command: {command}")
+        self.publish(self.service_control_command_topic('robot_control'), json.dumps(payload))
+
     def behaviour_controller(self, service_name, cmd):
         payload = {
             "service_name": service_name,

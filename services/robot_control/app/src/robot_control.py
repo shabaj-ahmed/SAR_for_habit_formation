@@ -34,13 +34,6 @@ class VectorRobotController:
         def wrapper(self, *args, **kwargs):
             attempt_counter = 0
 
-            if func.__name__ == "connect":
-                self.max_retries = 10
-                self.timeout = 15
-            else:
-                self.max_retries = 1
-                self.timeout = 8
-
             while attempt_counter < self.max_retries:
                 thread = None
                 result = None
@@ -119,6 +112,8 @@ class VectorRobotController:
     @reconnect_on_fail
     def connect(self):
         """Wrapper for connection logic."""
+        self.timeout = 15
+        self.max_retries = 10
         self._direct_connect()
 
     def _direct_connect(self):
@@ -168,6 +163,12 @@ class VectorRobotController:
                 elif command == "return_home":
                     self.logger.debug("Processing return home request")
                     self.drive_on_charger()
+                elif command == "enable_timeout":
+                    self.logger.debug("Processing enable timeout request")
+                    self.set_time_out("enable")
+                elif command == "disable_timeout":
+                    self.logger.debug("Processing disable timeout request")
+                    self.set_time_out("disable")
             except Exception as e:
                 self.logger.error(f"Error processing control command: {e}")
                 payload = {
@@ -382,3 +383,10 @@ class VectorRobotController:
     def stop_video_stream(self):
         self.is_streaming = False
         self.robot.camera.close_camera_feed()
+
+    def set_time_out(self, command):
+        self.max_retries = 1
+        if command == "enable":
+            self.timeout = 8
+        elif command == "disable":
+            self.timeout = 90 # Usually the robot will throw an error well before this time

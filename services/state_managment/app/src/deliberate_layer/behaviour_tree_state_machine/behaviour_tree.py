@@ -41,6 +41,7 @@ class BehaviourTree:
         self.reminder_branch.add_service(UserInterface)
         self.reminder_branch.add_service(Reminder)
         self.reminder_branch.add_service(Databse)
+        self.reminder_branch.add_service(RobotController, priority="optional")
         self.add_branch(self.behaviours[0], self.reminder_branch)
 
         # Check-in
@@ -110,7 +111,7 @@ class BehaviourTree:
         self.manage_behaviour()
 
         # Step 5: Update all active behaviours in the current branch
-        self.current_branch.update(self.current_state)
+        self.current_branch.update(self.current_state) # The current_state is used to handel the error state
     
     def check_finite_state_machine_event_queue(self):
         if self.finite_state_machine_event_queue.empty() is False:
@@ -129,11 +130,6 @@ class BehaviourTree:
                     self.transition_to_branch(self.behaviours[0])  # Reminder branch
                 elif state == 'Active':
                     self.transition_to_branch(self.behaviours[0])  # Reminder branch
-                elif state == 'Error':
-                    # Pause all behaviours somehow...
-                    # Send message to the orchestrator to handle the error
-                    pass
-                    # Handle error state if required
     
     def check_if_all_services_are_running(self):
         self.logger.info("Checking if all services are Awake...")

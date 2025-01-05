@@ -12,7 +12,7 @@ class Leaf:
         self.comm_interface = communication_interface
         self.name = None
         self.priority = priority
-        self.branch = branch_name
+        self.branch_name = branch_name
     
     def set_up(self):
         pass
@@ -88,13 +88,15 @@ class RobotController(Leaf):
 
     def set_up(self):
         self.comm_interface.behaviour_controller(self.name, "set_up")
+        self.logger.info("Setting up robot controller")
+        if self.branch_name == "reminder" or self.branch_name == "check_in":
+            self.comm_interface.behaviour_timeout("disable")
 
     def start(self):
         # Face tracking
         # Autonomous roaming
         self.logger.info("Starting autonomous behaviour")
         self.comm_interface.behaviour_controller(self.name, "start")
-        pass
 
     def update(self):
         pass
@@ -102,7 +104,8 @@ class RobotController(Leaf):
     def end(self):
         self.logger.info("Exiting autonomous behaviour")
         self.comm_interface.behaviour_controller(self.name, "end")
-        pass
+        if self.branch_name == "reminder" or self.branch_name == "check_in":
+            self.comm_interface.behaviour_timeout("enable")
 
 class Reminder(Leaf):
     def __init__(self, communication_interface=None, priority='critical', branch_name=''):
@@ -172,4 +175,24 @@ class Configurations(Leaf):
 
     def end(self):
         self.logger.info("Exiting configuration page")
+        pass
+
+class Peripherals(Leaf):
+    def __init__(self, communication_interface=None, priority='critical', branch_name=''):
+        super().__init__(communication_interface, priority, branch_name)
+        self.logger = logging.getLogger(self.__class__.__name__)
+
+    def set_up(self):
+        pass
+
+    def start(self):
+        # Show configuration options in user interface and start robot behaviour configuration
+        self.logger.info("Starting peripherals service")
+        pass
+
+    def update(self):
+        pass
+
+    def end(self):
+        self.logger.info("Exiting peripherals service")
         pass
