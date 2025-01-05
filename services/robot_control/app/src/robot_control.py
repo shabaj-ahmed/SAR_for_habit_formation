@@ -105,6 +105,8 @@ class VectorRobotController:
         def wrapper(self, *args, **kwargs):
             if self.robot_enabled:
                 return func(self, *args, **kwargs)
+            else:
+                self.connected = True
             return None  # Or raise another custom exception if necessary
         return wrapper
     
@@ -126,10 +128,12 @@ class VectorRobotController:
     @run_if_robot_is_enabled
     @reconnect_on_fail
     def check_connection(self):
-        self.robot.get_battery_state()
+        battery_state = self.robot.get_battery_state()
+        print("Robot is on charger platform: {0}".format(battery_state.is_on_charger_platform))
         if not self.connected:
             self.logger.info(f"Failed to connect to the robot after multiple attempts. Ended with error {self.error}")
         self.logger.info("Battery checked and robot is, Connected successfully!")
+        return True
             
     def disconnect_robot(self):
         """Disconnects from the Vector robot."""
