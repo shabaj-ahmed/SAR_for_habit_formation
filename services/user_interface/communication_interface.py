@@ -50,6 +50,7 @@ class CommunicationInterface(MQTTClientBase):
         self.robot_connection_status_topic = "robot_connection_status"
         self.network_status_topic = "network_status"
         self.network_speed_topic = "network_speed"
+        self.restart_check_in_topic = "restart_check_in"
 
         # Publish topics
         self.user_interface_status_topic = "user_interface_status"
@@ -77,7 +78,8 @@ class CommunicationInterface(MQTTClientBase):
         self.subscribe(self.behaviour_status_update_topic, self._process_behaviour_status_update)
         self.subscribe(self.robot_connection_status_topic, self._process_robot_connection_status)
         self.subscribe(self.network_status_topic, self._process_network_connection_status)
-        self.subscribe(self.network_speed_topic, self._process_network_connection_speed)
+        # self.subscribe(self.network_speed_topic, self._process_network_connection_speed)
+        self.subscribe(self.restart_check_in_topic, self._restart_check_in)
 
         self._register_event_handlers()
 
@@ -162,7 +164,7 @@ class CommunicationInterface(MQTTClientBase):
     def _process_error_message(self, client, userdata, message):
         try:
             payload = json.loads(message.payload.decode("utf-8"))
-            self.logger.info(f"###################################RECIVED ERROR MESSAGE: {payload}")
+            self.logger.info(f"################################### RECIVED ERROR MESSAGE: {payload}")
             self.logger.info(f"Error message received on '{self.error_message_topic}, payload: {payload}")
             self.socketio.emit('error_message', payload)
         except json.JSONDecodeError as e:
@@ -190,14 +192,17 @@ class CommunicationInterface(MQTTClientBase):
     
     def _process_robot_connection_status(self, client, userdata, message):
         status = json.loads(message.payload.decode("utf-8")).get("status", "") == "connected"
-        self.logger.info(f"Robot connection status inn UI: {status}")
+        self.logger.info(f"Robot connection status in UI: {status}")
         self.dispatcher.dispatch_event("update_connectoin_status", {'key': 'robot', 'status': status})
 
     def _process_network_connection_status(self, client, userdata, message):
         status = json.loads(message.payload.decode("utf-8")).get("status", "") == "connected"
-        self.logger.info(f"Robot connection status inn UI: {status}")
+        self.logger.info(f"Network connection status in UI: {status}")
         self.dispatcher.dispatch_event("update_connectoin_status", {'key': 'wifi', 'status': status})
         
+    def _restart_check_in(self, client, userdata, message):
+        self.logger.info("Restarting check-in")
+        self.dispatcher.dispatch_event("restart_check_in")
 
     def publish_service_error(self, error_message):
         self.publish(self.service_error_topic, error_message)

@@ -12,7 +12,8 @@ class BehaviourBranch:
         self.behaviour_running = "disabled"
         self.orchestrator = orchestrator
         self.logger = logging.getLogger(self.__class__.__name__)
-
+        self.error_state = False  # Tracks if the branch is in an error state
+    
     def add_service(self, behaviour_class, priority='critical'):
         behaviour = behaviour_class(
             communication_interface = self.communication_interface,
@@ -20,7 +21,7 @@ class BehaviourBranch:
             branch_name = self.branch_name
             )
         self.services.append(behaviour)
-
+    
     def activate_behaviour(self):
         """Activate a specific behaviour by name"""
         # If all services are available, start the behaviour
@@ -54,7 +55,22 @@ class BehaviourBranch:
 
         self.behaviour_running = "standby" 
 
-    def update(self):
+    def update(self, fsm_state):
+        if fsm_state == "Error":
+            # Transition to error state
+            if self.orchestrator and not self.error_state:
+                self.logger.info("Pausing orchestrator due to error.")
+                self.orchestrator.error()
+                self.error_state = True
+            return
+        elif fsm_state == "Error" and self.error_state:
+            return
+        elif fsm_state != "Error" and self.error_state:
+            self.error_state = False
+            if self.orchestrator:
+                self.logger.info("Resuming orchestrator.")
+                self.orchestrator.resume()
+
         """Update all active behaviours in this branch"""
         for behaviour in self.services:
             # TODO: Check if critical behaviours are running
@@ -64,7 +80,6 @@ class BehaviourBranch:
         if self.behaviour_running == "standby" and self.communication_interface.get_behaviour_running_status()[self.branch_name] == "enabled":
             logging.info(f"{self.branch_name} is being requested to start")
             if self.orchestrator:
-                self.logger.info("Calling in orchestrator")
                 self.orchestrator.start()
                 self.behaviour_running = "running"
                 self.communication_interface.set_behaviour_running_status(self.branch_name, self.behaviour_running)
@@ -76,15 +91,17 @@ class BehaviourBranch:
             if self.orchestrator.is_complete():
                 # If the orchestrator signals completion, 
                 # handle that logic here (e.g., transition back to a default branch)
-                self.logger.info(f"{self.branch_name} scenario completed.")
+                # self.logger.info(f"{self.branch_name} scenario completed.")
                 # Possibly communicate to the BehaviourTree or set a flag.
-                # The BehaviourTree might detect this on the next update and transition out.
+                # The BehaviourTree might detect this on the next update and transition out.  
+                pass
 
     def deactivate_behaviour(self):
         """Deactivate a specific behaviour by name"""
         # Ensure all services has ended gracefully
         for behaviour in self.services:
             behaviour.end()
+            # call orchestrator.end to start a shut down sequence...
 
         if self.orchestrator:
             # if you have an end or reset method for orchestrator

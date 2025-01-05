@@ -21,12 +21,13 @@ from shared_libraries.event_dispatcher import EventDispatcher
 def publish_heartbeat():
     while True:
         # Publish robot controller heartbeat
-        logger.info("Robot controller heartbeat")
         time.sleep(15)  # Publish heartbeat every 30 seconds
         status = "disconnected"
         if controller.connected:
-            status = "connected"
+            robot_is_connected = controller.check_connection()
+            status = "connected" if robot_is_connected else "disconnected"
         communication_interface.publish_robot_connection_status(status)
+        logger.info(f"Robot controller heartbeat, the robot is currently {status}")
 
 
 if __name__ == '__main__':
@@ -46,10 +47,17 @@ if __name__ == '__main__':
         )
 
         controller.communication_interface = communication_interface
+        logger.info("Requesting a connection to the robot")
         controller.connect()
+        logger.info("Connection request has completed...")
         while not controller.connected:
             pass
         logger.info("################## Connected to robot}")
+        resutl = controller.check_connection()
+        logger.info(f"Robot connection result: {type(resutl)}")
+        # battery_level = resutl["battery_level"]
+        # is_on_charger_platform = resutl["is_on_charger_platform"]
+        # logger.info(f"battery_level: {battery_level} is_on_charger_platform: {is_on_charger_platform}")
         
         communication_interface.publish_robot_status("Awake")
 

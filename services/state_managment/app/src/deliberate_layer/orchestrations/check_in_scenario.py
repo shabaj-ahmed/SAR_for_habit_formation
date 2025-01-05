@@ -283,5 +283,6 @@ class CheckInScenario:
     
     def resume(self):
         self.logger.info("Resuming the check-in scenario.")
-        self.step = 1
+        # Publish a resume command to the UI to erace all the temporary memory in the current page
+        self.start()
         return

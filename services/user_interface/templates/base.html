@@ -53,7 +53,7 @@
                     <p>Some other text...</p>
                 </div>
                 <div class="modal-footer">
-                    <button onclick="reconnect()">Close</button>
+                    <button onclick="reconnect()">Reconnect</button>
                 </div>
             </div>
         </div>
@@ -70,6 +70,12 @@
 
         window.socket.on('error_message', (data) => {
             console.log('Error message received:', data);
+
+            const loadingState = document.querySelector('.loading-state');
+
+            if (loadingState) {
+                document.body.removeChild(loadingState); // Remove loading indicator if one is present
+            }
 
             // Get the modal and its content elements
             const modal = document.getElementById("myModal");
@@ -94,7 +100,18 @@
         // Close modal function
         function reconnect() {
             const modal = document.getElementById("myModal");
-            modal.style.display = "none";
+            modal.style.display = "none";  // Hide the error modal
+
+            // Create and display the loading indicator
+            const loadingState = document.createElement('div');
+            loadingState.classList.add('loading-state');
+            loadingState.innerHTML = `
+                <div class="column">
+                    <div class="loading"></div>
+                    <div id="loading-message">Attempting to reconnect...</div>
+                </div>
+            `;
+            document.body.appendChild(loadingState); // Append to the body
 
             // Display a loading indicator (optional)
             console.log("Attempting to reconnect...");
@@ -165,6 +182,23 @@
 
         window.socket.on('connection_status_update', (data) => {
             updateIndicators(data);
+
+            const loadingState = document.querySelector('.loading-state');
+            const modal = document.getElementById("myModal");
+
+            if (data.robot) {
+                // Connection restored
+                if (loadingState) {
+                    document.body.removeChild(loadingState); // Remove loading indicator
+                }
+                console.log("Robot successfully reconnected.");
+            } else {
+                // Still disconnected, show error modal
+                if (loadingState) {
+                    document.body.removeChild(loadingState);
+                }
+                modal.style.display = "flex"; // Show the error modal again
+            }
         });
 
     </script>

@@ -59,6 +59,7 @@ communication_interface.socketio = socketio
 def _register_event_handlers():
     dispatcher.register_event("update_service_state", update_state)
     dispatcher.register_event("update_connectoin_status", handle_status_update)
+    dispatcher.register_event("restart_check_in", restart_check_in_request)
 
 implementationIntention = ""
 start_date = None
@@ -132,6 +133,7 @@ def publish_heartbeat():
 # Start heartbeat thread
 threading.Thread(target=publish_heartbeat, daemon=True).start()
 
+# TODO: Add dialogue message handler to event dispatcher
 # message handler
 def dialogue_message_handler(message):
     # Format the message
@@ -149,6 +151,10 @@ def dialogue_message_handler(message):
 
 # Register the MQTT message handler
 communication_interface.message_callback = dialogue_message_handler
+
+def restart_check_in_request():
+    global chat_history
+    chat_history = []
 
 @app.route('/')
 def home():
