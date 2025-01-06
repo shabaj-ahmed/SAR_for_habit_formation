@@ -70,7 +70,7 @@ def initialise_persistent_database(session):
 def publish_heartbeat():
     while True:
         # Publish robot controller heartbeat
-        logger.info("Robot controller heartbeat")
+        logger.info("Database heartbeat")
         time.sleep(30)  # Publish heartbeat every 30 seconds
 
 if __name__ == "__main__":

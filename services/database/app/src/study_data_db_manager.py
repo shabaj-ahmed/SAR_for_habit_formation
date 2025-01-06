@@ -88,6 +88,8 @@ class StudyDatabaseManager:
                 total_duration_of_interaction="",
                 date=today_date,
                 reminder_message = "",
+                number_of_network_failures=0,
+                number_of_robot_crashes=0
             )
         
         study_meta.reminder_message = reminder_message
