@@ -61,6 +61,15 @@
     <!-- Global Scripts -->
     <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
     <script>
+        document.getElementById("main").addEventListener("mousemove", function() {
+            fetch('/wake_up_screen', { 
+                method: 'POST' 
+            })
+            .then(response => response.json())
+            .then(data => console.log(data))
+            .catch(error => console.error('Error sending screen wake up request', error));
+        });
+        
         window.socket = io();
 
         // Confirm connection

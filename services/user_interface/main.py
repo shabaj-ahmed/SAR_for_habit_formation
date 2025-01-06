@@ -164,6 +164,11 @@ def home():
         return render_template('system_boot_up.html')
     return render_template('home.html', implementationIntention=implementationIntention, days_remaining=days_remaining, reminder_time=reminder_time.strftime('%H:%M'), reminder_time_ampm=reminder_time_ampm)
 
+@app.route('/wake_up_screen', methods=['POST'])
+def wake_up_screen():
+    communication_interface.wake_up_screen()
+    return jsonify({'status': 'success', 'message': 'Screen woken up'}), 200
+
 @socketio.on('ui_ready')
 def handle_ui_ready():
     logger.info("UI is ready, sending system status update...")

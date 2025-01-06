@@ -56,9 +56,11 @@ def initialise_persistent_database(session):
             ServiceState(service_name="user_interface", state_name="reminder_time_hr", state_value=str(reminder_time["hours"])),
             ServiceState(service_name="user_interface", state_name="reminder_time_min", state_value=str(reminder_time["minutes"])),
             ServiceState(service_name="user_interface", state_name="reminder_time_ampm", state_value=reminder_time["ampm"]),
+            ServiceState(service_name="user_interface", state_name="brightness", state_value="100"),
 
             ServiceState(service_name="speech_recognition", state_name="user_name", state_value=str(configs.get_user_name())),
 
+            ServiceState(service_name="peripherals", state_name="brightness", state_value="100"),
         ]
         
         session.add_all(service_states)
@@ -66,7 +68,6 @@ def initialise_persistent_database(session):
         session.commit()
         print("ServiceState database initialized with default values.")
         
-
 def publish_heartbeat():
     while True:
         # Publish robot controller heartbeat

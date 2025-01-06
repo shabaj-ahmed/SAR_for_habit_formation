@@ -1,6 +1,6 @@
 import time
 import threading
-from src.device_monitor import NetworkMonitor
+from src.device_monitors import NetworkMonitor, ScreenMonitor
 from src.communication_interface import CommunicationInterface
 
 import logging
@@ -22,16 +22,16 @@ def publish_heartbeat():
     while True:
         current_time = time.time()
 
-        # Check internet connection every 1 second
         if current_time - network_connection_timer > 5:
             logger.info("Checking network connection")
             network_monitor.check_internet_connection()
             network_connection_timer = current_time
-        # Check internet speed every 2 seconds
         if current_time - network_speed_timer > 60:
             logger.info("Checking network speed")
             network_monitor.check_internet_speed()
             network_speed_timer = current_time
+        
+        screen_monitor.check_for_screen_timeout()
 
         time.sleep(0.1)
 
@@ -46,6 +46,10 @@ if __name__ == "__main__":
                 dispatcher = EventDispatcher()
 
                 network_monitor = NetworkMonitor(
+                    event_dispatcher=dispatcher
+                )
+
+                screen_monitor = ScreenMonitor(
                     event_dispatcher=dispatcher
                 )
 

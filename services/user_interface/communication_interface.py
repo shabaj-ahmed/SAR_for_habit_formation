@@ -59,6 +59,7 @@ class CommunicationInterface(MQTTClientBase):
         self.save_check_in_topic = "save_check_in"
         self.service_error_topic = "service_error"
         self.reconnect_request_topic = "reconnect_robot_request"
+        self.wake_up_screen_topic = "wake_up_screen"
 
         # Subscriber and publisher topics
         self.check_in_controls_topic = "check_in_controller"
@@ -233,6 +234,11 @@ class CommunicationInterface(MQTTClientBase):
         self.publish(self.user_interface_status_topic, json.dumps(payload))
 
         self.service_status = status
+
+
+    def wake_up_screen(self):
+        self.logger.info("Waking up screen")
+        self.publish(self.wake_up_screen_topic, json.dumps({"cmd": "wake_up"}))
 
     def save_check_in(self, check_in_data):
         self.publish(self.save_check_in_topic, json.dumps(check_in_data))

@@ -24,6 +24,8 @@ class CommunicationInterface(MQTTClientBase):
         # Subscription topics
         self.service_status_requested_topic = "request/service_status"
         self.control_cmd = "peripherals_control_cmd"
+        self.update_state_topic = "service/robot_control/update_state"
+        self.wake_up_screen_topic = "wake_up_screen"
 
         # Publish topics
         self.peripherals_status_topic = "peripherals_status"
@@ -35,6 +37,8 @@ class CommunicationInterface(MQTTClientBase):
         # subscribe to topics
         self.subscribe(self.service_status_requested_topic, self._respond_with_service_status)
         self.subscribe(self.control_cmd, self._handle_command)
+        self.subscribe(self.update_state_topic, self._update_service_state)
+        self.subscribe(self.wake_up_screen_topic, self._wake_up_screen)
 
         self._register_event_handlers()
 
@@ -66,6 +70,21 @@ class CommunicationInterface(MQTTClientBase):
             self.publish_peripherals_status(status[cmd])
         except Exception as e:
             logging.error(f"Error handling command: {e}")
+
+    def _update_service_state(self, client, userdata, message):
+        try:
+            payload = json.loads(message.payload.decode("utf-8"))
+            state_name = payload.get("state_name", "")
+            state = payload.get("state_value", [])
+            self.logger.info(f"Received state update for {state_name}: {state}")
+            self.dispatcher.dispatch_event("update_state_variable", payload)
+            self.service_status = "set_up"
+        except json.JSONDecodeError:
+            self.logger.error("Invalid JSON payload for updating service state. Using default retry parameters.")
+
+    def _wake_up_screen(self, client, userdata, message):
+        self.logger.info("Waking up screen")
+        self.dispatcher.dispatch_event("reset_sleep_timer")
 
     def publish_peripherals_status(self, status, message = "", details = None):
         self.service_status = status
