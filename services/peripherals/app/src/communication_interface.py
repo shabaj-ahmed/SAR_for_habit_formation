@@ -24,7 +24,7 @@ class CommunicationInterface(MQTTClientBase):
         # Subscription topics
         self.service_status_requested_topic = "request/service_status"
         self.control_cmd = "peripherals_control_cmd"
-        self.update_state_topic = "service/robot_control/update_state"
+        self.update_state_topic = "service/peripherals/update_state"
         self.wake_up_screen_topic = "wake_up_screen"
 
         # Publish topics
@@ -76,7 +76,7 @@ class CommunicationInterface(MQTTClientBase):
             payload = json.loads(message.payload.decode("utf-8"))
             state_name = payload.get("state_name", "")
             state = payload.get("state_value", [])
-            self.logger.info(f"Received state update for {state_name}: {state}")
+            self.logger.info(f"Peripherals service received state update for {state_name}: {state}")
             self.dispatcher.dispatch_event("update_state_variable", payload)
             self.service_status = "set_up"
         except json.JSONDecodeError:
