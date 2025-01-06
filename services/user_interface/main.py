@@ -96,19 +96,19 @@ def update_state(payload):
         if reminder_time_ampm == "PM" and reminder_time.hour < 12:
             reminder_time = reminder_time.replace(hour=reminder_time.hour + 12)
             logger.info(f"Reminder time updated: {reminder_time}")
-    elif state_name == "screen_brightness":
+    elif state_name == "brightness":
         brightness_value = int(payload.get("state_value", ""))
         logger.info(f"Brightness updated: {brightness_value}")
         # Map the brightness value from 1-255 to 1-100
         mapped_value = int((int(brightness_value) - 20) * 99 / 235 + 1)
-        # try:
-        #     subprocess.run(
-        #         f'echo {mapped_value} | sudo tee /sys/class/backlight/6-0045/brightness',
-        #         shell=True,
-        #         check=True
-        #     )
-        # except subprocess.CalledProcessError as e:
-        #     logger.error(f"Failed to set brightness: {e}")
+        try:
+            subprocess.run(
+                f'echo {mapped_value} | sudo tee /sys/class/backlight/6-0045/brightness',
+                shell=True,
+                check=True
+            )
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Failed to set brightness: {e}")
         logger.info(f"Mapped brightness value: {mapped_value}")
         # Emit the brightness value to connected clients
         socketio.emit('brightness_update', mapped_value)

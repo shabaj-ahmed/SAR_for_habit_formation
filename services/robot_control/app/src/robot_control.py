@@ -303,7 +303,7 @@ class VectorRobotController:
     def update_service_state(self, payload):
         state_name = payload.get("state_name", "")
         state = payload.get("state_value", "")
-        self.logger.info(f"Received state update for {state_name}: {state}")
+        self.logger.info(f"Robot controller received state update for {state_name}: {state}")
         if self.connected:
             if state_name == "robot_colour":
                 self.handle_eye_colour_command(state)
