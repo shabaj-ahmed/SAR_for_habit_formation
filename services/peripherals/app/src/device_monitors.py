@@ -83,7 +83,7 @@ class ScreenMonitor:
     
     def put_to_sleep(self):
         print("Putting screen to sleep")
-        for brightness in range(0, self.brightness, -1):
+        for brightness in range(self.brightness, 0, -1):
 
             # Map the brightness value from range 1-100 to 1-255
             mapped_value = int(20 + (int(brightness) - 1) * 235 / 99)
@@ -136,6 +136,7 @@ class ScreenMonitor:
     
     def wake_up_screen(self):
         if not self.is_screen_awake:
+            print("########################### Screen saver restarted ############################")
             self.wake_up()
             self.is_sleep_timer_enabled = True
             self.is_screen_awake = True
