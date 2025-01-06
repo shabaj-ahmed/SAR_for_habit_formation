@@ -64,6 +64,7 @@ class BehaviourTree:
         self.check_if_all_services_are_running()
 
     def _set_current_state(self, state):
+        # self.logger.info(f"treansitioning current state from {self.current_state} to {state}")
         self.current_state = state
 
     def get_current_state(self):
@@ -120,8 +121,13 @@ class BehaviourTree:
             
             # Set current state if it's different from the existing one
             if self.current_state in ['Sleep', 'Active'] or state in ['Sleep', 'Active']:
-                    # If the fsm transitions from sleep to active or vice versa, the branch won't change so don't transition
-                    self._set_current_state(state)
+                # If the fsm transitions from sleep to active or vice versa, the branch won't change so don't transition
+                self._set_current_state(state)
+            elif self.current_state == "Error" and state != "Error":
+                # Update FSM back to current bramch state
+                # self.behaviour_tree_event_queue.put({"state": self.current_branch.branch_name})
+                self._set_current_state(state) # Remove this line if the above line is uncommented
+                pass
             elif self.current_state != state:
                 self._set_current_state(state)
                 

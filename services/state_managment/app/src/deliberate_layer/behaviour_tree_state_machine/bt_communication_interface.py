@@ -63,7 +63,6 @@ class CommunicationInterface(MQTTClientBase):
         self.save_reminder_topic = "save_reminder"
         self.peripheral_control_cmd = "peripherals_control_cmd" # Replace with service_control_command_topic
         self.behaviour_status_update_topic = "behaviour_status_update"
-        self.restart_check_in_topic = "restart_check_in"
 
         # Subscriber and publisher topics
         self.check_in_controls_topic = "check_in_controller"
@@ -214,10 +213,6 @@ class CommunicationInterface(MQTTClientBase):
         #     "time": time.strftime("%Y-%m-%d %H:%M:%S")
         # }
         self.publish(self.behaviour_status_update_topic, status)
-
-    def publish_restart_check_in(self):
-        self.logger.info("Publishing restart check in")
-        self.publish(self.restart_check_in_topic, "1")
 
     def behaviour_timeout(self, command):
         payload = {

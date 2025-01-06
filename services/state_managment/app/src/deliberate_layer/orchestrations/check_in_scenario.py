@@ -17,7 +17,6 @@ class CheckInScenario:
         self.step = 1
         self.complete = False
         self.waiting_for_response = False
-        self.delay_start_time = None
         self.current_question = None
         self.next_question = None
         self.response = None
@@ -277,12 +276,13 @@ class CheckInScenario:
     
     def error(self):
         self.logger.error("An error occurred while processing the check-in scenario.")
-        # self.communication_interface.publish_service_error("An error occurred while processing the check-in scenario.")
-        self.step = 0
         return
     
     def resume(self):
         self.logger.info("Resuming the check-in scenario.")
-        # Publish a resume command to the UI to erace all the temporary memory in the current page
-        self.start()
+        # Restart the current step in the scenario
+        self.waiting_for_response = False
+        self.current_question = None
+        self.next_question = None
+        self.response = None
         return

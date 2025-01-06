@@ -12,7 +12,7 @@ class BehaviourBranch:
         self.behaviour_running = "disabled"
         self.orchestrator = orchestrator
         self.logger = logging.getLogger(self.__class__.__name__)
-        self.error_state = False  # Tracks if the branch is in an error state
+        self.branch_in_error_state = False  # Tracks if the branch is in an error state
     
     def add_service(self, behaviour_class, priority='critical'):
         behaviour = behaviour_class(
@@ -56,26 +56,30 @@ class BehaviourBranch:
         self.behaviour_running = "standby" 
 
     def update(self, fsm_state):
-        if fsm_state == "Error":
+        if fsm_state == "Error" and not self.branch_in_error_state:
             # Transition to error state
-            if self.orchestrator and not self.error_state:
+            if self.orchestrator:
                 self.logger.info("Pausing orchestrator due to error.")
                 self.orchestrator.error()
-                self.error_state = True
+                self.branch_in_error_state = True
             return
-        elif fsm_state == "Error" and self.error_state:
+        elif fsm_state == "Error" and self.branch_in_error_state:
+            self.logger.info("Branch is in error state.")
             return
-        elif fsm_state != "Error" and self.error_state:
-            self.error_state = False
+        elif fsm_state != "Error" and self.branch_in_error_state:
+            self.branch_in_error_state = False
+            for service in self.services:
+                service.set_up()
             if self.orchestrator:
                 self.logger.info("Resuming orchestrator.")
                 self.orchestrator.resume()
+            time.sleep(0.5)
 
         """Update all active behaviours in this branch"""
         for behaviour in self.services:
             # TODO: Check if critical behaviours are running
             behaviour.update()
-
+        
         # Check for behaviour start trigger
         if self.behaviour_running == "standby" and self.communication_interface.get_behaviour_running_status()[self.branch_name] == "enabled":
             logging.info(f"{self.branch_name} is being requested to start")
@@ -95,7 +99,7 @@ class BehaviourBranch:
                 # Possibly communicate to the BehaviourTree or set a flag.
                 # The BehaviourTree might detect this on the next update and transition out.  
                 pass
-
+        
     def deactivate_behaviour(self):
         """Deactivate a specific behaviour by name"""
         # Ensure all services has ended gracefully

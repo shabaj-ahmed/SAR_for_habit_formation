@@ -43,7 +43,7 @@ class CommunicationInterface(MQTTClientBase):
         self.video_topic = "robot/video_feed"
         self.robot_service_status_topic = "robot_status"
         self.robot_control_status_topic = "robot_control_status"
-        self.service_error_topic = "service_error"
+        self.publish_error_message_topic = "error_message"
         self.robot_connection_status_topic = "robot_connection_status"
 
         # Subscribe to necessary topics
@@ -192,16 +192,16 @@ class CommunicationInterface(MQTTClientBase):
 
         self.service_status = status
 
-    def publish_service_error(self, error):
+    def publish_error_message(self, error):
         # self.publish(self.service_error_topic, error_message)
         self.logger.info(f"sending error from robot controller: {error}")
         payload = {
-            "error_message": error["message"],
+            "error_message": error["error_message"],
             "response type": error["response"],
             "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
             "service_name": "robot_control"
             }
-        self.publish("error_message", json.dumps(payload))
+        self.publish(self.publish_error_message_topic, json.dumps(payload))
 
     def publish_robot_connection_status(self, status):
         self.logger.info(f"Robot connection status = {status}")
@@ -210,3 +210,6 @@ class CommunicationInterface(MQTTClientBase):
             "status": status,
             "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
         }))
+        # The only critical error that is being managed is the robot connection error, so every time the robot is connected ensure that all errors that might have been raised are resolved
+        if status == "connected":
+            self.publish("critical_event_resolved", "-")

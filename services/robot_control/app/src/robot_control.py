@@ -66,7 +66,6 @@ class VectorRobotController:
                     # Function completed successfully
                     self.logger.info("function executed sucessfully")
                     warning_timer.cancel()
-                    self.communication_interface.publish_robot_connection_status("connected")
                     return result
                 else:
                     self.logger.warning(f"{func.__name__} did not complete in time ({self.timeout} timeout).")
@@ -93,7 +92,11 @@ class VectorRobotController:
                         attempt_counter += 1
                         time.sleep(RETRY_DELAY)
             
-            self.communication_interface.publish_service_error({"message": "Connection to robot lost.\nEnsure the robot and router are turned on.", "response": "reconnect"})
+            self.communication_interface.publish_error_message({
+                "error_message": "Connection to robot lost.\nEnsure the robot and router are turned on.", 
+                "response": "reconnect",
+                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+                })
             self.communication_interface.publish_robot_connection_status("disconnected")
             # Exhausted retries
             self.logger.error(f"Failed to execute {func.__name__} after {self.max_retries} retries.")
@@ -124,6 +127,7 @@ class VectorRobotController:
         self.robot.connect()
         self.connected = True
         self.logger.info("Connected successfully!")
+        self.communication_interface.publish_robot_connection_status("connected")
 
     @run_if_robot_is_enabled
     @reconnect_on_fail
@@ -169,12 +173,6 @@ class VectorRobotController:
                     self.drive_on_charger()
             except Exception as e:
                 self.logger.error(f"Error processing control command: {e}")
-                payload = {
-                    "error": f"Error processing control command: {e}",
-                    "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-                    "service_name": "robot_control"
-                }
-                self.communication_interface.publish_service_error(payload)
                 status = "failed"
                 return RuntimeError(f"Failed to execute control command")
         else:
@@ -202,12 +200,8 @@ class VectorRobotController:
 
     @run_if_robot_is_enabled
     @reconnect_on_fail
-    def find_face(self):
-        # Ask user where are they
-        self.robot.behavior.say_text("where are you")
-        self.robot.behavior.find_faces()
-        # Let the user know you see them
-        # self.robot.behavior.turn_towards_face()
+    def follow_face(self):
+        self.robot.behavior.turn_towards_face()
         return True
 
     @run_if_robot_is_enabled
@@ -225,7 +219,6 @@ class VectorRobotController:
         self.robot.behavior.drive_on_charger()
         return True
 
-    
     def handle_tts_command(self, payload):
         status = "complete"
         try: 
@@ -237,12 +230,6 @@ class VectorRobotController:
             time.sleep(int(delay))
         except Exception as e:
             self.logger.error(f"Error processing TTS command {e}")
-            payload = {
-                "error": f"Error processing TTS command: {e}",
-                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-                "service_name": "robot_control"
-            }
-            self.communication_interface.publish_service_error(payload)
             status = "failed"
             return RuntimeError(f"Failed to execute TTS command after {self.max_retries} retries")
             
