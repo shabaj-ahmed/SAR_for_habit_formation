@@ -68,7 +68,7 @@ class ScreenMonitor:
         state_name = payload.get("state_name", "")
         state = payload.get("state_value", [])
         if state_name == "brightness":
-            self.brightness = state
+            self.brightness = int(state)
 
     def _configure_sleep_timer(self, control):
         self.is_sleep_timer_enabled = control
