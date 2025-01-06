@@ -110,7 +110,7 @@ class VectorRobotController:
                 return func(self, *args, **kwargs)
             else:
                 self.connected = True
-            return None  # Or raise another custom exception if necessary
+            return True  # Or raise another custom exception if necessary
         return wrapper
     
     @run_if_robot_is_enabled
