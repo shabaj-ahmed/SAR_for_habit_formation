@@ -101,7 +101,7 @@ class ScreenMonitor:
                 return f"send_service_error: {e}"
             
             time.sleep(0.004)
-        return f"Brightness successfully set to {mapped_value}",
+        return f"Brightness successfully dimmed",
     
     def wake_up(self):
         print("Waking up screen")
@@ -124,7 +124,7 @@ class ScreenMonitor:
                 return f"send_service_error: {e}"
             
             time.sleep(0.004)
-        return f"Brightness successfully set to {mapped_value}",
+        return f"Brightness successfully lit",
             
     def check_for_screen_timeout(self):
         if self.is_sleep_timer_enabled:
