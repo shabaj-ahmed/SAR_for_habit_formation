@@ -33,7 +33,7 @@ class ReminderController:
             self.logger.info(f"Study duration updated: {self.study_duration}")
         elif state_name == "reminder_time_hr":
             self.reminder_time = self.reminder_time.replace(hour=int(state_value))
-            self.logger.inf0(f"Reminder time updated to {self.reminder_time}")
+            self.logger.info(f"Reminder time updated to {self.reminder_time}")
         elif state_name == "reminder_time_min":
             self.reminder_time = self.reminder_time.replace(minute=int(state_value))
             self.logger.info(f"Reminder time updated to {self.reminder_time}")
