@@ -255,7 +255,7 @@ class CommunicationInterface(MQTTClientBase):
 
 
     def wake_up_screen(self):
-        self.logger.info("Waking up screen")
+        # self.logger.info("Waking up screen")
         self.publish(self.wake_up_screen_topic, json.dumps({"cmd": "wake_up"}))
 
     def save_check_in(self, check_in_data):
