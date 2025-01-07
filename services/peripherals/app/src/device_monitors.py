@@ -86,7 +86,7 @@ class ScreenMonitor:
         for brightness in range(self.brightness, 0, -1):
 
             # Map the brightness value from range 1-100 to 1-255
-            mapped_value = int(20 + (int(brightness) - 1) * 235 / 99)
+            mapped_value = int(20 + (int(brightness) - 10) * 235 / 99)
             
             try:
                 # Update the brightness using the mapped value
@@ -100,7 +100,7 @@ class ScreenMonitor:
                 # Return an error response if the command fails
                 return f"send_service_error: {e}"
             
-            time.sleep(0.004)
+            time.sleep(0.04)
 
             # Map the brightness value from range 1-100 to 20-235, which does not dim the screen completely, therefore setting brightness to 0s
             try:
