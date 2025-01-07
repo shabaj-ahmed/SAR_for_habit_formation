@@ -8,8 +8,8 @@
 <div class="settings-page">
     <div class="settings-container">
         <h2>User settings</h2>
-        <h4>When would you like to check in?</h4>
-        <p>Pick a time that suits you best</p>
+        <h4>When would you like to recive your reminder</h4>
+        <p id="reminder-time">Reminder time set to {{time}} {{ampm}}</p>
         <form action="/action_page">
 
             <!-- Time Picker -->
@@ -124,6 +124,10 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script>
 $(document).ready(function () {
+    window.socket.on('reminder_time_update', function (data) {
+        // Update the time and am/pm in the DOM
+        document.querySelector('#reminder-time').textContent = `Reminder time set to ${data.time} ${data.ampm}`;
+    });
 
     // ========================
     // Variables and Helpers

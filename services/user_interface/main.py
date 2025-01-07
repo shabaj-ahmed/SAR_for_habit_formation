@@ -110,8 +110,11 @@ def update_state(payload):
         except subprocess.CalledProcessError as e:
             logger.error(f"Failed to set brightness: {e}")
         logger.info(f"Mapped brightness value: {mapped_value}")
-        # Emit the brightness value to connected clients
-        socketio.emit('brightness_update', mapped_value)
+    
+    if state_name.startswith("reminder_time"):
+        reminder_time = reminder_time.replace(second=0, microsecond=0)
+        logger.info(f"Reminder time updated: {reminder_time}")
+        socketio.emit('reminder_time_update', {"time": reminder_time.strftime('%H:%M'), "ampm": reminder_time_ampm})
 
 def days_remaining():
     global days_remaining
@@ -238,6 +241,8 @@ def history():
 def settings():
     return render_template(
         'settings.html',
+        time = reminder_time.strftime('%H:%M'),
+        ampm = reminder_time_ampm,
         volume_button_states=volume_button_states,
         voice_button_states=voice_button_states,
         robot_enabled=os.getenv("ROBOT_ENABLED") == "True",
