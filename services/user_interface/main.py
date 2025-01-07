@@ -177,7 +177,7 @@ def handle_ui_ready():
     logger.info("UI is ready, sending system status update...")
 
     # Publish the UI status to the MQTT broker
-    communication_interface.publish_UI_status("Awake")
+    # communication_interface.publish_UI_status("set_up")
 
 @app.route('/reconnect', methods=['POST'])
 def reconnect():
