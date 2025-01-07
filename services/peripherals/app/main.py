@@ -24,11 +24,13 @@ def publish_heartbeat():
 
         if current_time - network_connection_timer > 5:
             logger.info("Checking network connection")
-            network_monitor.check_internet_connection()
+            if network_monitor:
+                network_monitor.check_internet_connection()
             network_connection_timer = current_time
         if current_time - network_speed_timer > 60:
             logger.info("Checking network speed")
-            network_monitor.check_internet_speed()
+            if network_monitor:
+                network_monitor.check_internet_speed()
             network_speed_timer = current_time
         
         screen_monitor.check_for_screen_timeout()
@@ -44,10 +46,15 @@ if __name__ == "__main__":
                 logger = logging.getLogger("Main")
 
                 dispatcher = EventDispatcher()
-
-                network_monitor = NetworkMonitor(
-                    event_dispatcher=dispatcher
-                )
+                
+                try:
+                    network_monitor = NetworkMonitor(
+                        event_dispatcher=dispatcher
+                    )
+                except Exception as e:
+                    logger.error(f"Network monitor failed to start with the following error: {e}")
+                    # Send a system error message to notify user on what to do
+                    network_monitor = None
 
                 screen_monitor = ScreenMonitor(
                     event_dispatcher=dispatcher
