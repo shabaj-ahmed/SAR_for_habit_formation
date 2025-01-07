@@ -19,7 +19,7 @@ class CommunicationInterface(MQTTClientBase):
         self.logger = logging.getLogger(self.__class__.__name__)
         self.dispatcher = event_dispatcher
 
-        self.service_status = "setting_up" # The UI is not active until the root page has loaded
+        self.service_status = "Awake"
 
         self.inputs = {
             'switch_state': False,
@@ -60,6 +60,7 @@ class CommunicationInterface(MQTTClientBase):
         self.service_error_topic = "service_error"
         self.reconnect_request_topic = "reconnect_robot_request"
         self.wake_up_screen_topic = "wake_up_screen"
+        self.update_persistent_data_topic = "update_persistent_data"
 
         # Subscriber and publisher topics
         self.check_in_controls_topic = "check_in_controller"
@@ -86,11 +87,12 @@ class CommunicationInterface(MQTTClientBase):
         self.dispatcher.register_event("send_service_error", self.publish_service_error)
 
     def _respond_with_service_status(self, client, userdata, message):
+        self.logger.info(f"service_status_requested_topic received, current status: {self.service_status}")
         self.publish_UI_status(self.service_status)
 
     def _update_system_status(self, client, userdata, message):
         serviceStatus = json.loads(message.payload.decode("utf-8"))
-        # self.logger.info(f"Service status dictionary: {serviceStatus}")
+        self.logger.info(f"User interface service status dictionary: {serviceStatus}")
 
         # Rename the keys to make it more user-friendly
         re_name_service = {
@@ -187,7 +189,7 @@ class CommunicationInterface(MQTTClientBase):
             payload = json.loads(message.payload.decode("utf-8"))
             state_name = payload.get("state_name", "")
             state = payload.get("state_value", "")
-            self.logger.info(f"Received state update for {state_name}: {state}")
+            self.logger.info(f"User interface received state update for {state_name}: {state}")
             self.dispatcher.dispatch_event("update_service_state", payload)           
             self.service_status = "set_up"
         except json.JSONDecodeError:
@@ -230,13 +232,16 @@ class CommunicationInterface(MQTTClientBase):
     
     def change_colour(self, selected_colour):
         self.logger.info(f"Sending colour change command: {selected_colour}")
-        self.publish(self.robot_colour_topic, selected_colour)
+        # self.publish(self.robot_colour_topic, selected_colour)
+        self.publish(self.update_persistent_data_topic, json.dumps({"service_name": "user_interface", "state_name": "robot_colour", "state_value": selected_colour}))
     
     def change_volume(self, volume):
         self.logger.info(f"Sending volume change command: {volume}")
-        self.publish(self.robot_volume_topic, volume)
+        # self.publish(self.robot_volume_topic, volume)
+        self.publish(self.update_persistent_data_topic, json.dumps({"service_name": "user_interface", "state_name": "robot_volume", "state_value": volume}))
 
     def publish_UI_status(self, status, message="", details=None):
+        self.logger.info(f"Publishing UI status: {status}")
         payload = {
             "service_name": "user_interface",
             "status": status,

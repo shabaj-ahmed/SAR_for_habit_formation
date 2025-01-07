@@ -24,7 +24,7 @@ class VectorRobotController:
         self.error = None
         self.max_retries = 1
         self.timeout = 8
-        # self.check_connection()
+        self.robot_states = {}
 
     def reconnect_on_fail(func):
         '''
@@ -128,6 +128,10 @@ class VectorRobotController:
         self.connected = True
         self.logger.info("Connected successfully!")
         self.communication_interface.publish_robot_connection_status("connected")
+
+        # Ensure the customisations are applied
+        for state_name, state_value in self.robot_states:
+            self.update_service_state({"state_name": state_name, "state_value": state_value})
 
     @run_if_robot_is_enabled
     @reconnect_on_fail
@@ -304,6 +308,7 @@ class VectorRobotController:
         state_name = payload.get("state_name", "")
         state = payload.get("state_value", "")
         self.logger.info(f"Robot controller received state update for {state_name}: {state}")
+        self.robot_states[state_name] = state
         if self.connected:
             if state_name == "robot_colour":
                 self.handle_eye_colour_command(state)
