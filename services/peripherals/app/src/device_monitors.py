@@ -101,6 +101,19 @@ class ScreenMonitor:
                 return f"send_service_error: {e}"
             
             time.sleep(0.004)
+
+            # Map the brightness value from range 1-100 to 20-235, which does not dim the screen completely, therefore setting brightness to 0s
+            try:
+                # Update the brightness using the mapped value
+                subprocess.run(
+                    f'echo 0 | sudo tee /sys/class/backlight/6-0045/brightness',
+                    shell=True,
+                    check=True
+                )
+                # Return a success response
+            except subprocess.CalledProcessError as e:
+                # Return an error response if the command fails
+                return f"send_service_error: {e}"
         return f"Brightness successfully dimmed",
     
     def wake_up(self):
