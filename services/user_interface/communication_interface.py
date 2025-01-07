@@ -91,6 +91,19 @@ class CommunicationInterface(MQTTClientBase):
     def _update_system_status(self, client, userdata, message):
         serviceStatus = json.loads(message.payload.decode("utf-8"))
         # self.logger.info(f"Service status dictionary: {serviceStatus}")
+
+        # Rename the keys to make it more user-friendly
+        re_name_service = {
+            "user_interface": "User Interface",
+            "speech_recognition": "Speech Recognition",
+            "peripherals": "Peripheral Devices",
+            "database": "Database",
+            "reminder": "Reminder",
+            "robot_control": "Study Condition",
+        }
+        for old_key, new_key in re_name_service.items():
+            serviceStatus[new_key] = serviceStatus.pop(old_key)
+
         self.socketio.emit('service_status', serviceStatus)
         self.system_status = serviceStatus
         still_loading = False
