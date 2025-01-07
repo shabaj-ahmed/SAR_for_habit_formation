@@ -27,26 +27,40 @@ class BehaviourBranch:
         # If all services are available, start the behaviour
         logging.info(f"Activating {self.branch_name} branch")
 
-        for service in self.services:
-            logging.info(f"{service.name} is in the {self.branch_name} behaviour branch" )
-
-        for service in self.services:
-            service.set_up()
-        
-        logging.info(f"Waiting for services to be available for {self.branch_name} branch")
-
-        # Wait until all services are available
-        waiting = True
+        retry_counter = 4
+        current_attempts = 1
         while True:
-            waiting = False
             for service in self.services:
-                serviceStatus = self.communication_interface.get_system_status()[service.name]
-                if serviceStatus != "ready":
-                    logging.info(f"{service.name} is not ready")
-                    waiting = True
-                time.sleep(0.2)
-            if not waiting: # Once all services are ready, continue with the behaviour
+                logging.info(f"{service.name} is in the {self.branch_name} behaviour branch" )
+
+            for service in self.services:
+                logging.info(f"Setting up {service.name} service")
+                service.set_up()
+
+            time.delay(0.5)
+            self.communication_interface.request_service_status()
+            
+            logging.info(f"Waiting for services to be available for {self.branch_name} branch")
+
+            # Wait until all services are available
+            waiting = True
+            while True:
+                waiting = False
+                for service in self.services:
+                    serviceStatus = self.communication_interface.get_system_status()[service.name]
+                    if serviceStatus != "ready":
+                        logging.info(f"{service.name} is not ready")
+                        current_attempts += 1
+                        waiting = True
+                    time.sleep(0.5)
+                if not waiting or current_attempts > retry_counter: # Once all services are ready, continue with the behaviour
+                    current_attempts = 1
+                    break
+            
+            if not waiting:
+                logging.info(f"Exiting waiting loop for {self.branch_name} branch")
                 break
+
         logging.info(f"All services are ready for {self.branch_name} branch")
         for service in self.services:
             service.start()
