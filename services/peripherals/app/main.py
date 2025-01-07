@@ -47,14 +47,9 @@ if __name__ == "__main__":
 
                 dispatcher = EventDispatcher()
                 
-                try:
-                    network_monitor = NetworkMonitor(
-                        event_dispatcher=dispatcher
-                    )
-                except Exception as e:
-                    logger.error(f"Network monitor failed to start with the following error: {e}")
-                    # Send a system error message to notify user on what to do
-                    network_monitor = None
+                network_monitor = NetworkMonitor(
+                    event_dispatcher=dispatcher
+                )
 
                 screen_monitor = ScreenMonitor(
                     event_dispatcher=dispatcher
@@ -83,7 +78,7 @@ if __name__ == "__main__":
 
             except Exception as e:
                 logger.error(f"Peripherals service threw the following Error: {e}")
-                time.sleep(2)
+                time.sleep(5)
 
     except KeyboardInterrupt as e:
         heart_beat_thread.join()
