@@ -37,7 +37,7 @@ class BehaviourBranch:
                 logging.info(f"Setting up {service.name} service")
                 service.set_up()
 
-            time.delay(0.5)
+            time.sleep(0.5)
             self.communication_interface.request_service_status()
             
             logging.info(f"Waiting for services to be available for {self.branch_name} branch")
