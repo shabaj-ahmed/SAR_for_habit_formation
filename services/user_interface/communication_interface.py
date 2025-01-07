@@ -237,7 +237,7 @@ class CommunicationInterface(MQTTClientBase):
     
     def change_volume(self, volume):
         self.logger.info(f"Sending volume change command: {volume}")
-        # self.publish(self.robot_volume_topic, volume)
+        self.publish(self.robot_volume_topic, volume)
         self.publish(self.update_persistent_data_topic, json.dumps({"service_name": "user_interface", "state_name": "robot_volume", "state_value": volume}))
 
     def publish_UI_status(self, status, message="", details=None):
