@@ -26,6 +26,7 @@ class CommunicationInterface(MQTTClientBase):
         self.control_cmd = "peripherals_control_cmd"
         self.update_state_topic = "service/peripherals/update_state"
         self.wake_up_screen_topic = "wake_up_screen"
+        self.configure_sleep_timer_topic = "configure_sleep_timer"
 
         # Publish topics
         self.peripherals_status_topic = "peripherals_status"
@@ -39,6 +40,7 @@ class CommunicationInterface(MQTTClientBase):
         self.subscribe(self.control_cmd, self._handle_command)
         self.subscribe(self.update_state_topic, self._update_service_state)
         self.subscribe(self.wake_up_screen_topic, self._wake_up_screen)
+        self.subscribe(self.configure_sleep_timer_topic, self._configure_sleep_timer)
 
         self._register_event_handlers()
 
@@ -85,6 +87,11 @@ class CommunicationInterface(MQTTClientBase):
     def _wake_up_screen(self, client, userdata, message):
         self.logger.info("Waking up screen")
         self.dispatcher.dispatch_event("reset_sleep_timer")
+
+    def _configure_sleep_timer(self, client, userdata, message):
+        self.logger.info("Configuring sleep timer")
+        configuration = message.payload.decode("utf-8")
+        self.dispatcher.dispatch_event("configure_sleep_timer", configuration)
 
     def publish_peripherals_status(self, status, message = "", details = None):
         self.service_status = status

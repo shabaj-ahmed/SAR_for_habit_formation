@@ -14,12 +14,14 @@ class CheckInScenario:
         self.complete = False
 
     def start(self):
+        self.logger.info("In orchestrator, checking if the check-in scenario is complete.")
         self.step = 1
         self.complete = False
         self.waiting_for_response = False
         self.current_question = None
         self.next_question = None
         self.response = None
+        self.communication_interface.configure_sleep_timer(False)
         pass
     
     def update(self):
@@ -133,6 +135,7 @@ class CheckInScenario:
             self.complete = True
             self.logger.info("Check-In Scenario Complete")
             self.step = 0
+            self.communication_interface.configure_sleep_timer(True)
             # Possibly also send completion signals if needed
             return
         
@@ -271,7 +274,7 @@ class CheckInScenario:
     # def save_response(question, response, summary=""):
         # Save the response to a database or file
 
-    def is_complete(self):
+    def is_complete(self):            
             return self.complete
     
     def error(self):

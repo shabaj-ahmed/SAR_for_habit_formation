@@ -63,6 +63,7 @@ class CommunicationInterface(MQTTClientBase):
         self.save_reminder_topic = "save_reminder"
         self.peripheral_control_cmd = "peripherals_control_cmd" # Replace with service_control_command_topic
         self.behaviour_status_update_topic = "behaviour_status_update"
+        self.configure_sleep_timer_topic = "configure_sleep_timer"
 
         # Subscriber and publisher topics
         self.check_in_controls_topic = "check_in_controller"
@@ -213,6 +214,10 @@ class CommunicationInterface(MQTTClientBase):
         #     "time": time.strftime("%Y-%m-%d %H:%M:%S")
         # }
         self.publish(self.behaviour_status_update_topic, status)
+
+    def configure_sleep_timer(self, configuration):
+        self.logger.info(f"Orchestrator is configuring sleep timer to {configuration}")
+        self.publish(self.configure_sleep_timer_topic, configuration)
 
     def behaviour_timeout(self, command):
         payload = {
