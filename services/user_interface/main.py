@@ -40,7 +40,7 @@ voice_button_states = {
 
 # Global variable to store connection status
 connection_status = {
-    'robot': False,
+    'robot': True, # Assume the robot is connected by default on startup
     'wifi': False,
     'mic': False,
     'cam': False
@@ -107,6 +107,7 @@ def update_state(payload):
                 shell=True,
                 check=True
             )
+            pass
         except subprocess.CalledProcessError as e:
             logger.error(f"Failed to set brightness: {e}")
         logger.info(f"Mapped brightness value: {mapped_value}")
