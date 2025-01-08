@@ -27,7 +27,7 @@ def publish_heartbeat():
             if network_monitor:
                 network_monitor.check_internet_connection()
             network_connection_timer = current_time
-        if current_time - network_speed_timer > 60:
+        if current_time - network_speed_timer > 180:
             logger.info("Checking network speed")
             if network_monitor:
                 network_monitor.check_internet_speed()
@@ -68,6 +68,10 @@ if __name__ == "__main__":
                 while not communication_interface.start_command:
                     logger.info("Set up command not recived")
                     time.sleep(1)
+
+                # Check network connection and speed before starting the heartbeat thread
+                network_monitor.check_internet_connection()
+                network_monitor.check_internet_speed()
 
                 # Start heartbeat thread
                 heart_beat_thread = threading.Thread(target=publish_heartbeat, daemon=True)
