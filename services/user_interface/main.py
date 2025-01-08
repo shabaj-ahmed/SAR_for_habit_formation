@@ -99,18 +99,16 @@ def update_state(payload):
     elif state_name == "brightness":
         brightness_value = int(payload.get("state_value", ""))
         logger.info(f"Brightness updated: {brightness_value}")
-        # Map the brightness value from 1-255 to 1-100
-        mapped_value = int((int(brightness_value) - 20) * 99 / 235 + 1)
         try:
-            # subprocess.run(
-            #     f'echo {mapped_value} | sudo tee /sys/class/backlight/6-0045/brightness',
-            #     shell=True,
-            #     check=True
-            # )
+            subprocess.run(
+                f'echo {brightness_value} | sudo tee /sys/class/backlight/6-0045/brightness',
+                shell=True,
+                check=True
+            )
             pass
         except subprocess.CalledProcessError as e:
             logger.error(f"Failed to set brightness: {e}")
-        logger.info(f"Mapped brightness value: {mapped_value}")
+        logger.info(f"Mapped brightness value: {brightness_value}")
     
     if state_name.startswith("reminder_time"):
         reminder_time = reminder_time.replace(second=0, microsecond=0)

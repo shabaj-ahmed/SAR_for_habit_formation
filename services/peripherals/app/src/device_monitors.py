@@ -55,6 +55,7 @@ class ScreenMonitor:
     def __init__(self, event_dispatcher):
         self.dispatcher = event_dispatcher
         self.brightness = 50
+        self.screen_dim_value = None
         self.is_sleep_timer_enabled = True
         self.is_screen_awake = True
         self.countdown = time.time()
@@ -82,72 +83,56 @@ class ScreenMonitor:
         self.wake_up_screen()
     
     def put_to_sleep(self):
-        print("Putting screen to sleep")
-        for brightness in range(self.brightness, 0, -1):
+        self.screen_dim_value = int(self.brightness) if self.screen_dim_value is None else self.screen_dim_value
 
-            # Map the brightness value from range 1-100 to 1-255
-            mapped_value = int(20 + (int(brightness) - 10) * 235 / 99)
-            
-            try:
-                # Update the brightness using the mapped value
-                # subprocess.run(
-                #     f'echo {mapped_value} | sudo tee /sys/class/backlight/6-0045/brightness',
-                #     shell=True,
-                #     check=True
-                # )
-                pass
-                # Return a success response
-            except subprocess.CalledProcessError as e:
-                # Return an error response if the command fails
-                return f"send_service_error: {e}"
-            
-            time.sleep(0.04)
+        # set new brightness
+        self.screen_dim_value = self.screen_dim_value - 10
 
-            # Map the brightness value from range 1-100 to 20-235, which does not dim the screen completely, therefore setting brightness to 0s
-            try:
-                # Update the brightness using the mapped value
-                # subprocess.run(
-                #     f'echo 0 | sudo tee /sys/class/backlight/6-0045/brightness',
-                #     shell=True,
-                #     check=True
-                # )
-                pass
-                # Return a success response
-            except subprocess.CalledProcessError as e:
-                # Return an error response if the command fails
-                return f"send_service_error: {e}"
-        return f"Brightness successfully dimmed",
+        # make sure the new brightness is not less than 0
+        if self.screen_dim_value > 0 and self.screen_dim_value <= 10:
+            self.screen_dim_value = 0
+        elif self.screen_dim_value <= 0:
+            return
+        
+        try:
+            subprocess.run(
+                f'echo {self.screen_dim_value} | sudo tee /sys/class/backlight/6-0045/brightness',
+                shell=True,
+                check=True
+            )
+            pass
+            # Return a success response
+        except subprocess.CalledProcessError as e:
+            # Return an error response if the command fails
+            return f"send_service_error: {e}"
+        
+        time.sleep(0.04)
+
+        print(f"Brightness successfully dimmed")
     
     def wake_up(self):
         print("Waking up screen")
         self.dispatcher.dispatch_event("send_screen_status", "awake")
-        for brightness in range(0, self.brightness):
-
-            # Map the brightness value from range 1-100 to 1-255
-            mapped_value = int(20 + (int(brightness) - 1) * 235 / 99)
-            
+        for brightness in range(0, self.brightness):            
             try:
-                # Update the brightness using the mapped value
-                # subprocess.run(
-                #     f'echo {mapped_value} | sudo tee /sys/class/backlight/6-0045/brightness',
-                #     shell=True,
-                #     check=True
-                # )
+                subprocess.run(
+                    f'echo {brightness} | sudo tee /sys/class/backlight/6-0045/brightness',
+                    shell=True,
+                    check=True
+                )
                 pass
-                # Return a success response
             except subprocess.CalledProcessError as e:
                 # Return an error response if the command fails
                 return f"send_service_error: {e}"
             
             time.sleep(0.004)
-        return f"Brightness successfully lit",
+            
+        print(f"Brightness successfully lit")
             
     def check_for_screen_timeout(self):
         if self.is_sleep_timer_enabled:
             if time.time() - self.countdown > 10:
                 self.put_to_sleep()
-                print("########################### Screen saver started ############################")
-                self.is_sleep_timer_enabled = False
                 self.is_screen_awake = False
     
     def wake_up_screen(self):
@@ -156,4 +141,5 @@ class ScreenMonitor:
             self.wake_up()
             self.is_sleep_timer_enabled = True
             self.is_screen_awake = True
+            self.screen_dim_value = None
             self.reset_sleep_timer()
