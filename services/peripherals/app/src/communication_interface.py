@@ -85,7 +85,7 @@ class CommunicationInterface(MQTTClientBase):
             self.logger.error("Invalid JSON payload for updating service state. Using default retry parameters.")
 
     def _wake_up_screen(self, client, userdata, message):
-        self.logger.info("Waking up screen")
+        # self.logger.info("Waking up screen")
         self.dispatcher.dispatch_event("reset_sleep_timer")
 
     def _configure_sleep_timer(self, client, userdata, message):
