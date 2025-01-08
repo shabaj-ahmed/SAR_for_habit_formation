@@ -1,14 +1,14 @@
 class StudyConfigs:
     def __init__(self):
-        self.start_date = "2024-12-20"
+        self.start_date = "2025-01-01"
         self.study_duration = 21
         self.user_name = "anonymous"
         self.reminder_time = {
-            "hours": 8,
+            "hours": 3,
             "minutes": 0,
-            "ampm": "AM"
+            "ampm": "PM"
         }
-        self.implementation_intention = ""
+        self.implementation_intention = "I will exercise for 30 minutes every day at 8:00 AM"
         self.system_sleep_timer = 5
     
     def get_study_duration(self):
