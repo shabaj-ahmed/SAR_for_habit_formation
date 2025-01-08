@@ -27,7 +27,7 @@ def publish_heartbeat():
             if network_monitor:
                 network_monitor.check_internet_connection()
             network_connection_timer = current_time
-        if current_time - network_speed_timer > 180:
+        if current_time - network_speed_timer > 60:
             logger.info("Checking network speed")
             if network_monitor:
                 network_monitor.check_internet_speed()
