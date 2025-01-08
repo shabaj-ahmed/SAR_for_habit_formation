@@ -102,11 +102,11 @@ def update_state(payload):
         # Map the brightness value from 1-255 to 1-100
         mapped_value = int((int(brightness_value) - 20) * 99 / 235 + 1)
         try:
-            subprocess.run(
-                f'echo {mapped_value} | sudo tee /sys/class/backlight/6-0045/brightness',
-                shell=True,
-                check=True
-            )
+            # subprocess.run(
+            #     f'echo {mapped_value} | sudo tee /sys/class/backlight/6-0045/brightness',
+            #     shell=True,
+            #     check=True
+            # )
             pass
         except subprocess.CalledProcessError as e:
             logger.error(f"Failed to set brightness: {e}")

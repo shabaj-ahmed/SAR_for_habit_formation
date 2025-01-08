@@ -90,11 +90,11 @@ class ScreenMonitor:
             
             try:
                 # Update the brightness using the mapped value
-                subprocess.run(
-                    f'echo {mapped_value} | sudo tee /sys/class/backlight/6-0045/brightness',
-                    shell=True,
-                    check=True
-                )
+                # subprocess.run(
+                #     f'echo {mapped_value} | sudo tee /sys/class/backlight/6-0045/brightness',
+                #     shell=True,
+                #     check=True
+                # )
                 pass
                 # Return a success response
             except subprocess.CalledProcessError as e:
@@ -128,11 +128,11 @@ class ScreenMonitor:
             
             try:
                 # Update the brightness using the mapped value
-                subprocess.run(
-                    f'echo {mapped_value} | sudo tee /sys/class/backlight/6-0045/brightness',
-                    shell=True,
-                    check=True
-                )
+                # subprocess.run(
+                #     f'echo {mapped_value} | sudo tee /sys/class/backlight/6-0045/brightness',
+                #     shell=True,
+                #     check=True
+                # )
                 pass
                 # Return a success response
             except subprocess.CalledProcessError as e:
