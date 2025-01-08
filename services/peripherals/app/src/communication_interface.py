@@ -61,6 +61,7 @@ class CommunicationInterface(MQTTClientBase):
             self.logger.info(f"cmd = {cmd}")
             if cmd == "set_up":
                 self.start_command = True
+                self.dispatcher.dispatch_event("configure_sleep_timer", True)
 
             status = {
                 "end": "ended",

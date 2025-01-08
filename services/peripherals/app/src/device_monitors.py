@@ -56,7 +56,7 @@ class ScreenMonitor:
         self.dispatcher = event_dispatcher
         self.brightness = 50
         self.screen_dim_value = None
-        self.is_sleep_timer_enabled = True
+        self.is_sleep_timer_enabled = False
         self.is_screen_awake = True
         self.countdown = time.time()
 
