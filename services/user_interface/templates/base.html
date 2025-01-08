@@ -31,6 +31,8 @@
             <div id="indicators">
                 <img id="connection-status" src="{{ url_for('static', filename='connected-icons8.png') }}" alt="Connection Status">
                 <img id="wifi-status" src="{{ url_for('static', filename='wifi-off_Freepik.png') }}" alt="WiFi Status">
+                <p id="wifi_download_speed">--</p>
+                <p id="wifi_upload_speed">--</p>
                 <img id="mic-status" src="{{ url_for('static', filename='microphone-off_Dave_Gandy.png') }}" alt="Mic Status">
                 <img id="cam-status" src="{{ url_for('static', filename='videocam_off_icon_small.png') }}" alt="Cam Status">
             </div>
@@ -187,6 +189,12 @@
             camStatus.src = data.cam
                 ? "{{ url_for('static', filename='videocam_icon_small.png') }}"
                 : "{{ url_for('static', filename='videocam_off_icon_small.png') }}";
+            
+            const wifiDownloadSpeed = document.getElementById('wifi_download_speed');
+            wifiDownloadSpeed.textContent = data.wifi_download_speed || '--';
+
+            const wifiUploadSpeed = document.getElementById('wifi_upload_speed');
+            wifiUploadSpeed.textContent = data.wifi_upload_speed || '--';
         }
 
         window.socket.on('connection_status_update', (data) => {

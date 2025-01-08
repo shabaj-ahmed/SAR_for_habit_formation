@@ -43,7 +43,9 @@ connection_status = {
     'robot': True, # Assume the robot is connected by default on startup
     'wifi': False,
     'mic': False,
-    'cam': False
+    'cam': False,
+    'wifi_download_speed': 0,
+    'wifi_upload_speed': 0,
 }
 
 dispatcher = EventDispatcher()
