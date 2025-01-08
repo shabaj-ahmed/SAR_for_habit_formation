@@ -229,7 +229,7 @@ class VectorRobotController:
             self.logger.info(f"In handel tts command func, text from {payload['sender']} is: {payload['content']}")
             self._tts(payload["content"])
             # Add delay to allow the robot to finish speaking before sending completion status
-            delay = len(payload["content"].split()) / 3 # Assuming robot can speak 3 words per second
+            delay = len(payload["content"].split()) / 3.5 # Assuming robot can speak 3.5 words per second, number chosen arbiteraly...
             self.logger.info(f"Delaying for {delay} seconds")
             time.sleep(int(delay))
         except Exception as e:
