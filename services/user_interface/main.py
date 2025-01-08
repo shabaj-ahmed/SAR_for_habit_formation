@@ -236,6 +236,7 @@ def history():
     # Step 1: Load history page and show loading spinner
     # Step 2: Fetch history data from database
     # Step 3: Display history data on page and hide loading spinner
+    communication_interface.request_study_history()
     return render_template('history.html')
 
 @app.route('/settings')

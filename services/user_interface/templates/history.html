@@ -8,24 +8,35 @@
 <div class="container">
     <h1 class="title">History</h1>
     <div class="history-container">
-        <div class="history-item">
-            <span class="number">1.</span>
-            <span class="date-time">
-                <span class="date">XX/XX/20XX</span> - <span class="time">XX:XX</span>
-            </span>
-        </div>
-        <div class="history-item">
-            <span class="number">2.</span>
-            <span class="date-time">
-                <span class="date">XX/XX/20XX</span> - <span class="time">XX:XX</span>
-            </span>
-        </div>
-        <div class="history-item">
-            <span class="number">3.</span>
-            <span class="date-time">
-                <span class="date">XX/XX/20XX</span> - <span class="time">XX:XX</span>
-            </span>
-        </div>
+        <!-- History items will be added here -->
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    window.socket.on('study_history', function (study_metadata)  {
+        console.log("Study history received:", study_metadata);
+
+        const historyContainer = document.querySelector('.history-container');
+        historyContainer.innerHTML = '';
+
+        study_metadata.forEach((study, index) => {
+            const historyItem = document.createElement('div');
+            historyItem.className = 'history-item';
+
+            const numberSpan = document.createElement('span');
+            numberSpan.className = 'number';
+            numberSpan.textContent = `${index + 1}.`;
+
+            const dateSpan = document.createElement('span');
+            dateSpan.className = 'date';
+            dateSpan.textContent = study.date || 'N/A'; // Use raw date value
+
+            historyItem.appendChild(numberSpan);
+            historyItem.appendChild(dateSpan);
+            historyContainer.appendChild(historyItem);
+        });
+    });
+</script>
 {% endblock %}

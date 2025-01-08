@@ -16,7 +16,8 @@ class StudyDatabaseManager:
         if self.dispatcher:
             self.dispatcher.register_event("save_check_in", self.save_check_in)
             self.dispatcher.register_event("create_new_reminder", self.create_new_reminder)
-
+            self.dispatcher.register_event("request_history", self.retrieve_history)
+    
     def save_check_in(self, responses):
         print("Saving check-in data")
 
@@ -97,3 +98,22 @@ class StudyDatabaseManager:
         self.session.add(study_meta)
         self.session.commit()  # Commit to generate an ID for the new StudyMeta
         self.session.refresh(study_meta)
+
+    def retrieve_history(self):
+        print("Retrieving history")
+        statement = select(StudyMeta)
+        study_meta_list = self.session.exec(statement).all()
+        if not study_meta_list:
+            return None
+        
+        serialised_data = []
+        
+        for row in study_meta_list:
+            serialised_data.append(
+                {
+                    "date": row.date,
+                }
+            )
+            
+        print(f"Retrieved history: {serialised_data}")
+        self.dispatcher.dispatch_event("send_history", serialised_data)

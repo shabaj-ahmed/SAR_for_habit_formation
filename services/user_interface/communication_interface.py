@@ -50,6 +50,7 @@ class CommunicationInterface(MQTTClientBase):
         self.robot_connection_status_topic = "robot_connection_status"
         self.network_status_topic = "network_status"
         self.network_speed_topic = "network_speed"
+        self.study_history_topic = "study_history"
 
         # Publish topics
         self.user_interface_status_topic = "user_interface_status"
@@ -61,6 +62,7 @@ class CommunicationInterface(MQTTClientBase):
         self.reconnect_request_topic = "reconnect_robot_request"
         self.wake_up_screen_topic = "wake_up_screen"
         self.update_persistent_data_topic = "update_persistent_data"
+        self.service_control_cmd = "database_control_cmd"
 
         # Subscriber and publisher topics
         self.check_in_controls_topic = "check_in_controller"
@@ -80,6 +82,7 @@ class CommunicationInterface(MQTTClientBase):
         self.subscribe(self.robot_connection_status_topic, self._process_robot_connection_status)
         self.subscribe(self.network_status_topic, self._process_network_connection_status)
         # self.subscribe(self.network_speed_topic, self._process_network_connection_speed)
+        self.subscribe(self.study_history_topic, self._process_study_history)
 
         self._register_event_handlers()
 
@@ -214,6 +217,15 @@ class CommunicationInterface(MQTTClientBase):
         self.logger.info(f"Network connection status in UI: {status}")
         self.dispatcher.dispatch_event("update_connectoin_status", {'key': 'wifi', 'status': status})
 
+    def _process_study_history(self, client, userdata, message):
+        try:
+            payload = json.loads(message.payload.decode("utf-8"))
+            self.logger.info(f"Study history received: {payload}")
+            time.sleep(1)
+            self.socketio.emit('study_history', payload)
+        except json.JSONDecodeError as e:
+            self.logger.error(f"Error decoding JSON payload: {e}")
+
     def publish_service_error(self, error_message):
         self.publish(self.service_error_topic, error_message)
 
@@ -253,6 +265,12 @@ class CommunicationInterface(MQTTClientBase):
 
         self.service_status = status
 
+    def request_study_history(self):
+        self.logger.info("Requesting study history")
+        payload = {
+            "cmd": "request_history"
+        }
+        self.publish(self.service_control_cmd, json.dumps(payload))
 
     def wake_up_screen(self):
         # self.logger.info("Waking up screen")
