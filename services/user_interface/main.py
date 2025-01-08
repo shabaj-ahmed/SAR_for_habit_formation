@@ -293,6 +293,7 @@ def brightness_slider_change(brightness_value):
             shell=True,
             check=True
         )
+        communication_interface.change_brightness(mapped_value)
         # Return a success response
         return f"Brightness successfully set to {mapped_value}", 200
     except subprocess.CalledProcessError as e:

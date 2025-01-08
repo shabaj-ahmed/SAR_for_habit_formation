@@ -86,7 +86,7 @@ class ScreenMonitor:
         self.screen_dim_value = int(self.brightness) if self.screen_dim_value is None else self.screen_dim_value
 
         # set new brightness
-        self.screen_dim_value = self.screen_dim_value - 10
+        self.screen_dim_value = self.screen_dim_value - 5
 
         # make sure the new brightness is not less than 0
         if self.screen_dim_value > 0 and self.screen_dim_value <= 10:
@@ -126,7 +126,7 @@ class ScreenMonitor:
                 return f"send_service_error: {e}"
             
             time.sleep(0.004)
-            
+
         print(f"Brightness successfully lit")
             
     def check_for_screen_timeout(self):
