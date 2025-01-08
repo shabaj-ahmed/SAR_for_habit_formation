@@ -59,10 +59,27 @@ body, html {
     box-sizing: border-box; /* Ensure height includes borders and padding */
 }
 
-#indicators img {
+/* #indicators img {
     width: 30px;
     height: 30px;
     margin-left: 10px;
+} */
+
+#indicators {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Adjust spacing between elements */
+}
+
+#indicators img {
+    width: 30px; /* Set an appropriate width for the icons */
+    height: auto; /* Maintain aspect ratio */
+    margin-left: 10px;
+}
+
+#indicators p {
+    margin: 0; /* Remove default margin for inline alignment */
+    padding: 0; /* Optional: remove padding if needed */
 }
 
 /* Side Navigation */

@@ -117,8 +117,12 @@ class CommunicationInterface(MQTTClientBase):
         }
         self.publish(self.network_status_topic, json.dumps(message))
 
-    def publish_network_speed(self, speed):
-        self.publish(self.network_speed_topic, json.dumps(speed))
+    def publish_network_speed(self, results):
+        payload = {
+            "download": int(results["download"]/1000000),
+            "upload": int(results["upload"]/1000000,)
+        }
+        self.publish(self.network_speed_topic, json.dumps(payload))
     
     def publish_service_error(self, error_message):
         payload = {

@@ -221,7 +221,6 @@ class CommunicationInterface(MQTTClientBase):
         download_speed = json.loads(message.payload.decode("utf-8")).get("download", 0)
         upload_speed = json.loads(message.payload.decode("utf-8")).get("upload", 0)
         self.logger.info(f"Network connection speed in UI: Download = {download_speed}Mbps, Upload = {upload_speed}Mbps")
-        self.dispatcher.dispatch_event("update_network_speed", {'download': download_speed, 'upload': upload_speed})
         self.dispatcher.dispatch_event("update_connectoin_status", {'key': 'wifi_download_speed', 'status': download_speed})
         self.dispatcher.dispatch_event("update_connectoin_status", {'key': 'wifi_upload_speed', 'status': upload_speed})
 
