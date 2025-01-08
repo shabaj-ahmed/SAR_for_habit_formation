@@ -22,7 +22,7 @@
 <script>
     let progress = 0; // Track current progress
     let totalServices = 0; // Track the total number of services dynamically
-    const pendingServices = new Set(); // Keep track of services that are not yet awake
+    const pendingServices = new Set(); // Keep track of services that are not yet awake and set up
 
     // Progress bar and text elements
     const progressBar = document.getElementById("myBar");
@@ -44,11 +44,14 @@
         console.log("Received service status:", serviceStatus);
 
         // Update the total services dynamically
-        totalServices = Object.keys(serviceStatus).length;
+        totalServices = Object.keys(serviceStatus).length * 2; // Multiply by 2 to account for setup and awake states
 
         // Process the service statuses
         for (const [service, status] of Object.entries(serviceStatus)) {
-            if (status === "set_up") {
+            if (status === "Awake") {
+                // Remove the service from the pending set if it's Awake
+                pendingServices.delete(service);
+            } else if (status === "set_up") {
                 // Remove the service from the pending set if it's Awake
                 pendingServices.delete(service);
             } else {

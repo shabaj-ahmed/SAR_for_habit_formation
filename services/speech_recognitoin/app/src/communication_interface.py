@@ -30,7 +30,6 @@ class CommunicationInterface(MQTTClientBase):
         # Subscription topics
         self.service_status_requested_topic = "request/service_status"
         self.control_cmd = "speech_recognition_control_cmd"
-        self.record_response_topic = "speech_recognition/record_response"
         self.update_state_topic = "service/speech_recognition/update_state"
 
         # Publish topics
@@ -45,7 +44,6 @@ class CommunicationInterface(MQTTClientBase):
         # subscribe to topics
         self.subscribe(self.service_status_requested_topic, self._respond_with_service_status)
         self.subscribe(self.control_cmd, self._handle_command)
-        self.subscribe(self.record_response_topic, self._handle_record_response)
         self.subscribe(self.update_state_topic, self._update_service_state)
 
     def _respond_with_service_status(self, client, userdata, message):
@@ -62,6 +60,9 @@ class CommunicationInterface(MQTTClientBase):
                 self.command = ""
             elif cmd == "set_up" or cmd == "start":
                 self.command = cmd
+            elif cmd == "open-ended" or cmd =="short":
+                self.collect_response = True
+                self.format = message.payload.decode("utf-8")
             else:
                 self.command = ""
         except json.JSONDecodeError:
@@ -70,21 +71,18 @@ class CommunicationInterface(MQTTClientBase):
         status = {
             "set_up": "ready",
             "start": "running",
-            "end": "completed"
+            "end": "completed",
+            "open-ended": "running",
+            "short": "running"
         }
 
         self.publish_speech_recognition_status(status[cmd])
-
-    def _handle_record_response(self, client, userdata, message):
-        self.collect_response = True
-        self.format = message.payload.decode("utf-8")
-
     def _update_service_state(self, client, userdata, message):
         try:
             payload = json.loads(message.payload.decode("utf-8"))
             state_name = payload.get("state_name", "")
             state = payload.get("state_value", [])
-            self.logger.info(f"Received state update for {state_name}: {state}")
+            self.logger.info(f"Speach recognitino received state update for {state_name}: {state}")
             # self.dispatcher.dispatch_event("update_service_state", payload)
             self.service_status = "set_up"
         except json.JSONDecodeError:

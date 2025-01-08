@@ -1,5 +1,4 @@
 from src.communication_interface import CommunicationInterface
-from src.event_dispatcher import EventDispatcher
 from src.study_data_db_manager import StudyDatabaseManager
 from src.persistent_data_db_manager import PersistentDataManager
 from src.persistent_data_db_schema import ServiceState
@@ -19,6 +18,7 @@ sys.path.insert(0, project_root)
 
 from configurations.initial_configurations import StudyConfigs
 from shared_libraries.logging_config import setup_logger
+from shared_libraries.event_dispatcher import EventDispatcher
 
 def initialise_persistent_database(session):
     # Load the initial configurations
@@ -56,9 +56,11 @@ def initialise_persistent_database(session):
             ServiceState(service_name="user_interface", state_name="reminder_time_hr", state_value=str(reminder_time["hours"])),
             ServiceState(service_name="user_interface", state_name="reminder_time_min", state_value=str(reminder_time["minutes"])),
             ServiceState(service_name="user_interface", state_name="reminder_time_ampm", state_value=reminder_time["ampm"]),
+            ServiceState(service_name="user_interface", state_name="brightness", state_value="100"),
 
             ServiceState(service_name="speech_recognition", state_name="user_name", state_value=str(configs.get_user_name())),
 
+            ServiceState(service_name="peripherals", state_name="brightness", state_value="100"),
         ]
         
         session.add_all(service_states)
@@ -66,11 +68,10 @@ def initialise_persistent_database(session):
         session.commit()
         print("ServiceState database initialized with default values.")
         
-
 def publish_heartbeat():
     while True:
         # Publish robot controller heartbeat
-        logger.info("Robot controller heartbeat")
+        logger.info("Database heartbeat")
         time.sleep(30)  # Publish heartbeat every 30 seconds
 
 if __name__ == "__main__":

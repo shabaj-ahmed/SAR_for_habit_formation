@@ -34,6 +34,7 @@ class CommunicationInterface(MQTTClientBase):
         self.robot_control_state_topic = "robot_control_state"
         self.voice_assistant_state_topic = "voice_assistant_state"
         self.user_interface_state_topic = "user_interface_state"
+        self.study_history_topic = "study_history"
 
         # Subscribe to necessary topics
         self.subscribe(self.service_status_requested_topic, self._respond_with_service_status)
@@ -48,6 +49,7 @@ class CommunicationInterface(MQTTClientBase):
         """Register event handlers for robot actions."""
         if self.dispatcher:
             self.dispatcher.register_event("publish_service_state", self.publish_service_states)
+            self.dispatcher.register_event("send_history", self._publish_history)
     
     def _respond_with_service_status(self, client, userdata, message):
         self.publish_database_status(self.service_status)
@@ -60,6 +62,9 @@ class CommunicationInterface(MQTTClientBase):
             if command == "update_system_state":
                 self.dispatcher.dispatch_event("service_control_command", command)
                 self.logger.info("Sending update system state to all services")
+            elif command == "request_history":
+                self.logger.info("Sending history to the user interface")
+                self.dispatcher.dispatch_event("request_history")
 
             status_response = {
                 "set_up": "ready",
@@ -126,3 +131,7 @@ class CommunicationInterface(MQTTClientBase):
         self.publish(self.database_service_status_topic, json.dumps(payload))
 
         self.service_status = status
+
+    def _publish_history(self, history):
+        logging.info(f"Publishing history to the user interface {history}")
+        self.publish(self.study_history_topic, json.dumps(history))

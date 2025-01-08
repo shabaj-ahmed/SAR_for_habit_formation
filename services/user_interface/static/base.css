@@ -59,10 +59,27 @@ body, html {
     box-sizing: border-box; /* Ensure height includes borders and padding */
 }
 
-#indicators img {
+/* #indicators img {
     width: 30px;
     height: 30px;
     margin-left: 10px;
+} */
+
+#indicators {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Adjust spacing between elements */
+}
+
+#indicators img {
+    width: 30px; /* Set an appropriate width for the icons */
+    height: auto; /* Maintain aspect ratio */
+    margin-left: 10px;
+}
+
+#indicators p {
+    margin: 0; /* Remove default margin for inline alignment */
+    padding: 0; /* Optional: remove padding if needed */
 }
 
 /* Side Navigation */
@@ -124,4 +141,102 @@ body, html {
 
 .date, .time {
     margin: 0;
+}
+
+/* The Modal (background) */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgba(0, 0, 0, 0.4); /* Black w/ opacity */
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+}
+
+/* Modal Content */
+.modal-content {
+    background-color: #fefefe;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 60%; /* Adjust width for larger displays */
+    max-width: 500px; /* Prevent it from growing too large */
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    animation-name: animatetop;
+    animation-duration: 0.4s;
+    border-radius: 10px; /* Rounded corners for a better appearance */
+    font-size: 1.5rem; /* Larger base font size */
+}
+
+/* Add Animation */
+@keyframes animatetop {
+    from { transform: translateY(-50px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.modal-header {
+    padding: 2px 16px;
+    background-color: #5cb85c;
+    color: white;
+}
+
+.modal-body {padding: 2px 16px;}
+
+.modal-footer {
+    padding: 2px 16px;
+    background-color: #5cb85c;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-footer button {
+    padding: 10px 20px;
+    background-color: #0080b3;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+    border-radius: 5px;
+}
+
+.modal-footer button:hover {
+    background-color: #0077b3;
+}
+
+.loading-state {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.3);
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .loading {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 10px solid #ddd;
+    border-top-color: #04AA6D;
+    animation: loading 1s linear infinite;
+  }
+  @keyframes loading {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  #loading-message {
+    margin-top: 10px;
+    font-size: 16px;
+    color: #333;
 }

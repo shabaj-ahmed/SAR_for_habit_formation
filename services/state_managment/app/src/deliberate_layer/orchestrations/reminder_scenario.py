@@ -93,3 +93,11 @@ class ReminderScenario:
 
     def is_complete(self):
             return self.complete
+    
+    def error(self):
+        self.logger.error("An error occurred while processing the check-in scenario.")
+        return
+    
+    def resume(self):
+        self.logger.info("Resuming the check-in scenario.")
+        return

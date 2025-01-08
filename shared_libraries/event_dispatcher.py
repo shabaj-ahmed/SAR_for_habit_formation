@@ -21,3 +21,4 @@ class EventDispatcher:
                 handler(payload) if payload else handler()
             except Exception as e:
                 print(f"Error dispatching event {event_name}: {e}")
+    

@@ -21,7 +21,7 @@ finite_state_machine_event_queue = Queue()
 behaviour_tree_event_queue = Queue()
 
 # Instantiate High-Level FSM, Behavior Tree, and Reactive Layer
-reactive_layer = ReactiveLayer(event_queue=subsumption_layer_event_queue)
+reactive_layer = ReactiveLayer(subsumption_layer_event_queue=subsumption_layer_event_queue)
 finite_state_machine_layer = fsm.FSM(subsumption_layer_event_queue=subsumption_layer_event_queue, finite_state_machine_event_queue=finite_state_machine_event_queue, behavior_tree_event_queue=behaviour_tree_event_queue)
 deliberate_layer = BehaviourTree(finite_state_machine_event_queue=finite_state_machine_event_queue, behaviour_tree_event_queue=behaviour_tree_event_queue)
 

@@ -19,7 +19,7 @@ class CommunicationInterface(MQTTClientBase):
         self.logger = logging.getLogger(self.__class__.__name__)
         self.dispatcher = event_dispatcher
 
-        self.service_status = "setting_up" # The UI is not active until the root page has loaded
+        self.service_status = "Awake"
 
         self.inputs = {
             'switch_state': False,
@@ -33,6 +33,7 @@ class CommunicationInterface(MQTTClientBase):
 
         # Set up the message callbacks
         self.message_callback = None
+        self.error_callback = None
         self.socketio = None
 
         # Subscription topics
@@ -43,8 +44,13 @@ class CommunicationInterface(MQTTClientBase):
         self.conversation_history_topic = "conversation/history"
         self.camera_active_topic = "robot/cameraActive"
         self.audio_active_topic = "audio_active"
-        self.robot_error_topic = "robot/error"
         self.update_state_topic = "service/user_interface/update_state"
+        self.error_message_topic = "error_message"
+        self.behaviour_status_update_topic = "behaviour_status_update"
+        self.robot_connection_status_topic = "robot_connection_status"
+        self.network_status_topic = "network_status"
+        self.network_speed_topic = "network_speed"
+        self.study_history_topic = "study_history"
 
         # Publish topics
         self.user_interface_status_topic = "user_interface_status"
@@ -52,6 +58,11 @@ class CommunicationInterface(MQTTClientBase):
         self.robot_colour_topic = "robot_colour"
         self.update_persistent_data = "update_persistent_data"
         self.save_check_in_topic = "save_check_in"
+        self.service_error_topic = "service_error"
+        self.reconnect_request_topic = "reconnect_robot_request"
+        self.wake_up_screen_topic = "wake_up_screen"
+        self.update_persistent_data_topic = "update_persistent_data"
+        self.service_control_cmd = "database_control_cmd"
 
         # Subscriber and publisher topics
         self.check_in_controls_topic = "check_in_controller"
@@ -65,15 +76,39 @@ class CommunicationInterface(MQTTClientBase):
         self.subscribe(self.conversation_history_topic, self._on_message)
         self.subscribe(self.camera_active_topic, self._process_camera_active)
         self.subscribe(self.audio_active_topic, self._process_audio_active)
-        self.subscribe(self.robot_error_topic, self._process_error_message)
+        self.subscribe(self.error_message_topic, self._process_error_message)
         self.subscribe(self.update_state_topic, self._update_service_state)
+        self.subscribe(self.behaviour_status_update_topic, self._process_behaviour_status_update)
+        self.subscribe(self.robot_connection_status_topic, self._process_robot_connection_status)
+        self.subscribe(self.network_status_topic, self._process_network_connection_status)
+        self.subscribe(self.network_speed_topic, self._process_network_connection_speed)
+        self.subscribe(self.study_history_topic, self._process_study_history)
+
+        self._register_event_handlers()
+
+    def _register_event_handlers(self):
+        self.dispatcher.register_event("send_service_error", self.publish_service_error)
 
     def _respond_with_service_status(self, client, userdata, message):
+        self.logger.info(f"service_status_requested_topic received, current status: {self.service_status}")
         self.publish_UI_status(self.service_status)
 
     def _update_system_status(self, client, userdata, message):
         serviceStatus = json.loads(message.payload.decode("utf-8"))
-        # self.logger.info(f"Service status dictionary: {serviceStatus}")
+        self.logger.info(f"User interface service status dictionary: {serviceStatus}")
+
+        # Rename the keys to make it more user-friendly
+        re_name_service = {
+            "user_interface": "User Interface",
+            "speech_recognition": "Speech Recognition",
+            "peripherals": "Peripheral Devices",
+            "database": "Database",
+            "reminder": "Reminder",
+            "robot_control": "Study Condition",
+        }
+        for old_key, new_key in re_name_service.items():
+            serviceStatus[new_key] = serviceStatus.pop(old_key)
+
         self.socketio.emit('service_status', serviceStatus)
         self.system_status = serviceStatus
         still_loading = False
@@ -133,29 +168,81 @@ class CommunicationInterface(MQTTClientBase):
         self.logger.info(f"Camera active: {camera_active}")
         if self.socketio:
             self.logger.info("Emitting cam_status event to clients")
-            self.socketio.emit('cam_status', {'active': camera_active})
+            self.dispatcher.dispatch_event("update_connectoin_status", {'key': 'cam', 'status': camera_active})
 
     def _process_audio_active(self, client, userdata, message):
-        audio_active = message.payload.decode() == '1'
+        audio_active = json.loads(message.payload.decode("utf-8")) == '1'
         self.logger.info(f"Microphone active: {audio_active}")
         self.inputs['audioActive'] = audio_active
         if self.socketio:
             self.logger.info("Emitting mic_status event to clients")
-            self.socketio.emit('mic_status', {'active': audio_active})
+            self.dispatcher.dispatch_event("update_connectoin_status", {'key': 'mic', 'status': audio_active})
 
     def _process_error_message(self, client, userdata, message):
-        error_message = message.payload.decode()
+        try:
+            payload = json.loads(message.payload.decode("utf-8"))
+            self.logger.info(f"################################### RECIVED ERROR MESSAGE: {payload}")
+            self.logger.info(f"Error message received on '{self.error_message_topic}, payload: {payload}")
+            self.socketio.emit('error_message', payload)
+        except json.JSONDecodeError as e:
+            self.logger.error(f"Error decoding JSON payload: {e}")
 
     def _update_service_state(self, client, userdata, message):
         try:
             payload = json.loads(message.payload.decode("utf-8"))
             state_name = payload.get("state_name", "")
             state = payload.get("state_value", "")
-            self.logger.info(f"Received state update for {state_name}: {state}")
-            self.dispatcher.dispatch_event("update_service_state", payload)
+            self.logger.info(f"User interface received state update for {state_name}: {state}")
+            self.dispatcher.dispatch_event("update_service_state", payload)           
             self.service_status = "set_up"
         except json.JSONDecodeError:
             self.logger.error("Invalid JSON payload for updating service state. Using default retry parameters.")
+            
+    def _process_behaviour_status_update(self, client, userdata, message):
+        # try:
+        # payload = json.loads(message.payload.decode("utf-8"))
+        message = message.payload.decode("utf-8")
+        self.logger.info(f"Behaviour status update received: {message}")
+        self.socketio.emit("loading_status", {'message': message})
+        # except json.JSONDecodeError as e:
+        #     self.logger.error(f"Error decoding JSON payload: {e}")
+    
+    def _process_robot_connection_status(self, client, userdata, message):
+        status = json.loads(message.payload.decode("utf-8")).get("status", "") == "connected"
+        self.logger.info(f"Robot connection status in UI: {status}")
+        self.dispatcher.dispatch_event("update_connectoin_status", {'key': 'robot', 'status': status})
+
+    def _process_network_connection_status(self, client, userdata, message):
+        status = json.loads(message.payload.decode("utf-8")).get("status", "") == "connected"
+        self.logger.info(f"Network connection status in UI: {status}")
+        self.dispatcher.dispatch_event("update_connectoin_status", {'key': 'wifi', 'status': status})
+
+    def _process_network_connection_speed(self, client, userdata, message):
+        download_speed = json.loads(message.payload.decode("utf-8")).get("download", 0)
+        upload_speed = json.loads(message.payload.decode("utf-8")).get("upload", 0)
+        self.logger.info(f"Network connection speed in UI: Download = {download_speed}Mbps, Upload = {upload_speed}Mbps")
+        self.dispatcher.dispatch_event("update_connectoin_status", {'key': 'wifi_download_speed', 'status': download_speed})
+        self.dispatcher.dispatch_event("update_connectoin_status", {'key': 'wifi_upload_speed', 'status': upload_speed})
+
+    def _process_study_history(self, client, userdata, message):
+        try:
+            payload = json.loads(message.payload.decode("utf-8"))
+            self.logger.info(f"Study history received: {payload}")
+            time.sleep(1)
+            self.socketio.emit('study_history', payload)
+        except json.JSONDecodeError as e:
+            self.logger.error(f"Error decoding JSON payload: {e}")
+
+    def publish_service_error(self, error_message):
+        self.publish(self.service_error_topic, error_message)
+
+    def publish_reconnect_request(self, sender):
+        payload = {
+            "sender": sender,
+            "service_name": "user_interface",
+            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+        }
+        self.publish(self.reconnect_request_topic, json.dumps(payload))
 
     def start_check_in(self):
         if self.check_in_status != True:
@@ -164,13 +251,20 @@ class CommunicationInterface(MQTTClientBase):
     
     def change_colour(self, selected_colour):
         self.logger.info(f"Sending colour change command: {selected_colour}")
-        self.publish(self.robot_colour_topic, selected_colour)
+        # self.publish(self.robot_colour_topic, selected_colour)
+        self.publish(self.update_persistent_data_topic, json.dumps({"service_name": "user_interface", "state_name": "robot_colour", "state_value": selected_colour}))
     
     def change_volume(self, volume):
         self.logger.info(f"Sending volume change command: {volume}")
         self.publish(self.robot_volume_topic, volume)
+        self.publish(self.update_persistent_data_topic, json.dumps({"service_name": "user_interface", "state_name": "robot_volume", "state_value": volume}))
+
+    def change_brightness(self, brightness):
+        self.logger.info(f"brightness value is being updated to: {brightness}")
+        self.publish(self.update_persistent_data_topic, json.dumps({"service_name": "user_interface", "state_name": "brightness", "state_value": brightness}))
 
     def publish_UI_status(self, status, message="", details=None):
+        self.logger.info(f"Publishing UI status: {status}")
         payload = {
             "service_name": "user_interface",
             "status": status,
@@ -181,6 +275,17 @@ class CommunicationInterface(MQTTClientBase):
         self.publish(self.user_interface_status_topic, json.dumps(payload))
 
         self.service_status = status
+
+    def request_study_history(self):
+        self.logger.info("Requesting study history")
+        payload = {
+            "cmd": "request_history"
+        }
+        self.publish(self.service_control_cmd, json.dumps(payload))
+
+    def wake_up_screen(self):
+        # self.logger.info("Waking up screen")
+        self.publish(self.wake_up_screen_topic, json.dumps({"cmd": "wake_up"}))
 
     def save_check_in(self, check_in_data):
         self.publish(self.save_check_in_topic, json.dumps(check_in_data))

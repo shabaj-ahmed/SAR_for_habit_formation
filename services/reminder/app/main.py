@@ -6,12 +6,12 @@ from src.reminder_controller import ReminderController
 from src.communication_interface import CommunicationInterface
 import time
 import threading
-from src.event_dispatcher import EventDispatcher
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.abspath(os.path.join(current_dir, "../../../../"))
 sys.path.insert(0, project_root)
 from shared_libraries.logging_config import setup_logger
+from shared_libraries.event_dispatcher import EventDispatcher
 
 setup_logger()
 

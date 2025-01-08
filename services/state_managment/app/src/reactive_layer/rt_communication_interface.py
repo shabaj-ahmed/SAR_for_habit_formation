@@ -20,27 +20,27 @@ class CommunicationInterface(MQTTClientBase):
             'error': False
         }
 
+        # Subscription topics
+        self.switch_state_topic = "system_switch_state"
+        self.critial_error_topic = "error_message"
+        self.critical_error_resolved_topic = "critical_event_resolved"
+
         # Subscribe to topics with custom handlers
-        self.subscribe("robot/switch_state", self._process_switch_state)
-        self.subscribe("robot/reminder", self._process_reminder_status)
-        self.subscribe("robot/error", self._process_error_message)
+        self.subscribe(self.switch_state_topic, self._process_switch_state)
+        self.subscribe(self.critial_error_topic, self._process_error_message)
+        self.subscribe(self.critical_error_resolved_topic, self._process_error_resolved_message)
 
     def _process_switch_state(self, client, userdata, message):
         self.logger.info("Processing switch state")
         self.criticalEvents['switch_state'] = message.payload.decode()
 
-    def _process_reminder_status(self, client, userdata, message):
-        self.logger.info("Processing reminder status")
-        if message.payload.decode() == 'running':
-            self.behaviourCompletionStatus['reminder'] = True
-        elif message.payload.decode() == 'completed':
-            self.behaviourCompletionStatus['reminder'] = False
-            self.userEvents['configurations'] = False
-            self.userEvents['check_in'] = False
-
     def _process_error_message(self, client, userdata, message):
         self.logger.info("Processing error message")
-        self.criticalEvents['error'] = message.payload.decode()
+        self.criticalEvents['error'] = True
+
+    def _process_error_resolved_message(self, client, userdata, message):
+        self.logger.info("Processing resolved error message")
+        self.criticalEvents['error'] = False
 
     def get_critical_events(self):
         return self.criticalEvents

@@ -30,7 +30,8 @@ class CommunicationInterface(MQTTClientBase):
             "robot_control": "",
             "user_interface": "",
             "reminder": "",
-            "database": ""
+            "database": "",
+            "peripherals": ""
         }
 
         self.robot_behaviour_completion_status = {}
@@ -51,6 +52,7 @@ class CommunicationInterface(MQTTClientBase):
         self.conversation_history_topic = "conversation/history"
         self.send_reminder_topic = "start_reminder"
         self.database_status_topic = "database_status"
+        self.peripherals_status_topic = "peripherals_status"
 
         # Publish topics
         self.request_service_status_topic = "request/service_status"
@@ -58,8 +60,10 @@ class CommunicationInterface(MQTTClientBase):
         self.robot_speech_topic = "robot_tts"
         self.robot_behaviour_topic = "robot_behaviour_command"
         self.service_control_command_topic = lambda service_name : service_name + "_control_cmd"
-        self.record_response_topic = "speech_recognition/record_response"
         self.save_reminder_topic = "save_reminder"
+        self.peripheral_control_cmd = "peripherals_control_cmd" # Replace with service_control_command_topic
+        self.behaviour_status_update_topic = "behaviour_status_update"
+        self.configure_sleep_timer_topic = "configure_sleep_timer"
 
         # Subscriber and publisher topics
         self.check_in_controls_topic = "check_in_controller"
@@ -75,6 +79,7 @@ class CommunicationInterface(MQTTClientBase):
         self.subscribe(self.reminder_status_topic, self._process_service_status)
         # self.subscribe(self.reminder_heartbeat_topic, self._process_heartbeat)
         self.subscribe(self.database_status_topic, self._process_service_status)
+        self.subscribe(self.peripherals_status_topic, self._process_service_status)
         self.subscribe(self.configure_topic, self._process_configurations)
         self.subscribe(self.service_error_topic, self._process_error_message)
         self.subscribe(self.robot_control_status_topic, self._process_robot_behaviour_status)
@@ -129,7 +134,7 @@ class CommunicationInterface(MQTTClientBase):
 
     def _process_error_message(self, client, userdata, message):
         self.logger.info("Processing error message")
-        self.criticalEvents['error'] = message.payload.decode()
+        # self.criticalEvents['error'] = message.payload.decode()
 
     def _process_robot_behaviour_status(self, client, userdata, message):
         payload = json.loads(message.payload.decode("utf-8"))
@@ -190,11 +195,38 @@ class CommunicationInterface(MQTTClientBase):
 
     def publish_collect_response(self, expected_format):
         self.logger.info("Publishing record response")
-        self.publish(self.record_response_topic, expected_format)
+        service_name = "speech_recognition"
+        payload = {
+            "service_name": service_name,
+            "cmd": expected_format,
+            "time": time.strftime("%Y-%m-%d %H:%M:%S")
+        }
+        self.publish(self.service_control_command_topic(service_name), json.dumps(payload))
 
     def publish_reminder_sent(self, payload):
         self.logger.info("Saving reminder message to the database")
         self.publish(self.save_reminder_topic, json.dumps(payload))
+
+    def publish_behaviour_status_update(self, status):
+        self.logger.info(f"Publishing behaviour status update: {status}")
+        # payload = {
+        #     "status": status,
+        #     "time": time.strftime("%Y-%m-%d %H:%M:%S")
+        # }
+        self.publish(self.behaviour_status_update_topic, status)
+
+    def configure_sleep_timer(self, configuration):
+        self.logger.info(f"Orchestrator is configuring sleep timer to {configuration}")
+        self.publish(self.configure_sleep_timer_topic, configuration)
+
+    def behaviour_timeout(self, command):
+        payload = {
+            "service_name": "robot_control",
+            "cmd": command + "_timeout",
+            "time": time.strftime("%Y-%m-%d %H:%M:%S")
+        }
+        self.logger.info(f"Publishing service control command to {self.service_control_command_topic('robot_control')} with command: {command}")
+        self.publish(self.service_control_command_topic('robot_control'), json.dumps(payload))
 
     def behaviour_controller(self, service_name, cmd):
         payload = {
@@ -209,7 +241,7 @@ class CommunicationInterface(MQTTClientBase):
         logging.info("Ending check-in")
         self.publish(self.check_in_controls_topic, "0")
 
-    def get_system_status(self,):
+    def get_system_status(self):
         '''
         A method to expose the service status or all services
         '''

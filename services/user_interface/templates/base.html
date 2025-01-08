@@ -14,7 +14,6 @@
 
 </head>
 <body>
-
     <!-- Side Navigation -->
     <div id="mySidenav" class="sidenav">
         <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
@@ -30,7 +29,12 @@
             <span id="menu-icon" onclick="openNav()">&#9776; Open</span>
             <!-- Indicators -->
             <div id="indicators">
+                <img id="connection-status" src="{{ url_for('static', filename='connected-icons8.png') }}" alt="Connection Status">
                 <img id="wifi-status" src="{{ url_for('static', filename='wifi-off_Freepik.png') }}" alt="WiFi Status">
+                <img id="download-status" src="{{ url_for('static', filename='download_icons8.png') }}" alt="download Status">
+                <p id="wifi_download_speed">--</p>
+                <img id="upload-status" src="{{ url_for('static', filename='upload_icons8.png') }}" alt="upload Status">                
+                <p id="wifi_upload_speed">--</p>
                 <img id="mic-status" src="{{ url_for('static', filename='microphone-off_Dave_Gandy.png') }}" alt="Mic Status">
                 <img id="cam-status" src="{{ url_for('static', filename='videocam_off_icon_small.png') }}" alt="Cam Status">
             </div>
@@ -40,11 +44,114 @@
             {% block content %}
             {% endblock %}
         </div>
-    </div>
+
+        <!-- The Modal -->
+        <div id="myModal" class="modal">
+            <!-- Modal content -->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Modal Header</h2>
+                </div>
+                <div class="modal-body">
+                    <p>Some text in the Modal Body</p>
+                    <p>Some other text...</p>
+                </div>
+                <div class="modal-footer">
+                    <button onclick="reconnect()">Reconnect</button>
+                </div>
+            </div>
+        </div>
 
     <!-- Global Scripts -->
     <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
     <script>
+        document.getElementById("main").addEventListener("mousemove", function() {
+            fetch('/wake_up_screen', { 
+                method: 'POST' 
+            })
+            .then(response => response.json())
+            // .then(data => console.log(data))
+            .catch(error => console.error('Error sending screen wake up request', error));
+        });
+        
+        window.socket = io();
+
+        // Confirm connection
+        window.socket.on('connect', () => {
+            console.log('Connected to SocketIO server');
+        });
+
+        window.socket.on('error_message', (data) => {
+            console.log('Error message received:', data);
+
+            const loadingState = document.querySelector('.loading-state');
+
+            if (loadingState) {
+                document.body.removeChild(loadingState); // Remove loading indicator if one is present
+            }
+
+            // Get the modal and its content elements
+            const modal = document.getElementById("myModal");
+            const modalHeader = modal.querySelector('.modal-header h2');
+            const modalBody = modal.querySelector('.modal-body');
+            const modalFooter = modal.querySelector('.modal-footer');
+
+            // Update modal content with the error details
+            modalHeader.textContent = "Error";
+            modalBody.innerHTML = `
+                <p>${data.error_message || 'An unknown error occurred.'}</p>
+                <p>Location: ${data.service_name || 'N/A'}</p>
+            `;
+            modalFooter.innerHTML = `
+                <button onclick="reconnect()">Close</button>
+            `;
+
+            // Display the modal
+            modal.style.display = "flex"; // Set to flex to align and center
+        });
+        
+        // Close modal function
+        function reconnect() {
+            const modal = document.getElementById("myModal");
+            modal.style.display = "none";  // Hide the error modal
+
+            // Create and display the loading indicator
+            const loadingState = document.createElement('div');
+            loadingState.classList.add('loading-state');
+            loadingState.innerHTML = `
+                <div class="column">
+                    <div class="loading"></div>
+                    <div id="loading-message">Attempting to reconnect...</div>
+                </div>
+            `;
+            document.body.appendChild(loadingState); // Append to the body
+
+            // Display a loading indicator (optional)
+            console.log("Attempting to reconnect...");
+
+            // Send the reconnect request to the Flask route
+            fetch('/reconnect', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ action: 'reconnect' }), // Optional data
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                }
+                throw new Error("Failed to initiate reconnect");
+            })
+            .then(data => {
+                console.log("Reconnect initiated:", data);
+                // Optionally update the UI to show the reconnect is in progress
+            })
+            .catch(error => {
+                console.error("Error during reconnect initiation:", error);
+            });
+        }
+        
         function openNav() {
             document.getElementById("mySidenav").style.width = "300px";
             document.getElementById("main").style.marginLeft = "300px";
@@ -55,45 +162,64 @@
             document.getElementById("main").style.marginLeft = "0";
         }
 
-        window.socket = io();
-
-        // Confirm connection
-        window.socket.on('connect', () => {
-            console.log('Connected to SocketIO server');
+        window.addEventListener('DOMContentLoaded', () => {
+            fetch('/get_connection_status')
+                .then(response => response.json())
+                .then(data => {
+                    updateIndicators(data);
+                })
+                .catch(error => console.error('Error fetching connection status:', error));
         });
 
-        // Debugging events
-        window.socket.on('mic_status', (data) => {
-            console.log('Mic status received:', data);
-        });
+        function updateIndicators(data) {
+            const connectionStatus = document.getElementById('connection-status');
+            connectionStatus.src = data.robot
+                ? "{{ url_for('static', filename='connected-icons8.png') }}"
+                : "{{ url_for('static', filename='disconnected-icons8.png') }}";
 
-        window.socket.on('cam_status', (data) => {
-            console.log('Cam status received:', data);
-        });
+            const wifiStatus = document.getElementById('wifi-status');
+            wifiStatus.src = data.wifi
+                ? "{{ url_for('static', filename='wifi_redempticon.png') }}"
+                : "{{ url_for('static', filename='wifi-off_Freepik.png') }}";
 
-        // Update microphone indicator
-        window.socket.on('mic_status', (data) => {
             const micStatus = document.getElementById('mic-status');
-            if (data.active) {
-                micStatus.src = "{{ url_for('static', filename='microphone-black-shape.png') }}";
-                micStatus.alt = "Mic On";
+            micStatus.src = data.mic
+                ? "{{ url_for('static', filename='microphone-black-shape.png') }}"
+                : "{{ url_for('static', filename='microphone-off_Dave_Gandy.png') }}";
+
+            const camStatus = document.getElementById('cam-status');
+            camStatus.src = data.cam
+                ? "{{ url_for('static', filename='videocam_icon_small.png') }}"
+                : "{{ url_for('static', filename='videocam_off_icon_small.png') }}";
+            
+            const wifiDownloadSpeed = document.getElementById('wifi_download_speed');
+            wifiDownloadSpeed.textContent = data.wifi_download_speed || '--';
+
+            const wifiUploadSpeed = document.getElementById('wifi_upload_speed');
+            wifiUploadSpeed.textContent = data.wifi_upload_speed || '--';
+        }
+
+        window.socket.on('connection_status_update', (data) => {
+            updateIndicators(data);
+
+            const loadingState = document.querySelector('.loading-state');
+            const modal = document.getElementById("myModal");
+
+            if (data.robot) {
+                // Connection restored
+                if (loadingState) {
+                    document.body.removeChild(loadingState); // Remove loading indicator
+                }
+                console.log("Robot successfully reconnected.");
             } else {
-                micStatus.src = "{{ url_for('static', filename='microphone-off_Dave_Gandy.png') }}";
-                micStatus.alt = "Mic Off";
+                // Still disconnected, show error modal
+                if (loadingState) {
+                    document.body.removeChild(loadingState);
+                }
+                modal.style.display = "flex"; // Show the error modal again
             }
         });
 
-        // Update camera indicator
-        window.socket.on('cam_status', (data) => {
-            const camStatus = document.getElementById('cam-status');
-            if (data.active) {
-                camStatus.src = "{{ url_for('static', filename='videocam_icon_small.png') }}";
-                camStatus.alt = "Camera On";
-            } else {
-                camStatus.src = "{{ url_for('static', filename='videocam_off_icon_small.png') }}";
-                camStatus.alt = "Camera Off";
-            }
-        });
     </script>
 
     <!-- Global Scripts -->

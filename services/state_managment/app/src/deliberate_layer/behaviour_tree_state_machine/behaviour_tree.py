@@ -41,6 +41,7 @@ class BehaviourTree:
         self.reminder_branch.add_service(UserInterface)
         self.reminder_branch.add_service(Reminder)
         self.reminder_branch.add_service(Databse)
+        self.reminder_branch.add_service(RobotController, priority="optional")
         self.add_branch(self.behaviours[0], self.reminder_branch)
 
         # Check-in
@@ -63,6 +64,7 @@ class BehaviourTree:
         self.check_if_all_services_are_running()
 
     def _set_current_state(self, state):
+        # self.logger.info(f"treansitioning current state from {self.current_state} to {state}")
         self.current_state = state
 
     def get_current_state(self):
@@ -110,8 +112,8 @@ class BehaviourTree:
         self.manage_behaviour()
 
         # Step 5: Update all active behaviours in the current branch
-        self.current_branch.update()
-
+        self.current_branch.update(self.current_state) # The current_state is used to handel the error state
+    
     def check_finite_state_machine_event_queue(self):
         if self.finite_state_machine_event_queue.empty() is False:
             self.logger.info("Checking FSM event queue...")
@@ -119,8 +121,13 @@ class BehaviourTree:
             
             # Set current state if it's different from the existing one
             if self.current_state in ['Sleep', 'Active'] or state in ['Sleep', 'Active']:
-                    # If the fsm transitions from sleep to active or vice versa, the branch won't change so don't transition
-                    self._set_current_state(state)
+                # If the fsm transitions from sleep to active or vice versa, the branch won't change so don't transition
+                self._set_current_state(state)
+            elif self.current_state == "Error" and state != "Error":
+                # Update FSM back to current bramch state
+                # self.behaviour_tree_event_queue.put({"state": self.current_branch.branch_name})
+                self._set_current_state(state) # Remove this line if the above line is uncommented
+                pass
             elif self.current_state != state:
                 self._set_current_state(state)
                 
@@ -129,10 +136,7 @@ class BehaviourTree:
                     self.transition_to_branch(self.behaviours[0])  # Reminder branch
                 elif state == 'Active':
                     self.transition_to_branch(self.behaviours[0])  # Reminder branch
-                elif state == 'Error':
-                    pass
-                    # Handle error state if required
-
+    
     def check_if_all_services_are_running(self):
         self.logger.info("Checking if all services are Awake...")
         while True:
@@ -163,6 +167,7 @@ class BehaviourTree:
 
             # Publish "update_system_state" to the database
             self.communication_interface.behaviour_controller("database", "update_system_state")
+            self.communication_interface.behaviour_controller("peripherals", "set_up")
 
             time.sleep(1)
 

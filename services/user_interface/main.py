@@ -8,7 +8,6 @@ import logging
 import os
 import sys
 import subprocess
-from .event_dispatcher import EventDispatcher
 
 app = Flask(__name__)
 app.config['SYSTEM_IS_STILL_LOADING'] = True
@@ -19,6 +18,7 @@ project_root = os.path.abspath(os.path.join(current_dir, "../../../../"))
 sys.path.insert(0, project_root)
 
 from shared_libraries.logging_config import setup_logger
+from shared_libraries.event_dispatcher import EventDispatcher
 
 # Setup logger
 setup_logger()
@@ -38,6 +38,16 @@ voice_button_states = {
     'human': False,
 }
 
+# Global variable to store connection status
+connection_status = {
+    'robot': True, # Assume the robot is connected by default on startup
+    'wifi': False,
+    'mic': False,
+    'cam': False,
+    'wifi_download_speed': 0,
+    'wifi_upload_speed': 0,
+}
+
 dispatcher = EventDispatcher()
 
 communication_interface = CommunicationInterface(
@@ -50,6 +60,7 @@ communication_interface.socketio = socketio
 
 def _register_event_handlers():
     dispatcher.register_event("update_service_state", update_state)
+    dispatcher.register_event("update_connectoin_status", handle_status_update)
 
 implementationIntention = ""
 start_date = None
@@ -58,7 +69,7 @@ days_remaining = None
 brightness_value = 50
 reminder_time = datetime.now().time()
 reminder_time_ampm = "AM"
-    
+
 def update_state(payload):
     global implementationIntention, start_date, study_duration, days_remaining, brightness_value, reminder_time, reminder_time_ampm
     logger.info(f"State update received in UI: {payload}")
@@ -87,22 +98,24 @@ def update_state(payload):
         if reminder_time_ampm == "PM" and reminder_time.hour < 12:
             reminder_time = reminder_time.replace(hour=reminder_time.hour + 12)
             logger.info(f"Reminder time updated: {reminder_time}")
-    elif state_name == "screen_brightness":
+    elif state_name == "brightness":
         brightness_value = int(payload.get("state_value", ""))
         logger.info(f"Brightness updated: {brightness_value}")
-        # Map the brightness value from 1-255 to 1-100
-        mapped_value = int((int(brightness_value) - 20) * 99 / 235 + 1)
-        # try:
-        #     subprocess.run(
-        #         f'echo {mapped_value} | sudo tee /sys/class/backlight/6-0045/brightness',
-        #         shell=True,
-        #         check=True
-        #     )
-        # except subprocess.CalledProcessError as e:
-        #     logger.error(f"Failed to set brightness: {e}")
-        logger.info(f"Mapped brightness value: {mapped_value}")
-        # Emit the brightness value to connected clients
-        socketio.emit('brightness_update', mapped_value)
+        try:
+            subprocess.run(
+                f'echo {brightness_value} | sudo tee /sys/class/backlight/6-0045/brightness',
+                shell=True,
+                check=True
+            )
+            pass
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Failed to set brightness: {e}")
+        logger.info(f"Mapped brightness value: {brightness_value}")
+    
+    if state_name.startswith("reminder_time"):
+        reminder_time = reminder_time.replace(second=0, microsecond=0)
+        logger.info(f"Reminder time updated: {reminder_time}")
+        socketio.emit('reminder_time_update', {"time": reminder_time.strftime('%H:%M'), "ampm": reminder_time_ampm})
 
 def days_remaining():
     global days_remaining
@@ -123,8 +136,9 @@ def publish_heartbeat():
 # Start heartbeat thread
 threading.Thread(target=publish_heartbeat, daemon=True).start()
 
-# MQTT message handler
-def on_mqtt_message(message):
+# TODO: Add dialogue message handler to event dispatcher
+# message handler
+def dialogue_message_handler(message):
     # Format the message
     formatted_message = {
         "sender": message.get("sender", "robot"),  # Default sender is robot
@@ -139,7 +153,7 @@ def on_mqtt_message(message):
     socketio.emit('new_message', formatted_message)
 
 # Register the MQTT message handler
-communication_interface.message_callback = on_mqtt_message
+communication_interface.message_callback = dialogue_message_handler
 
 @app.route('/')
 def home():
@@ -154,12 +168,28 @@ def home():
         return render_template('system_boot_up.html')
     return render_template('home.html', implementationIntention=implementationIntention, days_remaining=days_remaining, reminder_time=reminder_time.strftime('%H:%M'), reminder_time_ampm=reminder_time_ampm)
 
+@app.route('/wake_up_screen', methods=['POST'])
+def wake_up_screen():
+    communication_interface.wake_up_screen()
+    return jsonify({'status': 'success', 'message': 'Screen woken up'}), 200
+
 @socketio.on('ui_ready')
 def handle_ui_ready():
     logger.info("UI is ready, sending system status update...")
 
     # Publish the UI status to the MQTT broker
-    communication_interface.publish_UI_status("Awake")
+    # communication_interface.publish_UI_status("set_up")
+
+@app.route('/reconnect', methods=['POST'])
+def reconnect():
+    logger.info("Received a reconnect request")
+    communication_interface.publish_reconnect_request("UI_error_message")
+    
+    # Trigger the reconnect process asynchronously (e.g., send a message to a worker or robot controller)
+    # Example: robot_controller.start_reconnect() or publish an MQTT message
+    success = True  # Simulated for this example
+    
+    return jsonify({"status": "initiated", "message": "Reconnection process started"}), 202
 
 @app.route('/check_in')
 def check_in():
@@ -203,12 +233,18 @@ def save_check_in():
 
 @app.route('/history')
 def history():
+    # Step 1: Load history page and show loading spinner
+    # Step 2: Fetch history data from database
+    # Step 3: Display history data on page and hide loading spinner
+    communication_interface.request_study_history()
     return render_template('history.html')
 
 @app.route('/settings')
 def settings():
     return render_template(
         'settings.html',
+        time = reminder_time.strftime('%H:%M'),
+        ampm = reminder_time_ampm,
         volume_button_states=volume_button_states,
         voice_button_states=voice_button_states,
         robot_enabled=os.getenv("ROBOT_ENABLED") == "True",
@@ -259,11 +295,18 @@ def brightness_slider_change(brightness_value):
             shell=True,
             check=True
         )
+        communication_interface.change_brightness(mapped_value)
         # Return a success response
         return f"Brightness successfully set to {mapped_value}", 200
     except subprocess.CalledProcessError as e:
         # Return an error response if the command fails
-        return f"Failed to set brightness: {e}", 500
+        payload = {
+            "error": f"Failed to set brightness: {e}",
+            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+            "service_name": "user_interface"
+        }
+        dispatcher.dispatch_event("send_service_error", payload)
+        return f"send_service_error: {e}", 500
 
 @app.route('/profile')
 def profile():
@@ -276,6 +319,33 @@ def start_check_in():
     communication_interface.start_check_in()
     return jsonify({'status': 'success', 'message': 'Check-In command sent'})
 # Asynchronous response returning true but the message channel closed before response received
+
+@app.route('/update_connection_status', methods=['POST'])
+def update_connection_status():
+    global connection_status
+    data = request.get_json()
+    key = data.get('key')
+    status = data.get('status')
+    
+    if key in connection_status:
+        connection_status[key] = status
+        return jsonify({'status': 'success', 'message': f'{key} status updated.'}), 200
+    
+    return jsonify({'status': 'error', 'message': 'Invalid key provided.'}), 400
+
+@app.route('/get_connection_status')
+def get_connection_status():
+    return jsonify(connection_status)
+
+def handle_status_update(data):
+    global connection_status
+    key = data.get('key')
+    status = data.get('status')
+    logger.info(f"Received status update for {key}: {status}")
+    
+    if key in connection_status:
+        connection_status[key] = status
+        socketio.emit('connection_status_update', connection_status)
 
 @socketio.on('disconnect')
 def handle_disconnect():

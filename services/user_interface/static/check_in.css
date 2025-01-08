@@ -124,22 +124,38 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.3);
-    z-index: 9999;
+    background-color: rgba(0, 0, 0, 0.5); /* Darker semi-transparent overlay */
+    z-index: 9999; /* Highest priority to stay above all content */
     display: flex;
     justify-content: center;
     align-items: center;
-  }
-  .loading {
+    pointer-events: none; /* Prevent interaction with content behind the overlay */
+}
+
+.loading-state .column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.loading {
     width: 100px;
     height: 100px;
     border-radius: 50%;
     border: 10px solid #ddd;
-    border-top-color: #04AA6D;
+    border-top-color: #04AA6D; /* Primary color for animation */
     animation: loading 1s linear infinite;
-  }
-  @keyframes loading {
+}
+
+@keyframes loading {
     to {
-      transform: rotate(360deg);
+        transform: rotate(360deg);
     }
-  }
+}
+
+#loading-message {
+    margin-top: 10px;
+    font-size: 18px; /* Slightly larger for better visibility */
+    color: #ffffff; /* White text for better contrast against the background */
+    text-align: center;
+}
