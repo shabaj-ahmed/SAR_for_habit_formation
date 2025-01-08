@@ -34,7 +34,7 @@ class NetworkMonitor:
         results = self.get_results()
         if results:
             print(f"Download = {results['download']/1000000}Mbps and upload = {results['upload']/1000000}Mbps")
-        self.dispatcher.dispatch_event("send_network_speed", results)
+            self.dispatcher.dispatch_event("send_network_speed", results)
     
     def check_internet_connection(self):
         ps = subprocess.Popen(['iwgetid'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)

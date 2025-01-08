@@ -81,7 +81,7 @@ class CommunicationInterface(MQTTClientBase):
         self.subscribe(self.behaviour_status_update_topic, self._process_behaviour_status_update)
         self.subscribe(self.robot_connection_status_topic, self._process_robot_connection_status)
         self.subscribe(self.network_status_topic, self._process_network_connection_status)
-        # self.subscribe(self.network_speed_topic, self._process_network_connection_speed)
+        self.subscribe(self.network_speed_topic, self._process_network_connection_speed)
         self.subscribe(self.study_history_topic, self._process_study_history)
 
         self._register_event_handlers()
@@ -216,6 +216,12 @@ class CommunicationInterface(MQTTClientBase):
         status = json.loads(message.payload.decode("utf-8")).get("status", "") == "connected"
         self.logger.info(f"Network connection status in UI: {status}")
         self.dispatcher.dispatch_event("update_connectoin_status", {'key': 'wifi', 'status': status})
+
+    def _process_network_connection_speed(self, client, userdata, message):
+        download_speed = json.loads(message.payload.decode("utf-8")).get("download", 0)
+        upload_speed = json.loads(message.payload.decode("utf-8")).get("upload", 0)
+        self.logger.info(f"Network connection speed in UI: Download = {download_speed}Mbps, Upload = {upload_speed}Mbps")
+        self.dispatcher.dispatch_event("update_network_speed", {'download': download_speed, 'upload': upload_speed})
 
     def _process_study_history(self, client, userdata, message):
         try:
