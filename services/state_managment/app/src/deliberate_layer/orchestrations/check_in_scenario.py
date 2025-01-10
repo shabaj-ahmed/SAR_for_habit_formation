@@ -31,17 +31,22 @@ class CheckInScenario:
             return
         
         # Step 1: Set up
-        if self.step == 1: 
+        elif self.step == 1: 
             if self._drive_off_charger():
                  self.step = 2
+
+        elif self.step == 2:
+            self.communication_interface.publish_robot_behaviour_command("look_up")
+            time.sleep(0.4)
+            self.step = 3
         
-        # Step 1: Send greeting
-        if self.step == 2: 
+        # # Step 1: Send greeting
+        elif self.step == 3: 
             if self._greet_user():
-                 self.step = 3
+                 self.step = 4
                 
-        # Step 2: Weekday-specific questions
-        if self.step == 3:
+        # # Step 2: Weekday-specific questions
+        elif self.step == 4:
             if not self.waiting_for_response:
                 if self.current_question is not None:
                     self.logger.info("Current question exists, checking for response.")
@@ -54,7 +59,7 @@ class CheckInScenario:
                     else:
                         self.next_question = self.get_current_day_questions(question=self.current_question['question'], response=self.response)
                         if self.next_question is None:
-                            self.step = 4
+                            self.step = 5
                             self.current_question = None
                             return
                         else:
@@ -83,7 +88,7 @@ class CheckInScenario:
                     self.waiting_for_response = True
                     
         
-        elif self.step == 4:
+        elif self.step == 5:
             if not self.waiting_for_response:
                 self.logger.info("Not waiting for response, checking for current question.")
                 if self.current_question is not None:
@@ -96,7 +101,7 @@ class CheckInScenario:
                     else:
                         self.next_question = self._experience_sampling_questions(question=self.current_question['question'], response=self.response)
                         if self.next_question is None:
-                            self.step = 5
+                            self.step = 6
                             self.current_question = None
                             return
                         else:
@@ -125,13 +130,13 @@ class CheckInScenario:
         # # Step 4: Summarise the conversation
         
         # Step 5: Wish participants farewell
-        if self.step == 5:
+        elif self.step == 6:
             self._farewell_user()
-            self.step = 6
+            self.step = 7
             return
         
         # Step 5: Mark as complete
-        elif self.step == 6:
+        elif self.step == 7:
             self.complete = True
             self.logger.info("Check-In Scenario Complete")
             self.step = 0

@@ -168,6 +168,12 @@ class VectorRobotController:
                 elif command == "end":
                     # self.disengage_user()
                     pass
+                elif command == "look_up":
+                    self.look_up()
+                    self.logger.info("Look up command has been fulfilled..")
+                elif command == "follow_face":
+                    self.follow_face()
+                    self.logger.debug("Follow face command has been fulfilled..")
                 elif command == "drive off charger":
                     self.logger.debug("Processing drive off charger request")
                     self.drive_off_charger()
@@ -205,7 +211,9 @@ class VectorRobotController:
     @run_if_robot_is_enabled
     @reconnect_on_fail
     def follow_face(self):
-        self.robot.behavior.turn_towards_face()
+        # This takes too long to find a face and ends up blocking the rest of the code so it has been disabled...
+        # self.robot.behavior.find_faces()
+        pass
         return True
 
     @run_if_robot_is_enabled
@@ -295,14 +303,18 @@ class VectorRobotController:
 
         selected_colour = colours.get(colour, colours["orange"])
         self.logger.info(f"Setting eye colour to {colour}")
-
-        self.robot.behavior.set_head_angle(degrees(45.0))
+        self.look_up()        
         self.logger.info("Lifted the robot's lift.")
         self.robot.behavior.set_lift_height(0.0)
         self.logger.info("Eye colour set successfully.")
         self.robot.behavior.set_eye_color(hue=selected_colour[0], saturation=selected_colour[1])
         return True
-        
+    
+    @run_if_robot_is_enabled
+    @reconnect_on_fail
+    def look_up(self):
+        self.robot.behavior.set_head_angle(degrees(45.0))
+        return True
 
     def update_service_state(self, payload):
         state_name = payload.get("state_name", "")
