@@ -22,6 +22,7 @@ class VectorRobotController:
         self.robot_enabled = str(os.getenv("ROBOT_ENABLED")) == 'True'
         self.logger.info(f"Robot enabled: {self.robot_enabled}")
         self.connected = False
+        self.robot_awake = True
         self.error = None
         self.max_retries = 1
         self.timeout = 8
@@ -138,10 +139,18 @@ class VectorRobotController:
     @reconnect_on_fail
     def check_connection(self):
         battery_state = self.robot.get_battery_state()
-        print("Robot is on charger platform: {0}".format(battery_state.is_on_charger_platform))
         if not self.connected:
             self.logger.info(f"Failed to connect to the robot after multiple attempts. Ended with error {self.error}")
+            self.robot_awake = True
+            return False
         self.logger.info("Battery checked and robot is, Connected successfully!")
+        print("Robot is on charger platform: {0}".format(battery_state.is_on_charger_platform))
+        if battery_state.is_on_charger_platform and self.robot_awake:
+            # If the robot is connected and on the docking station, then put it to sleep.
+            self.robot.anim.play_animation("anim_chargerdocking_severergetout_01")
+            # self.robot.behavior.set_head_angle(degrees(-20.0))
+            self.robot_awake = False
+            pass
         return True
             
     def disconnect_robot(self):
@@ -185,6 +194,9 @@ class VectorRobotController:
                 elif command == "backchannel":
                     self.logger.debug("generating a back channel request...")
                     self.generate_backchannel_animation()
+                elif command == "reminder":
+                    self.logger.debug("generate reminder animation")
+                    self.generate_reminder_animation()
             except Exception as e:
                 self.logger.error(f"Error processing control command: {e}")
                 status = "failed"
@@ -392,7 +404,6 @@ class VectorRobotController:
     @run_if_robot_is_enabled
     @reconnect_on_fail
     def generate_greetings_animation(self):
-        print("In generate_greetings_annimation, requesting a greetings animation")
         greetings_animation = ["anim_greeting_goodmorning_01", "anim_greeting_goodmorning_02", "anim_greeting_hello_01", "anim_greeting_hello_02", "anim_handdetection_reaction_02", "anim_greeting_imhome_01", "anim_handdetection_reaction_01", "anim_handdetection_reaction_02", "anim_howold_getout_01", "anim_knowledgegraph_success_01", "anim_meetvictor_sayname02_02", "anim_meetvictor_sayname02_04", "anim_movement_comehere_greeting_01", "anim_movement_comehere_greeting_02", "anim_petting_bliss_getout_02", "anim_qa_motors_lift_down_500ms_01"]
         index = random.randint(0,len(greetings_animation)-1)
         self.robot.anim.play_animation(greetings_animation[index])
@@ -400,11 +411,21 @@ class VectorRobotController:
     @run_if_robot_is_enabled
     @reconnect_on_fail
     def generate_farewell_animation(self):
-        print("In generate_greetings_annimation, requesting a greetings animation")
         farewell_animation = ["anim_greeting_goodbye_02", "anim_greeting_goodnight_01", "anim_greeting_goodnight_02"]
         index = random.randint(0,len(farewell_animation)-1)
         self.robot.anim.play_animation(farewell_animation[index])
-    
+
+    @run_if_robot_is_enabled
+    @reconnect_on_fail
+    def generate_reminder_animation(self):
+        print("In generate_reminder_annimation, requesting a reminder animation")
+        reminder_animations = ["anim_timer_beep_01", "anim_timer_beep_02", "anim_timersup_getin_01"]
+        index = random.randint(0,len(reminder_animations))
+        if index == len(reminder_animations):
+            # If the index is the same as the length of the list then skip the animation, this adds a little randomness to the process
+            return
+        self.robot.anim.play_animation(reminder_animations[index])
+
     def set_time_out(self, command):
         self.max_retries = 1
         if command == "enable_timeout":
