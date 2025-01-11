@@ -69,6 +69,8 @@ class CommunicationInterface(MQTTClientBase):
             if command == "enable_timeout" or command == "disable_timeout":
                 self.robot_controler.set_time_out(command)
                 return
+            elif command == "set_up":
+                self.start_command = command
             else:
                 self.robot_controler.handle_control_command(command)
             

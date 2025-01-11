@@ -35,7 +35,7 @@ class CommunicationInterface(MQTTClientBase):
         }
 
         self.robot_behaviour_completion_status = {}
-        self.user_response = ""
+        self.user_response = {}
 
         # Subscription topics
         self.reminder_status_topic = "reminder_status"
@@ -146,8 +146,9 @@ class CommunicationInterface(MQTTClientBase):
     def _handle_user_response(self, client, userdata, message):
         self.logger.info(f"the user response is {message.payload.decode()}")
         payload = json.loads(message.payload.decode("utf-8"))
-        self.user_response = payload.get("content", None)
-
+        self.user_response["response_text"] = payload.get("content", None)
+        self.user_response["sentiment"] = payload.get("sentiment", None)
+    
     def _send_reminder(self, client, userdata, message):
         self.logger.info("Processing reminder request")
         if message.payload.decode() == '1':

@@ -29,22 +29,27 @@ class SpeechToText:
         self.logger = logging.getLogger(self.__class__.__name__)
     
     def get_response(self, expected_format):
-        response = self._recognise_response(expected_format)
-        if not isinstance(response, str) or not response.strip():
-            self.logger.debug(f"Invalid response: {response}. Expected a non-empty string.")
-            return ""
+        response_text = self._recognise_response(expected_format)
+        sentiment = ""
+        self.logger.info(f"Response received: {response_text}, expected format: {expected_format}")
+        if not isinstance(response_text, str) or not response_text.strip():
+            self.logger.debug(f"Invalid response: {response_text}. Expected a non-empty string.")
+            return {"response_text": "", "sentiment": sentiment}
         if expected_format == "short":
             # Check if the response is a valid number
             try:
-                response = self._extract_number_from(response)
-                if int(response) < 0 and int(response) > 10:
-                    return ""
+                response = self._extract_number_from(response_text)
+                if int(response["response_text"]) < 0 and int(response["response_text"]) > 10:
+                    sentiment = ""
+                    return {"response_text": "", "sentiment": ""}
+                else:
+                    return {"response_text": response["text"], "sentiment": response["sentiment"]}
             except ValueError:
-                self.logger.debug(f"Invalid response: {response}. Expected a number.")
-                return ""
+                self.logger.debug(f"Invalid response: {response_text}. Expected a number.")
+                return {"response_text": "", "sentiment": ""}
         # TODO: publish respones to the orchestrator and the user interface for display
         # Send the response to the orchestrator
-        return response
+        return {"response_text": response_text, "sentiment": ""}
     
     def _recognise_response(self, response_type):
         while True:
@@ -107,15 +112,17 @@ class SpeechToText:
         return transcript.strip()
     
     def _extract_number_from(self, response):
+        self.logger.info(f"In _extract_number_from() response received = {response}")
         if not isinstance(response, str):
             self.logger.debug(f"Invalid response type: {type(response)}. Expected string.")
-            return None
+            return {"response_text": None, "sentiment": ""}
         # Use regex to find the first occurrence of a number (integer)
         match = re.search(r'\d+', response)
         if match:
-            return match.group()
+            self.logger.info(f"Extracted number: {match.group()} or the last index {match.lastindex}")
+            return {"response_text": match.group()[-1], "sentiment": ""} # Return the last digit spoken
         else:
-            return None
+            return {"response_text": None, "sentiment": ""}
 
 class MicrophoneStream:
     """Opens a recording stream as a generator yielding the audio chunks."""
