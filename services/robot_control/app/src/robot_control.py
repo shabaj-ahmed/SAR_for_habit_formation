@@ -3,6 +3,7 @@ from anki_vector import audio
 from anki_vector.util import degrees
 import logging
 import os
+import random
 
 import threading
 import time
@@ -181,6 +182,9 @@ class VectorRobotController:
                 elif command == "return_home":
                     self.logger.debug("Processing return home request")
                     self.drive_on_charger()
+                elif command == "backchannel":
+                    self.logger.debug("generating a back channel request...")
+                    self.generate_backchannel_animation()
             except Exception as e:
                 self.logger.error(f"Error processing control command: {e}")
                 status = "failed"
@@ -237,7 +241,11 @@ class VectorRobotController:
             self.logger.info(f"In handel tts command func, text from {payload['sender']} is: {payload['content']}")
             self._tts(payload["content"])
             # Add delay to allow the robot to finish speaking before sending completion status
-            delay = len(payload["content"].split()) / 3.5 # Assuming robot can speak 3.5 words per second, number chosen arbiteraly...
+            delay = len(payload["content"].split()) / 4 # Assuming robot can speak 4 words per second, number chosen arbiteraly...
+            if payload.get("message_type", "") == "greeting":
+                self.generate_greetings_animation()
+            if payload.get("message_type", "") == "farewell":
+                self.generate_farewell_animation()
             self.logger.info(f"Delaying for {delay} seconds")
             time.sleep(int(delay))
         except Exception as e:
@@ -373,19 +381,30 @@ class VectorRobotController:
         turn_speed specifies turning velocity (left or right).
         """
         self.robot.motors.set_wheel_motors(forward_speed, forward_speed + turn_speed)
+    
+    @run_if_robot_is_enabled
+    @reconnect_on_fail
+    def generate_backchannel_animation(self):
+        backchannel_animations = ["anim_explorer_idle_02_head_angle_40", "anim_explorer_idle_01_head_angle_40", "anim_eyecontact_right_thought_01_head_angle_40", "anim_eyecontact_right_contact_01_head_angle_40", "anim_eyecontact_left_contact_01_head_angle_40", "anim_eyecontact_getout_01_head_angle_40", "anim_eyecontact_center_thought_01_head_angle_40", "anim_freeplay_reacttoface_sayname_02_head_angle_40", "anim_gazing_lookatsurfaces_getin_left_01_head_angle_40", "anim_generic_look_up_01", "anim_generic_look_up_idle_01", "anim_keepalive_blink_01", "anim_lookinplaceforfaces_keepalive_long_02_head_angle_40", "anim_movement_lookinplaceforfaces_medium_head_angle_40", "anim_movement_lookinplaceforfaces_short_head_angle_40", "anim_movement_reacttoface_01_head_angle_40", "anim_reacttoface_unidentified_02_head_angle_40", "anim_reacttoface_unidentified_03_head_angle_40", "anim_referencing_curious_01_head_angle_40", "anim_referencing_smile_01_head_angle_40", "anim_referencing_squint_01_head_angle_40", "anim_rtmotion_lookup_01"]
+        index = random.randint(0,len(backchannel_animations)-1)
+        self.robot.anim.play_animation(backchannel_animations[index])
 
     @run_if_robot_is_enabled
     @reconnect_on_fail
-    def start_video_stream(self):
-        self.is_streaming = True
-        self.robot.camera.init_camera_feed()
+    def generate_greetings_animation(self):
+        print("In generate_greetings_annimation, requesting a greetings animation")
+        greetings_animation = ["anim_greeting_goodmorning_01", "anim_greeting_goodmorning_02", "anim_greeting_hello_01", "anim_greeting_hello_02", "anim_handdetection_reaction_02", "anim_greeting_imhome_01", "anim_handdetection_reaction_01", "anim_handdetection_reaction_02", "anim_howold_getout_01", "anim_knowledgegraph_success_01", "anim_meetvictor_sayname02_02", "anim_meetvictor_sayname02_04", "anim_movement_comehere_greeting_01", "anim_movement_comehere_greeting_02", "anim_petting_bliss_getout_02", "anim_qa_motors_lift_down_500ms_01"]
+        index = random.randint(0,len(greetings_animation)-1)
+        self.robot.anim.play_animation(greetings_animation[index])
 
     @run_if_robot_is_enabled
     @reconnect_on_fail
-    def stop_video_stream(self):
-        self.is_streaming = False
-        self.robot.camera.close_camera_feed()
-
+    def generate_farewell_animation(self):
+        print("In generate_greetings_annimation, requesting a greetings animation")
+        farewell_animation = ["anim_greeting_goodbye_02", "anim_greeting_goodnight_01", "anim_greeting_goodnight_02"]
+        index = random.randint(0,len(farewell_animation)-1)
+        self.robot.anim.play_animation(farewell_animation[index])
+    
     def set_time_out(self, command):
         self.max_retries = 1
         if command == "enable_timeout":
@@ -394,3 +413,5 @@ class VectorRobotController:
             self.timeout = 90 # Usually the robot will throw an error well before this time
 
         self.logger.info(f"Timeout set to {self.timeout} seconds and max_retries set to {self.max_retries}")
+
+    
