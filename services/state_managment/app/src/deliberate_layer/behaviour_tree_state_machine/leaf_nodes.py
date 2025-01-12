@@ -91,18 +91,17 @@ class RobotController(Leaf):
         self.logger.info("Setting up robot controller")
         if self.branch_name == "reminder" or self.branch_name == "check_in":
             self.comm_interface.behaviour_timeout("disable")
+        elif self.branch_name == "configuring":
+            self.logger.info("Sending wake up command")
+            self.comm_interface.publish_robot_behaviour_command("wake_up")
 
     def start(self):
-        # Face tracking
-        # Autonomous roaming
-        self.logger.info("Starting autonomous behaviour")
         self.comm_interface.behaviour_controller(self.name, "start")
 
     def update(self):
         pass
 
     def end(self):
-        self.logger.info("Exiting autonomous behaviour")
         self.comm_interface.behaviour_controller(self.name, "end")
         if self.branch_name == "reminder" or self.branch_name == "check_in":
             self.comm_interface.behaviour_timeout("enable")
@@ -155,26 +154,6 @@ class Databse(Leaf):
     
     def end(self):
         self.logger.info("Exiting database")
-        pass
-
-class Configurations(Leaf):
-    def __init__(self, communication_interface=None, priority='critical', branch_name=''):
-        super().__init__(communication_interface, priority, branch_name)
-        self.logger = logging.getLogger(self.__class__.__name__)
-
-    def set_up(self):
-        pass
-
-    def start(self):
-        # Show configuration options in user interface and start robot behaviour configuration
-        self.logger.info("Starting configuration page")
-        pass
-
-    def update(self):
-        pass
-
-    def end(self):
-        self.logger.info("Exiting configuration page")
         pass
 
 class Peripherals(Leaf):

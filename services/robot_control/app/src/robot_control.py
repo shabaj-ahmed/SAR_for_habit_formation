@@ -23,6 +23,7 @@ class VectorRobotController:
         self.logger.info(f"Robot enabled: {self.robot_enabled}")
         self.connected = False
         self.robot_awake = True
+        self.prevent_robot_timeout = True
         self.error = None
         self.max_retries = 1
         self.timeout = 8
@@ -145,12 +146,15 @@ class VectorRobotController:
             return False
         self.logger.info("Battery checked and robot is, Connected successfully!")
         print("Robot is on charger platform: {0}".format(battery_state.is_on_charger_platform))
+        if self.prevent_robot_timeout:
+            # If a robot has recently received a command, then prevent it from going to sleep
+            self.prevent_robot_timeout = False
+            return True
         if battery_state.is_on_charger_platform and self.robot_awake:
             # If the robot is connected and on the docking station, then put it to sleep.
             self.robot.anim.play_animation("anim_chargerdocking_severergetout_01")
             # self.robot.behavior.set_head_angle(degrees(-20.0))
             self.robot_awake = False
-            pass
         return True
             
     def disconnect_robot(self):
@@ -165,6 +169,7 @@ class VectorRobotController:
         Args:
             command (str): The control command to handle.
         '''
+        self.prevent_robot_timeout = True
         self.logger.info(f"Handling control command: {command}")
         if self.connected:
             status = "complete"
@@ -176,7 +181,6 @@ class VectorRobotController:
                     # self.handle_tts_command("Starting check-in")
                     pass
                 elif command == "end":
-                    # self.disengage_user()
                     pass
                 elif command == "look_up":
                     self.look_up()
@@ -197,6 +201,8 @@ class VectorRobotController:
                 elif command == "reminder":
                     self.logger.debug("generate reminder animation")
                     self.generate_reminder_animation()
+                elif command == "wake_up":
+                    self.look_up()
             except Exception as e:
                 self.logger.error(f"Error processing control command: {e}")
                 status = "failed"
@@ -241,12 +247,6 @@ class VectorRobotController:
             self.robot.conn.request_control()
         return True
 
-    @run_if_robot_is_enabled
-    @reconnect_on_fail
-    def disengage_user(self):
-        self.robot.behavior.drive_on_charger()
-        return True
-
     def handle_tts_command(self, payload):
         status = "complete"
         try: 
@@ -265,7 +265,6 @@ class VectorRobotController:
             status = "failed"
             return RuntimeError(f"Failed to execute TTS command after {self.max_retries} retries")
             
-        
         response = {
                     "behaviour_name": payload["message_type"],
                     "status": status, # "complete" or "failed"
@@ -279,33 +278,6 @@ class VectorRobotController:
     @reconnect_on_fail
     def _tts(self, text):
         self.robot.behavior.say_text(text)
-        return True
-
-
-    @run_if_robot_is_enabled
-    @reconnect_on_fail
-    def list_animations(self):
-        """Returns a list of all available animations on the robot."""
-        return self.robot.anim.anim_list
-
-    @run_if_robot_is_enabled
-    @reconnect_on_fail
-    def play_animation(self, animation_name):
-        """Plays a specified animation by name."""
-        # self.robot.conn.request_control()
-        # print(self.robot.conn.requires_behavior_control) # Will print True
-        # self.robot.anim.play_animation_trigger('GreetAfterLongTime')
-        # self.robot.conn.release_control()
-        if animation_name in self.robot.anim.anim_list:
-            self.robot.anim.play_animation(animation_name)
-        else:
-            raise ValueError(f"Animation '{animation_name}' not found.")
-        return True
-
-    @run_if_robot_is_enabled
-    @reconnect_on_fail
-    def toggle_autonomous_behavior(self, enable=True):
-        self.robot.behavior.enable_all_reactions(enable)
         return True
 
     @run_if_robot_is_enabled
@@ -323,20 +295,24 @@ class VectorRobotController:
 
         selected_colour = colours.get(colour, colours["orange"])
         self.logger.info(f"Setting eye colour to {colour}")
-        self.look_up()        
-        self.logger.info("Lifted the robot's lift.")
+        self.logger.info("Getting robot to look up.")
+        self.look_up()
         self.robot.behavior.set_lift_height(0.0)
-        self.logger.info("Eye colour set successfully.")
+        self.logger.info("Lifted the robot's lift.")
         self.robot.behavior.set_eye_color(hue=selected_colour[0], saturation=selected_colour[1])
+        self.logger.info("Eye colour set successfully.")
         return True
     
     @run_if_robot_is_enabled
     @reconnect_on_fail
     def look_up(self):
+        self.robot_awake = True
+        self.robot.anim.play_animation("anim_generic_look_up_idle_01")
         self.robot.behavior.set_head_angle(degrees(45.0))
         return True
 
     def update_service_state(self, payload):
+        self.prevent_robot_timeout = True
         state_name = payload.get("state_name", "")
         state = payload.get("state_value", "")
         self.logger.info(f"Robot controller received state update for {state_name}: {state}")
@@ -425,6 +401,7 @@ class VectorRobotController:
             # If the index is the same as the length of the list then skip the animation, this adds a little randomness to the process
             return
         self.robot.anim.play_animation(reminder_animations[index])
+
 
     def set_time_out(self, command):
         self.max_retries = 1

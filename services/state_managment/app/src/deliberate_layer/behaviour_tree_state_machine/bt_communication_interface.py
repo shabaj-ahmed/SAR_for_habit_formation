@@ -22,7 +22,7 @@ class CommunicationInterface(MQTTClientBase):
         self.behaviourRunningStatus = {
             'reminder': "disabled",
             'check_in': "disabled",
-            'configurations': "disabled"
+            'configuring': "disabled"
         }
 
         self.systemStatus = {
@@ -46,13 +46,13 @@ class CommunicationInterface(MQTTClientBase):
         self.robot_heartbeat_topic = "robot_heartbeat"
         self.user_interface_status_topic = "user_interface_status"
         self.user_interface_heartbeat_topic = "user_interface_heartbeat"
-        self.configure_topic = "configure"
         self.service_error_topic = "service_error"
         self.robot_control_status_topic = "robot_control_status"
         self.conversation_history_topic = "conversation/history"
         self.send_reminder_topic = "start_reminder"
         self.database_status_topic = "database_status"
         self.peripherals_status_topic = "peripherals_status"
+        self.configuration_controls_topic = "configuration_controller"
 
         # Publish topics
         self.request_service_status_topic = "request/service_status"
@@ -80,7 +80,7 @@ class CommunicationInterface(MQTTClientBase):
         # self.subscribe(self.reminder_heartbeat_topic, self._process_heartbeat)
         self.subscribe(self.database_status_topic, self._process_service_status)
         self.subscribe(self.peripherals_status_topic, self._process_service_status)
-        self.subscribe(self.configure_topic, self._process_configurations)
+        self.subscribe(self.configuration_controls_topic, self._process_start_configuration_request)
         self.subscribe(self.service_error_topic, self._process_error_message)
         self.subscribe(self.robot_control_status_topic, self._process_robot_behaviour_status)
         self.subscribe(self.conversation_history_topic, self._handle_user_response)
@@ -104,6 +104,16 @@ class CommunicationInterface(MQTTClientBase):
             for behaviour in self.behaviourRunningStatus:
                 self.behaviourRunningStatus[behaviour] = "disabled"
             self.logger.info("Ending check in")
+        
+    def _process_start_configuration_request(self, client, userdata, message):
+        self.logger.info("Processing configurations")
+        if message.payload.decode() == '1':
+            self.logger.info("Starting configuration branch")
+            self.behaviourRunningStatus['configuring'] = "enabled"
+        else:
+            self.logger.info("Ending configuration branch")
+            for behaviour in self.behaviourRunningStatus:
+                self.behaviourRunningStatus[behaviour] = "disabled"
 
     def _process_service_status(self, client, uesrdata, message):
         '''
@@ -124,13 +134,6 @@ class CommunicationInterface(MQTTClientBase):
         status = payload.get("status", "")
 
         self.systemStatus[service] = status
-
-    def _process_configurations(self, client, userdata, message):
-        self.logger.info("Processing configurations")
-        if message.payload.decode() == '1':
-            self.behaviourRunningStatus['configurations'] = "enabled"
-        else:
-            self.behaviourRunningStatus['configurations'] = "disabled"
 
     def _process_error_message(self, client, userdata, message):
         self.logger.info("Processing error message")

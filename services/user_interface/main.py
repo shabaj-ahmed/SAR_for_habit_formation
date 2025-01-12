@@ -241,6 +241,7 @@ def history():
 
 @app.route('/settings')
 def settings():
+    communication_interface.configuration_controller("start")
     return render_template(
         'settings.html',
         time = reminder_time.strftime('%H:%M'),
@@ -249,6 +250,12 @@ def settings():
         voice_button_states=voice_button_states,
         robot_enabled=os.getenv("ROBOT_ENABLED") == "True",
     )
+
+@app.route('/exit_settings', methods=['POST'])
+def exit_settings():
+    logger.info("Exiting settings...")
+    communication_interface.configuration_controller("end")
+    return jsonify({'status': 'success', 'message': 'Settings exited'}), 200
 
 @app.route('/action_page', methods=['POST'])
 def process_form():

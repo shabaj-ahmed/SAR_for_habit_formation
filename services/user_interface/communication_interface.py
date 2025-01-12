@@ -63,6 +63,7 @@ class CommunicationInterface(MQTTClientBase):
         self.wake_up_screen_topic = "wake_up_screen"
         self.update_persistent_data_topic = "update_persistent_data"
         self.service_control_cmd = "database_control_cmd"
+        self.configuration_controls_topic = "configuration_controller"
 
         # Subscriber and publisher topics
         self.check_in_controls_topic = "check_in_controller"
@@ -144,7 +145,6 @@ class CommunicationInterface(MQTTClientBase):
                 self.publish_UI_status("running")
             elif message == "end":
                 # put the screen in stand-by or go to home page
-                # self.robot_control.disengage_user()
                 self.publish_UI_status("completed")
         except json.JSONDecodeError:
             self.logger.error("Invalid JSON payload. Using default retry parameters.")
@@ -248,6 +248,14 @@ class CommunicationInterface(MQTTClientBase):
         if self.check_in_status != True:
             self.logger.info("Sending check-in start command")
             self.publish(self.check_in_controls_topic, "1")
+
+    def configuration_controller(self, command):
+        if command == "start":
+            self.logger.info("Sending start configuring command")
+            self.publish(self.configuration_controls_topic, "1")
+        elif command == "end":
+            self.logger.info("Sending end configuring command")
+            self.publish(self.configuration_controls_topic, "0")
     
     def change_colour(self, selected_colour):
         self.logger.info(f"Sending colour change command: {selected_colour}")
