@@ -37,16 +37,16 @@ class NetworkMonitor:
             self.dispatcher.dispatch_event("send_network_speed", results)
     
     def check_internet_connection(self):
-        # ps = subprocess.Popen(['iwgetid'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        # try:
-        #     output = subprocess.check_output(('grep', 'ESSID'), stdin=ps.stdout)
-        #     if 'TP-Link_A58E' in str(output):
-        #         print("Connected to the TP-Link_A58E network")
-        #         self.dispatcher.dispatch_event("send_network_status", "connected")
-        #     else:
-        #         print(f"Could not find the TP-Link_A5BE network in the output: {str(output)}")
-        # except subprocess.CalledProcessError:
-        #     # grep did not match any lines
+        ps = subprocess.Popen(['iwgetid'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        try:
+            output = subprocess.check_output(('grep', 'ESSID'), stdin=ps.stdout)
+            if 'TP-Link_A58E' in str(output):
+                print("Connected to the TP-Link_A58E network")
+                self.dispatcher.dispatch_event("send_network_status", "connected")
+            else:
+                print(f"Could not find the TP-Link_A5BE network in the output: {str(output)}")
+        except subprocess.CalledProcessError:
+            # grep did not match any lines
             print("No wireless networks connected")
 
 import time
@@ -84,7 +84,7 @@ class ScreenMonitor:
     
     def put_to_sleep(self):
         self.screen_dim_value = int(self.brightness) if self.screen_dim_value is None else self.screen_dim_value
-        
+
         # set new brightness
         self.screen_dim_value = self.screen_dim_value - 1
 
