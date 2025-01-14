@@ -293,6 +293,8 @@ def volume_button_click(button_name):
 def brightness_slider_change(brightness_value):
     # Map the brightness value from range 1-100 to 1-255
     mapped_value = int(20 + (int(brightness_value) - 1) * 235 / 99)
+    mapped_value = 20 + ((255 - 20) / (100 - 1)) * (brightness_value - 1)
+
     # logger.info(f"Brightness slider changed: {brightness_value}")
     try:
         # Update the brightness using the mapped value
