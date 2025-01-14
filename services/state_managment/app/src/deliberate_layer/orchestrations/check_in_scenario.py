@@ -53,13 +53,16 @@ class CheckInScenario:
                     self.logger.info("Current question exists, checking for response.")
                     # Check if the user has responded
                     self.response = self.communication_interface.get_user_response()
+                    self.logger.debug(f"In check in scenario and response received: {self.response}")
                     response_text = self.response["response_text"]
-                    self.logger.debug(f"In check in scenario and response received: {response_text}")
                     if not response_text.strip():
                         # Ask the same question again
                         self.logger.info("Invalid response received, asking the same question again.")
                     else:
                         # Generate a animation based on sentiment
+                        if self.current_question["expected_format"] == "short":
+                            self.logger.info(f"publishing sentiment for week day response: {self.response['sentiment']}")
+                            self.communication_interface.publish_robot_behaviour_command("sentiment", self.response["sentiment"])
                         self.next_question = self.get_current_day_questions(question=self.current_question['question'], response=response_text)
                         if self.next_question is None:
                             self.step = 5
@@ -106,6 +109,9 @@ class CheckInScenario:
                         # Ask the same question again
                         self.logger.info("Invalid response received, asking the same question again.")
                     else:
+                        if self.current_question["expected_format"] == "short":
+                            self.logger.info(f"publishing sentiment for experience sampling response: {self.response['sentiment']}")
+                            self.communication_interface.publish_robot_behaviour_command("sentiment", self.response["sentiment"])
                         self.next_question = self._experience_sampling_questions(question=self.current_question['question'], response=response_text)
                         if self.next_question is None:
                             self.step = 6
