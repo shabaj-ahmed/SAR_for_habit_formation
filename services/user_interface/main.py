@@ -107,6 +107,7 @@ def update_state(payload):
                 shell=True,
                 check=True
             )
+            pass
         except subprocess.CalledProcessError as e:
             logger.error(f"Failed to set brightness: {e}")
         logger.info(f"Mapped brightness value: {brightness_value}")
@@ -292,8 +293,8 @@ def volume_button_click(button_name):
 @app.route('/brightness/<int:brightness_value>')
 def brightness_slider_change(brightness_value):
     # Map the brightness value from range 1-100 to 0-31
-    mapped_value = int(20 + (int(brightness_value) - 1) * 235 / 99)
-    mapped_value = (31 / (100 - 1)) * (brightness_value - 1)
+    mapped_value = int(1 + ((31 - 1) / (100 - 1)) * (brightness_value - 1))
+
 
     # logger.info(f"Brightness slider changed: {brightness_value}")
     try:

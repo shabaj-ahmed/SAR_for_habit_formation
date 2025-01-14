@@ -83,13 +83,11 @@ class ScreenMonitor:
         self.wake_up_screen()
     
     def put_to_sleep(self):
-        self.screen_dim_value = int(self.brightness) if self.screen_dim_value is None else self.screen_dim_value
-
         # set new brightness
-        self.screen_dim_value = self.screen_dim_value - 5
+        self.screen_dim_value = self.screen_dim_value - 1
 
         # make sure the new brightness is not less than 0
-        if self.screen_dim_value > 0 and self.screen_dim_value <= 10:
+        if self.screen_dim_value <= 1:
             self.screen_dim_value = 0
         elif self.screen_dim_value <= 0:
             return
@@ -100,6 +98,7 @@ class ScreenMonitor:
                 shell=True,
                 check=True
             )
+            pass
             # Return a success response
         except subprocess.CalledProcessError as e:
             # Return an error response if the command fails
@@ -119,11 +118,12 @@ class ScreenMonitor:
                     shell=True,
                     check=True
                 )
+                pass
             except subprocess.CalledProcessError as e:
                 # Return an error response if the command fails
                 return f"send_service_error: {e}"
             
-            time.sleep(0.004)
+            time.sleep(0.04)
 
         print(f"Brightness successfully lit")
             
@@ -138,5 +138,5 @@ class ScreenMonitor:
             print("########################### Screen saver restarted ############################")
             self.wake_up()
             self.is_screen_awake = True
-            self.screen_dim_value = None
+            self.screen_dim_value = self.brightness
             self.reset_sleep_timer()
