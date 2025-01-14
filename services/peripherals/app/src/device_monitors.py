@@ -67,9 +67,9 @@ class ScreenMonitor:
 
     def _update_service_state(self, payload):
         state_name = payload.get("state_name", "")
-        state = payload.get("state_value", [])
+        state_value = payload.get("state_value", [])
         if state_name == "brightness":
-            self.brightness = int(state)
+            self.brightness = int(state_value)
 
     def _configure_sleep_timer(self, control):
         self.is_sleep_timer_enabled = control
@@ -86,17 +86,17 @@ class ScreenMonitor:
         self.screen_dim_value = int(self.brightness) if self.screen_dim_value is None else self.screen_dim_value
 
         # set new brightness
-        self.screen_dim_value = self.screen_dim_value - 5
+        self.screen_dim_value = self.screen_dim_value - 1
 
         # make sure the new brightness is not less than 0
-        if self.screen_dim_value > 0 and self.screen_dim_value <= 10:
+        if self.screen_dim_value <= 1:
             self.screen_dim_value = 0
         elif self.screen_dim_value <= 0:
             return
         
         try:
             subprocess.run(
-                f'echo {self.screen_dim_value} | sudo tee /sys/class/backlight/6-0045/brightness',
+                f'echo {self.screen_dim_value} | sudo tee /sys/class/backlight/4-0045/brightness',
                 shell=True,
                 check=True
             )
@@ -116,7 +116,7 @@ class ScreenMonitor:
         for brightness in range(0, self.brightness):            
             try:
                 subprocess.run(
-                    f'echo {brightness} | sudo tee /sys/class/backlight/6-0045/brightness',
+                    f'echo {brightness} | sudo tee /sys/class/backlight/4-0045/brightness',
                     shell=True,
                     check=True
                 )
@@ -125,8 +125,8 @@ class ScreenMonitor:
                 # Return an error response if the command fails
                 return f"send_service_error: {e}"
             
-            time.sleep(0.004)
-
+            time.sleep(0.04)
+        self.screen_dim_value = self.brightness
         print(f"Brightness successfully lit")
             
     def check_for_screen_timeout(self):
@@ -139,7 +139,5 @@ class ScreenMonitor:
         if not self.is_screen_awake:
             print("########################### Screen saver restarted ############################")
             self.wake_up()
-            self.is_sleep_timer_enabled = True
             self.is_screen_awake = True
-            self.screen_dim_value = None
             self.reset_sleep_timer()

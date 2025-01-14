@@ -62,7 +62,7 @@ class CommunicationInterface(MQTTClientBase):
                 self.command = cmd
             elif cmd == "open-ended" or cmd =="short":
                 self.collect_response = True
-                self.format = message.payload.decode("utf-8")
+                self.format = cmd
             else:
                 self.command = ""
         except json.JSONDecodeError:
@@ -88,20 +88,21 @@ class CommunicationInterface(MQTTClientBase):
         except json.JSONDecodeError:
             self.logger.error("Invalid JSON payload for updating service state. Using default retry parameters.")
 
-    def publish_user_response(self, content, message_type="response"):
-        self.logger.info(f"Publishing User response to conversation history topic: {content}")
+    def publish_user_response(self, user_response, message_type="response"):
+        self.logger.info(f"Publishing User response to conversation history topic: {user_response}")
         self.collect_response = False
 
         message = {
             "sender": "user",
             "message_type": message_type,
-            "content": content
+            "content": user_response["response_text"],
+            "sentiment": user_response["sentiment"],
         }
         self._thread_safe_publish(self.conversation_history_topic, json.dumps(message))
 
         status = {
             "behaviour_name": "user response",
-            "status": "failed" if content == "" else "complete",
+            "status": "failed" if user_response == "" else "complete",
             "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
             }
         self._thread_safe_publish(self.robot_control_status_topic, json.dumps(status))

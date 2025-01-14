@@ -129,6 +129,48 @@ $(document).ready(function () {
         document.querySelector('#reminder-time').textContent = `Reminder time set to ${data.time} ${data.ampm}`;
     });
 
+    window.onload = function () {
+        let countdownInterval;
+        const timerDuration = 180; // Time out the settings page after 3 minutes
+
+        startCountdown(timerDuration);
+
+        function startCountdown(duration) {
+            let timer = duration;
+            countdownInterval = setInterval(() => {
+                timer--;
+                if (timer <= 0) {
+                    clearInterval(countdownInterval);
+
+                    // Send POST request to exit settings
+                    fetch('/exit_settings', { method: 'POST' })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.status === 'success') {
+                                console.log("Check-In data saved successfully");
+                            } else {
+                                console.error("Error saving Check-In:", data.message);
+                                alert("Failed to save Check-In data.");
+                            }
+                        })
+                        .catch(error => {
+                            console.error("Error connecting to the server:", error);
+                            alert("Failed to save Check-In data. Please try again.");
+                        })
+                        .finally(() => {
+                            // Navigate to the home page regardless of save status
+                            window.location.href = "/";
+                        });
+                }
+            }, 1000);
+        }
+    };
+
+    window.addEventListener('beforeunload', function (event) {
+        // Send a synchronous request to ensure the server gets notified before the page unloads
+        navigator.sendBeacon('/exit_settings');
+    });
+
     // ========================
     // Variables and Helpers
     // ========================

@@ -96,7 +96,7 @@ class BehaviourBranch:
         
         # Check for behaviour start trigger
         if self.behaviour_running == "standby" and self.communication_interface.get_behaviour_running_status()[self.branch_name] == "enabled":
-            logging.info(f"{self.branch_name} is being requested to start")
+            # logging.info(f"{self.branch_name} is being requested to start")
             if self.orchestrator:
                 self.orchestrator.start()
                 self.behaviour_running = "running"

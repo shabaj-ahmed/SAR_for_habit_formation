@@ -103,7 +103,7 @@ def update_state(payload):
         logger.info(f"Brightness updated: {brightness_value}")
         try:
             subprocess.run(
-                f'echo {brightness_value} | sudo tee /sys/class/backlight/6-0045/brightness',
+                f'echo {brightness_value} | sudo tee /sys/class/backlight/4-0045/brightness',
                 shell=True,
                 check=True
             )
@@ -241,6 +241,7 @@ def history():
 
 @app.route('/settings')
 def settings():
+    communication_interface.configuration_controller("start")
     return render_template(
         'settings.html',
         time = reminder_time.strftime('%H:%M'),
@@ -249,6 +250,12 @@ def settings():
         voice_button_states=voice_button_states,
         robot_enabled=os.getenv("ROBOT_ENABLED") == "True",
     )
+
+@app.route('/exit_settings', methods=['POST'])
+def exit_settings():
+    logger.info("Exiting settings...")
+    communication_interface.configuration_controller("end")
+    return jsonify({'status': 'success', 'message': 'Settings exited'}), 200
 
 @app.route('/action_page', methods=['POST'])
 def process_form():
@@ -285,13 +292,15 @@ def volume_button_click(button_name):
 
 @app.route('/brightness/<int:brightness_value>')
 def brightness_slider_change(brightness_value):
-    # Map the brightness value from range 1-100 to 1-255
-    mapped_value = int(20 + (int(brightness_value) - 1) * 235 / 99)
+    # Map the brightness value from range 1-100 to 0-31
+    mapped_value = int(1 + ((31 - 1) / (100 - 1)) * (brightness_value - 1))
+
+
     # logger.info(f"Brightness slider changed: {brightness_value}")
     try:
         # Update the brightness using the mapped value
         subprocess.run(
-            f'echo {mapped_value} | sudo tee /sys/class/backlight/6-0045/brightness',
+            f'echo {mapped_value} | sudo tee /sys/class/backlight/4-0045/brightness',
             shell=True,
             check=True
         )

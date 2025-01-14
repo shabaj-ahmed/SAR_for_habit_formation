@@ -26,20 +26,25 @@ class ReminderScenario:
         if self.step == 1: 
             if self._drive_off_charger():
                  self.step = 2
+
+        # Step 2: Play an animation...
+        if self.step == 2:
+            self.communication_interface.publish_robot_behaviour_command("reminder")
+            self.step = 3
         
-        # Step 1: Send greeting
-        if self.step == 2: 
+        # Step 3: Send greeting
+        if self.step == 3: 
             if self._remind_user():
-                 self.step = 3
+                 self.step = 4
         
-        # Step 5: Wish participants farewell
-        if self.step == 3:
+        # Step 4: Wish participants farewell
+        if self.step == 4:
             self._farewell_user()
-            self.step = 4
+            self.step = 5
             return
         
         # Step 5: Mark as complete
-        elif self.step == 4:
+        elif self.step == 5:
             self.complete = True
             self.logger.info("Reminder Scenario Complete")
             self.step = 0

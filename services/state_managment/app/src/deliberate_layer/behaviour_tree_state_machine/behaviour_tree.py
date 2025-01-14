@@ -1,4 +1,4 @@
-from .leaf_nodes import UserInterface, Reminder, VoiceAssistant, RobotController, Configurations, Databse
+from .leaf_nodes import UserInterface, Reminder, VoiceAssistant, RobotController, Databse
 from .behaviour_branch import BehaviourBranch
 from .bt_communication_interface import CommunicationInterface
 import os
@@ -56,7 +56,7 @@ class BehaviourTree:
         # Configuration
         self.configurations_branch = BehaviourBranch(self.behaviours[2], self.communication_interface)
         self.configurations_branch.add_service(UserInterface)
-        self.configurations_branch.add_service(Configurations)
+        self.configurations_branch.add_service(RobotController, priority="optional")
         self.configurations_branch.add_service(Databse)
         self.add_branch(self.behaviours[2], self.configurations_branch)
 
@@ -91,7 +91,7 @@ class BehaviourTree:
             self.current_branch = self.branches[branch_name]
             if branch_name == self.behaviours[0]: # If transitioning to reminder branch
                 self.communication_interface.set_behaviour_running_status(self.behaviours[0], "standby") # Default current behaviour to standby
-            self.current_branch.activate_behaviour()  # Start behaviour in the new branch
+            self.current_branch.activate_behaviour() # Start behaviour in the new branch
             self.logger.info(f"Transitioned to {self.current_branch.branch_name} branch")
             self.behaviour_tree_event_queue.put({"state": branch_name})
             time.sleep(0.4) # Give the system time to process the request
@@ -211,7 +211,7 @@ class BehaviourTree:
             self.transition_to_branch(self.behaviours[1])
             self._set_current_state('interacting')
             self.logger.info("Fulfilled user request and transitioning to check-in branch")
-        elif behaviourRunning['configurations'] != "disabled" and self.current_branch.branch_name != self.behaviours[2]:
+        elif behaviourRunning['configuring'] != "disabled" and self.current_branch.branch_name != self.behaviours[2]:
             self.logger.info("Configurations event received")
             self.transition_to_branch(self.behaviours[2])
             self._set_current_state('configuring')

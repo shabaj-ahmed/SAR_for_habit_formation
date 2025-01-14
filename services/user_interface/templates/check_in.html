@@ -110,8 +110,25 @@
                 
                 if (--timer < 0) {
                     clearInterval(countdownInterval);
-                    window.location.href = "/";
                     
+                    fetch('/save-checkin', { method: 'POST' })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.status === 'success') {
+                                console.log("Check-In data saved successfully");
+                            } else {
+                                console.error("Error saving Check-In:", data.message);
+                                alert("Failed to save Check-In data.");
+                            }
+                        })
+                        .catch(error => {
+                            console.error("Error connecting to the server:", error);
+                            alert("Failed to save Check-In data. Please try again.");
+                        })
+                        .finally(() => {
+                            // Navigate to the home page regardless of save status
+                            window.location.href = "/";
+                        });
                 }
             }, 1000);
         }

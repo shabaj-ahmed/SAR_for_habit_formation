@@ -18,6 +18,7 @@ class CheckInScenario:
         self.step = 1
         self.complete = False
         self.waiting_for_response = False
+        self.backchanneling_timer = None
         self.current_question = None
         self.next_question = None
         self.response = None
@@ -31,30 +32,40 @@ class CheckInScenario:
             return
         
         # Step 1: Set up
-        if self.step == 1: 
+        elif self.step == 1: 
             if self._drive_off_charger():
                  self.step = 2
-        
-        # Step 1: Send greeting
-        if self.step == 2: 
+
+        elif self.step == 2:
             if self._greet_user():
-                 self.step = 3
+                self.step = 3
+        
+        # # Step 1: Send greeting
+        elif self.step == 3:
+            self.communication_interface.publish_robot_behaviour_command("look_up")
+            time.sleep(0.4)
+            self.step = 4
                 
-        # Step 2: Weekday-specific questions
-        if self.step == 3:
+        # # Step 2: Weekday-specific questions
+        elif self.step == 4:
             if not self.waiting_for_response:
                 if self.current_question is not None:
                     self.logger.info("Current question exists, checking for response.")
                     # Check if the user has responded
                     self.response = self.communication_interface.get_user_response()
                     self.logger.debug(f"In check in scenario and response received: {self.response}")
-                    if not self.response.strip():
+                    response_text = self.response["response_text"]
+                    if not response_text.strip():
                         # Ask the same question again
                         self.logger.info("Invalid response received, asking the same question again.")
                     else:
-                        self.next_question = self.get_current_day_questions(question=self.current_question['question'], response=self.response)
+                        # Generate a animation based on sentiment
+                        if self.current_question["expected_format"] == "short":
+                            self.logger.info(f"publishing sentiment for week day response: {self.response['sentiment']}")
+                            self.communication_interface.publish_robot_behaviour_command("sentiment", self.response["sentiment"])
+                        self.next_question = self.get_current_day_questions(question=self.current_question['question'], response=response_text)
                         if self.next_question is None:
-                            self.step = 4
+                            self.step = 5
                             self.current_question = None
                             return
                         else:
@@ -64,39 +75,46 @@ class CheckInScenario:
                     # No question was asked yet, ask the first one
                     self.next_question = self.get_current_day_questions()
                     self.current_question = self.next_question
-        
+                
                 self.communication_interface.publish_robot_speech(
                     message_type="question",
                     content=self.current_question['question']
                 )
                 # self.communication_interface.publish_collect_response(self.current_question["expected_format"])
                 self.waiting_for_response = True
-
+                self.backchanneling_timer = time.time()
             elif self.communication_interface.get_robot_behaviour_completion_status("user response") == "complete" or self.communication_interface.get_robot_behaviour_completion_status("user response") == "failed":
                 self.communication_interface.acknowledge_robot_behaviour_completion_status("user response")
                 self.logger.info("User response acknowledged")
                 self.waiting_for_response = False
-
-            if self.communication_interface.get_robot_behaviour_completion_status("question") == "complete":
+            elif self.communication_interface.get_robot_behaviour_completion_status("question") == "complete":
                     self.communication_interface.acknowledge_robot_behaviour_completion_status("question")
                     self.communication_interface.publish_collect_response(self.current_question["expected_format"])
                     self.waiting_for_response = True
+            elif self.waiting_for_response and time.time() - self.backchanneling_timer > 10:
+                # Send a back channeling
+                self.communication_interface.publish_robot_behaviour_command("backchannel")
+                self.backchanneling_timer = time.time()
                     
         
-        elif self.step == 4:
+        elif self.step == 5:
             if not self.waiting_for_response:
                 self.logger.info("Not waiting for response, checking for current question.")
                 if self.current_question is not None:
                     self.logger.info("Current question exists, checking for response.")
                     # Check if the user has responded
                     self.response = self.communication_interface.get_user_response()  # TODO: Delete the response once it has been processed
-                    if not self.response.strip():
+                    response_text = self.response["response_text"]
+                    if not response_text.strip():
                         # Ask the same question again
                         self.logger.info("Invalid response received, asking the same question again.")
                     else:
-                        self.next_question = self._experience_sampling_questions(question=self.current_question['question'], response=self.response)
+                        if self.current_question["expected_format"] == "short":
+                            self.logger.info(f"publishing sentiment for experience sampling response: {self.response['sentiment']}")
+                            self.communication_interface.publish_robot_behaviour_command("sentiment", self.response["sentiment"])
+                        self.next_question = self._experience_sampling_questions(question=self.current_question['question'], response=response_text)
                         if self.next_question is None:
-                            self.step = 5
+                            self.step = 6
                             self.current_question = None
                             return
                         else:
@@ -113,25 +131,29 @@ class CheckInScenario:
                     content = self.current_question.get('ValueError', self.current_question.get('question', ''))
                 )
                 self.waiting_for_response = True
+                self.backchanneling_timer = time.time()
             elif self.communication_interface.get_robot_behaviour_completion_status("user response") == "complete" or self.communication_interface.get_robot_behaviour_completion_status("user response") == "failed":
                 self.communication_interface.acknowledge_robot_behaviour_completion_status("user response")
                 self.logger.info("User response acknowledged")
                 self.waiting_for_response = False
-
-            if self.communication_interface.get_robot_behaviour_completion_status("question") == "complete":
+            elif self.communication_interface.get_robot_behaviour_completion_status("question") == "complete":
                     self.communication_interface.acknowledge_robot_behaviour_completion_status("question")
                     self.communication_interface.publish_collect_response(self.current_question["expected_format"])
+            elif self.waiting_for_response and time.time() - self.backchanneling_timer > 10:
+                # Send a back channeling
+                self.communication_interface.publish_robot_behaviour_command("backchannel")
+                self.backchanneling_timer = time.time()
         
         # # Step 4: Summarise the conversation
         
         # Step 5: Wish participants farewell
-        if self.step == 5:
+        elif self.step == 6:
             self._farewell_user()
-            self.step = 6
+            self.step = 7
             return
         
         # Step 5: Mark as complete
-        elif self.step == 6:
+        elif self.step == 7:
             self.complete = True
             self.logger.info("Check-In Scenario Complete")
             self.step = 0
@@ -266,6 +288,7 @@ class CheckInScenario:
             message_type="farewell",
             content="Thank you for checking in. Have a great day!"
         )
+        self.communication_interface.publish_robot_behaviour_command("farewell")
         self.communication_interface.end_check_in()
         self.communication_interface.set_behaviour_running_status("check_in", "standby")
         self.logger.info("Voice assistant service completed successfully.")

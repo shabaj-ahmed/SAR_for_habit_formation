@@ -21,7 +21,7 @@ from shared_libraries.event_dispatcher import EventDispatcher
 def publish_heartbeat():
     while True:
         # Publish robot controller heartbeat
-        time.sleep(15)  # Publish heartbeat every 30 seconds
+        time.sleep(20)  # Publish heartbeat every 30 seconds
         status = "disconnected"
         if controller.connected:
             robot_is_connected = controller.check_connection()
@@ -60,12 +60,14 @@ if __name__ == '__main__':
         # logger.info(f"battery_level: {battery_level} is_on_charger_platform: {is_on_charger_platform}")
         
         communication_interface.publish_robot_status("Awake")
+        
+        while communication_interface.start_command != "set_up":
+            time.sleep(1)
 
         heart_beat_thread = threading.Thread(target=publish_heartbeat, daemon=True)
         heart_beat_thread.start()
         # video_thread = threading.Thread(target=communication_interface.video_stream)
         # video_thread.start()
-
 
         while True:
             pass
