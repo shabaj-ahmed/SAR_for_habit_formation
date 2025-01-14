@@ -253,10 +253,10 @@ class VectorRobotController:
             self.logger.info(f"In handel tts command func, text from {payload['sender']} is: {payload['content']}")
             self._tts(payload["content"])
             # Add delay to allow the robot to finish speaking before sending completion status
-            delay = len(payload["content"].split()) / 4 # Assuming robot can speak 4 words per second, number chosen arbiteraly...
+            delay = len(payload["content"].split()) / 8 # This is an arbitrary delay, it allows time for the robot to complete speaking before sending the completion status
             if payload.get("message_type", "") == "greeting":
                 self.generate_greetings_animation()
-            if payload.get("message_type", "") == "farewell":
+            elif payload.get("message_type", "") == "farewell":
                 self.generate_farewell_animation()
             self.logger.info(f"Delaying for {delay} seconds")
             time.sleep(int(delay))
@@ -402,6 +402,29 @@ class VectorRobotController:
             return
         self.robot.anim.play_animation(reminder_animations[index])
 
+    @run_if_robot_is_enabled
+    @reconnect_on_fail
+    def generate_feedback_animation(self, sentiment = None):
+        self.logger.info(f"In generate_feedback_animation(), generating sentiment with {sentiment} which is of type: {type(sentiment)}")
+        happy =  ['anim_blackjack_victorbust_01', 'anim_blackjack_victorbjackwin_01', 'anim_blackjack_victorwin_01', 'anim_dancebeat_getout_01', 'anim_eyecontact_giggle_01', 'anim_eyecontact_giggle_01_head_angle_20', 'anim_eyecontact_giggle_01_head_angle_40', 'anim_eyecontact_smile_01_head_angle_40', 'anim_eyecontact_squint_01_head_angle_40', 'anim_eyepose_bliss', 'anim_eyepose_happy', 'anim_eyepose_joy', 'anim_feedback_goodrobot_02', 'anim_freeplay_reacttoface_identified_01', 'anim_freeplay_reacttoface_identified_02', 'anim_freeplay_reacttoface_sayname_01', 'anim_freeplay_reacttoface_sayname_01_head_angle_20', 'anim_freeplay_reacttoface_sayname_01_head_angle_40', 'anim_freeplay_reacttoface_sayname_03', 'anim_onboarding_reacttoface_happy_01', 'anim_onboarding_reacttoface_happy_01_head_angle_40', 'anim_pounce_success_04', 'anim_eyecolorreact_switch_02', 'anim_volume_stage_05']
+        sad = ['anim_blackjack_quit_01', 'anim_chargerdocking_pickup_01', 'anim_chargerdocking_requestgetout_01', 'anim_chargerdocking_rightturn_all', 'anim_chargerdocking_severergetout_02', 'anim_communication_cantdothat_01', 'anim_cubeconnection_connectionfailure_01', 'anim_dancebeat_getout_02', 'anim_driving_upset_loop_02', 'anim_driving_upset_start_01', 'anim_explorer_planning_idle_01', 'anim_eyepose_scared', 'anim_feedback_meanwords_02', 'anim_meetvictor_alreadyknowbob_01', 'anim_onboarding_lookdown_lookaround_loop_01', 'anim_blackjack_swipe_01', 'anim_codelab_getin_01', 'anim_communication_cantdothat_02', 'anim_communication_cantdothat_03', 'anim_communication_pickup_cantdothat_01', 'anim_explorer_planning_getin_02', 'anim_fistbump_fail_01', 'anim_wakeword_groggyeyes_getin_01', 'anim_cubedocking_fail_01', 'anim_cubespinner_anticgamefail_01', 'anim_cubespinner_rtcubemoved_01', 'anim_dancebeat_cantdothat_01', 'anim_driving_upset_loop_01', 'anim_explorer_lookaround_01', 'anim_eyepose_scrutinizing', 'anim_reacttoblock_frustrated_01', 'anim_rtshake_lv1rtonground_01', 'anim_explorer_huh_01_head_angle_40', 'anim_eyepose_startled', 'anim_freeplay_reacttoface_identified_03', 'anim_chargerdocking_leftturn_all', 'anim_explorer_scan_short_02']
+        neutral = ['anim_chargerdocking_request1_01', 'anim_chargerdocking_requestwait_01', 'anim_cubedocking_drive_getout_01', 'anim_dancebeat_headliftbody_right_small_01', 'anim_explorer_huh_far_01', 'anim_explorer_planning_getout_02', 'anim_eyecontact_center_thought_01_head_angle_20', 'anim_dancebeat_getin_01', 'anim_dancebeat_headliftbody_back_01', 'anim_dancebeat_headliftbody_left_med_01', 'anim_dancebeat_headliftbody_left_small_01', 'anim_dancebeat_headliftbody_right_large_01', 'anim_dancebeat_headliftbody_right_med_01', 'anim_eyecontact_center_contact_01', 'anim_eyecontact_center_contact_01_head_angle_-20', 'anim_eyecontact_center_contact_01_head_angle_20', 'anim_eyecontact_center_contact_01_head_angle_40', 'anim_dancebeat_headlift_01', 'anim_eyecolorreact_getin_01', 'anim_gazing_lookatvector_reaction_01_head_angle_40']
+        celebration = ["anim_holiday_hny_fireworks_01", "anim_holiday_hyn_confetti_01", "anim_keepaway_wingame_01", "anim_keepaway_wingame_02"]
+        selected_animation = None
+        if sentiment >= 6 or sentiment < 9:
+            happy_ahmimantion_index = random.randint(0,len(happy)-1)
+            selected_animation = happy[happy_ahmimantion_index]
+        elif sentiment < 4:
+            sad_animation_index = random.randint(0,len(sad)-1)
+            selected_animation = sad[sad_animation_index]
+        elif sentiment > 9:
+            celebration_animation_index = random.randint(0,len(celebration)-1)
+            selected_animation = celebration[celebration_animation_index]
+        else:
+            neutral_animation_index = random.randint(0,len(neutral)-1)
+            selected_animation = neutral[neutral_animation_index]
+        self.logger.info(f"Generating feedback animation: {selected_animation}")
+        self.robot.anim.play_animation(selected_animation)
 
     def set_time_out(self, command):
         self.max_retries = 1

@@ -29,7 +29,10 @@ class SpeechToText:
         self.logger = logging.getLogger(self.__class__.__name__)
     
     def get_response(self, expected_format):
-        response_text = self._recognise_response(expected_format)
+        try:
+            response_text = self._recognise_response(expected_format)
+        except Exception as e:
+            self.logger.error(f"failed to recognise response with error: {e}")
         sentiment = ""
         self.logger.info(f"Response received: {response_text}, expected format: {expected_format}")
         if not isinstance(response_text, str) or not response_text.strip():
@@ -40,16 +43,16 @@ class SpeechToText:
             try:
                 response = self._extract_number_from(response_text)
                 if int(response["response_text"]) < 0 and int(response["response_text"]) > 10:
-                    sentiment = ""
-                    return {"response_text": "", "sentiment": ""}
+                    return {"response_text": "", "sentiment": sentiment}
                 else:
-                    return {"response_text": response["text"], "sentiment": response["sentiment"]}
+                    sentiment = response["sentiment"]
+                    return {"response_text": response["response_text"], "sentiment": sentiment}
             except ValueError:
                 self.logger.debug(f"Invalid response: {response_text}. Expected a number.")
-                return {"response_text": "", "sentiment": ""}
+                return {"response_text": "", "sentiment": sentiment}
         # TODO: publish respones to the orchestrator and the user interface for display
         # Send the response to the orchestrator
-        return {"response_text": response_text, "sentiment": ""}
+        return {"response_text": response_text, "sentiment": sentiment}
     
     def _recognise_response(self, response_type):
         while True:
@@ -119,8 +122,8 @@ class SpeechToText:
         # Use regex to find the first occurrence of a number (integer)
         match = re.search(r'\d+', response)
         if match:
-            self.logger.info(f"Extracted number: {match.group()} or the last index {match.lastindex}")
-            return {"response_text": match.group()[-1], "sentiment": ""} # Return the last digit spoken
+            self.logger.info(f"Extracted number: {match.group()} or the last index {match}")
+            return {"response_text": match.group(), "sentiment": match.group()} # Return the last digit spoken
         else:
             return {"response_text": None, "sentiment": ""}
 

@@ -186,11 +186,12 @@ class CommunicationInterface(MQTTClientBase):
         # This is what the robot should say
         self.publish(self.robot_speech_topic, json_message)
 
-    def publish_robot_behaviour_command(self, cmd, message_type="request"):
+    def publish_robot_behaviour_command(self, cmd, details = "", message_type="request"):
         message = {
             "sender": "orchestrator",
             "message_type": message_type,
             "cmd": cmd,
+            "additional_details": details,
             "time": time.strftime("%Y-%m-%d %H:%M:%S")
         }
         json_message = json.dumps(message)

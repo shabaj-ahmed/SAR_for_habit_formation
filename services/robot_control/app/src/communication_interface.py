@@ -126,7 +126,11 @@ class CommunicationInterface(MQTTClientBase):
             payload = json.loads(message.payload.decode("utf-8"))
             behaviour_name = payload.get("cmd", "")
             self.logger.info(f"behaviour command received: {behaviour_name}")
-            if behaviour_name:
+            if behaviour_name == "sentiment":
+                sentiment = int(payload.get("additional_details", ""))
+                self.logger.info(f"Generating feedback animation. with sentiment {sentiment}")
+                self.robot_controler.generate_feedback_animation(sentiment)
+            else:
                 self.robot_controler.handle_control_command(behaviour_name)
             self.logger.info("Behaviour control command processed")
         except json.JSONDecodeError:
