@@ -128,7 +128,7 @@ class ScreenMonitor:
         print(f"Brightness successfully lit")
             
     def check_for_screen_timeout(self):
-        if self.is_sleep_timer_enabled:
+        if self.is_sleep_timer_enabled and self.is_screen_awake:
             if time.time() - self.countdown > 10:
                 self.put_to_sleep()
                 self.is_screen_awake = False
@@ -137,7 +137,6 @@ class ScreenMonitor:
         if not self.is_screen_awake:
             print("########################### Screen saver restarted ############################")
             self.wake_up()
-            self.is_sleep_timer_enabled = True
             self.is_screen_awake = True
             self.screen_dim_value = None
             self.reset_sleep_timer()
