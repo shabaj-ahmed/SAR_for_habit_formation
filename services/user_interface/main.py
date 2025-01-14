@@ -103,11 +103,10 @@ def update_state(payload):
         logger.info(f"Brightness updated: {brightness_value}")
         try:
             subprocess.run(
-                f'echo {brightness_value} | sudo tee /sys/class/backlight/6-0045/brightness',
+                f'echo {brightness_value} | sudo tee /sys/class/backlight/4-0045/brightness',
                 shell=True,
                 check=True
             )
-            pass
         except subprocess.CalledProcessError as e:
             logger.error(f"Failed to set brightness: {e}")
         logger.info(f"Mapped brightness value: {brightness_value}")
@@ -298,7 +297,7 @@ def brightness_slider_change(brightness_value):
     try:
         # Update the brightness using the mapped value
         subprocess.run(
-            f'echo {mapped_value} | sudo tee /sys/class/backlight/6-0045/brightness',
+            f'echo {mapped_value} | sudo tee /sys/class/backlight/4-0045/brightness',
             shell=True,
             check=True
         )

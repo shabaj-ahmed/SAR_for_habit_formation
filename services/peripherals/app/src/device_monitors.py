@@ -37,16 +37,16 @@ class NetworkMonitor:
             self.dispatcher.dispatch_event("send_network_speed", results)
     
     def check_internet_connection(self):
-        ps = subprocess.Popen(['iwgetid'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        try:
-            output = subprocess.check_output(('grep', 'ESSID'), stdin=ps.stdout)
-            if 'TP-Link_A58E' in str(output):
-                print("Connected to the TP-Link_A58E network")
-                self.dispatcher.dispatch_event("send_network_status", "connected")
-            else:
-                print(f"Could not find the TP-Link_A5BE network in the output: {str(output)}")
-        except subprocess.CalledProcessError:
-            # grep did not match any lines
+        # ps = subprocess.Popen(['iwgetid'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        # try:
+        #     output = subprocess.check_output(('grep', 'ESSID'), stdin=ps.stdout)
+        #     if 'TP-Link_A58E' in str(output):
+        #         print("Connected to the TP-Link_A58E network")
+        #         self.dispatcher.dispatch_event("send_network_status", "connected")
+        #     else:
+        #         print(f"Could not find the TP-Link_A5BE network in the output: {str(output)}")
+        # except subprocess.CalledProcessError:
+        #     # grep did not match any lines
             print("No wireless networks connected")
 
 import time
@@ -96,11 +96,10 @@ class ScreenMonitor:
         
         try:
             subprocess.run(
-                f'echo {self.screen_dim_value} | sudo tee /sys/class/backlight/6-0045/brightness',
+                f'echo {self.screen_dim_value} | sudo tee /sys/class/backlight/4-0045/brightness',
                 shell=True,
                 check=True
             )
-            pass
             # Return a success response
         except subprocess.CalledProcessError as e:
             # Return an error response if the command fails
@@ -116,11 +115,10 @@ class ScreenMonitor:
         for brightness in range(0, self.brightness):            
             try:
                 subprocess.run(
-                    f'echo {brightness} | sudo tee /sys/class/backlight/6-0045/brightness',
+                    f'echo {brightness} | sudo tee /sys/class/backlight/4-0045/brightness',
                     shell=True,
                     check=True
                 )
-                pass
             except subprocess.CalledProcessError as e:
                 # Return an error response if the command fails
                 return f"send_service_error: {e}"
