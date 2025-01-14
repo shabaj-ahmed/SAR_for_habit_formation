@@ -67,9 +67,9 @@ class ScreenMonitor:
 
     def _update_service_state(self, payload):
         state_name = payload.get("state_name", "")
-        state = payload.get("state_value", [])
+        state_value = payload.get("state_value", [])
         if state_name == "brightness":
-            self.brightness = int(state)
+            self.brightness = int(state_value)
 
     def _configure_sleep_timer(self, control):
         self.is_sleep_timer_enabled = control
@@ -83,6 +83,8 @@ class ScreenMonitor:
         self.wake_up_screen()
     
     def put_to_sleep(self):
+        self.screen_dim_value = int(self.brightness) if self.screen_dim_value is None else self.screen_dim_value
+        
         # set new brightness
         self.screen_dim_value = self.screen_dim_value - 1
 
@@ -124,11 +126,11 @@ class ScreenMonitor:
                 return f"send_service_error: {e}"
             
             time.sleep(0.04)
-
+        self.screen_dim_value = self.brightness
         print(f"Brightness successfully lit")
             
     def check_for_screen_timeout(self):
-        if self.is_sleep_timer_enabled and self.is_screen_awake:
+        if self.is_sleep_timer_enabled:
             if time.time() - self.countdown > 10:
                 self.put_to_sleep()
                 self.is_screen_awake = False
@@ -138,5 +140,4 @@ class ScreenMonitor:
             print("########################### Screen saver restarted ############################")
             self.wake_up()
             self.is_screen_awake = True
-            self.screen_dim_value = self.brightness
             self.reset_sleep_timer()
