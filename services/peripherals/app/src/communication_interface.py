@@ -87,7 +87,7 @@ class CommunicationInterface(MQTTClientBase):
 
     def _wake_up_screen(self, client, userdata, message):
         # self.logger.info("Waking up screen")
-        self.dispatcher.dispatch_event("reset_sleep_timer")
+        self.dispatcher.dispatch_event("wake_up_screen")
 
     def _configure_sleep_timer(self, client, userdata, message):
         self.logger.info("Configuring sleep timer")
