@@ -55,7 +55,7 @@ class ScreenMonitor:
     def __init__(self, event_dispatcher):
         self.dispatcher = event_dispatcher
         self.brightness = 50
-        self.screen_dim_value = None
+        self.screen_dim_value = 15 # default to medium brightness if value not yet recived
         self.is_sleep_timer_enabled = False
         self.is_screen_awake = True
         self.countdown = time.time()
@@ -70,10 +70,12 @@ class ScreenMonitor:
         state_value = payload.get("state_value", [])
         if state_name == "brightness":
             self.brightness = int(state_value)
+            self.screen_dim_value = int(state_value)
 
-    def _configure_sleep_timer(self, control):
-        # print(f"sleep timer has been configured to: {control}")
-        self.is_sleep_timer_enabled = control
+    def _configure_sleep_timer(self, payload):
+        configuration = payload.get("control", False)
+        # print(f"sleep timer has been configured to: {configuration}")
+        self.is_sleep_timer_enabled = configuration
         self._wake_up_screen()
 
     def _set_screen_brightness(self, brightness):
@@ -129,11 +131,10 @@ class ScreenMonitor:
             
             time.sleep(0.04)
         self.screen_dim_value = self.brightness
-        
         # print(f"Brightness successfully lit")
             
     def check_for_screen_timeout(self):
-        if self.is_sleep_timer_enabled:
+        if self.is_sleep_timer_enabled and self.screen_dim_value > 0:
             print("########################### Screen saver started ############################")
             if time.time() - self.countdown > 10:
                 self.put_to_sleep()

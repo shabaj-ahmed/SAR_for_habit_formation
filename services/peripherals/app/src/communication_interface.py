@@ -61,7 +61,7 @@ class CommunicationInterface(MQTTClientBase):
             self.logger.info(f"cmd = {cmd}")
             if cmd == "set_up":
                 self.start_command = True
-                self.dispatcher.dispatch_event("configure_sleep_timer", True)
+                self.dispatcher.dispatch_event("configure_sleep_timer", {"control": True})
 
             status = {
                 "end": "ended",
@@ -90,9 +90,9 @@ class CommunicationInterface(MQTTClientBase):
         self.dispatcher.dispatch_event("wake_up_screen")
 
     def _configure_sleep_timer(self, client, userdata, message):
-        self.logger.info("Configuring sleep timer")
-        configuration = message.payload.decode("utf-8")
-        self.dispatcher.dispatch_event("configure_sleep_timer", configuration)
+        configuration = message.payload.decode("utf-8") == "On"
+        self.logger.info(f"Configuring sleep timer to: {configuration}")
+        self.dispatcher.dispatch_event("configure_sleep_timer", {"control": configuration})
 
     def publish_peripherals_status(self, status, message = "", details = None):
         self.service_status = status
