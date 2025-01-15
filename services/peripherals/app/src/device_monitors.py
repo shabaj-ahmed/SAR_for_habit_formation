@@ -135,8 +135,9 @@ class ScreenMonitor:
             
     def check_for_screen_timeout(self):
         if self.is_sleep_timer_enabled and self.screen_dim_value > 0:
-            print("########################### Screen saver started ############################")
+            # print(f"is sleep timer enabled: {type(self.is_sleep_timer_enabled)} and screen dim value: {self.screen_dim_value}")
             if time.time() - self.countdown > 10:
+                print("########################### Screen saver started ############################")
                 self.put_to_sleep()
                 self.is_screen_awake = False
     
@@ -145,4 +146,4 @@ class ScreenMonitor:
             print("########################### Screen saver restarted ############################")
             self.wake_up()
             self.is_screen_awake = True
-            self._wake_up_screen()
+            self.countdown = time.time()
