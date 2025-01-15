@@ -42,6 +42,8 @@ class SpeechToText:
             # Check if the response is a valid number
             try:
                 response = self._extract_number_from(response_text)
+                if not response["response_text"]:
+                    return {"response_text": "", "sentiment": sentiment}
                 if int(response["response_text"]) < 0 and int(response["response_text"]) > 10:
                     return {"response_text": "", "sentiment": sentiment}
                 else:
