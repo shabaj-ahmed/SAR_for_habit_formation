@@ -154,10 +154,11 @@ class CheckInScenario:
         
         # Step 5: Mark as complete
         elif self.step == 7:
-            self.complete = True
             self.logger.info("Check-In Scenario Complete")
             self.step = 0
             self.communication_interface.configure_sleep_timer("On")
+            self.complete = True
+            self.communication_interface.end_check_in()
             # Possibly also send completion signals if needed
             return
         
@@ -205,43 +206,52 @@ class CheckInScenario:
         self.logger.info(f"In get_current_day_questions: question = {question}, response = {response}")
 
         QUESTION_MAP = {
-            "Monday": "What specific goals do you have for this week?",
-            "Tuesday": "What would you like to reflect on this week?",
-            "Wednesday": "What can you improve next week?",
-            "Thursday": "What strategies worked well for you?",
-            "Friday": "What is your main goal for today?",
+            "Monday": "What does it mean to you to succeed in your behaviour change goal?",
+            "Tuesday": "Is there something you can do to increase the likelihood of succeeding in your behaviour change goal?",
+            "Wednesday": "How will succeeding in your behaviour change goal impact your life?",
+            "Thursday": "Why is it important to you to succeed in your behaviour change goal?",
+            "Friday": "What are the benefits of succeeding in your behaviour change goal?",
             "Saturday": "What have you done to stay on track with your behaviour change goals?",
-            "Sunday": "What strategies helped you this week?",
+            "Sunday": "What are the consequences of not succeeding in your behaviour change goal?",
         }
+        # How can you prevent obstacles from interfering with you achieving your behaviour change goal?
 
         # Get the current day of the week
         current_day = datetime.datetime.now().strftime('%A')
         self.logger.info(f"Current day: {current_day}")
 
         if question == "":
+            question = "Have you performed your behaviour today?"
             # Assign different initial questions based on the day
-            self.logger.info(f"Initial question: {QUESTION_MAP.get(current_day)}")
-            question = QUESTION_MAP.get(
-                current_day,
-                "What specific goals do you have for this week?"
-                )
-            self.logger.info(f"Initial question: {question}")
+            
         else:
-            if question == "What specific goals do you have for this week?": # Monday
-                question = "What strategies will you use to achieve these goals?"
-            elif question == "What would you like to reflect on this week?": # Tuesday
+            if question == "Have you performed your behaviour today?":
+                if response.lower() == "yes":
+                    self.logger.info(f"Initial question: {QUESTION_MAP.get(current_day)}")
+                    question = QUESTION_MAP.get(
+                        current_day,
+                        "Did you find it difficult to perform the behaviour?"
+                        )
+                    self.logger.info(f"Initial question: {question}")
+                else:
+                    question = "What obstacles have prevented froom performing the behaviour?"
+            elif question == "What does it mean to you to succeed in your behaviour change goal?": # Monday
+                question = ""
+            elif question == "Is there something you can do to increase the likelihood of succeeding in your behaviour change goal?": # Tuesday
                 self.logger.info(f"In tusedays question, question recived = {question}")
                 question = "What did you learn from your reflections?"
-            elif question == "What can you improve next week?": # Wednesday
+            elif question == "How will succeeding in your behaviour change goal impact your life?": # Wednesday
                 question = "What specific actions will you take to improve?"
-            elif question == "What strategies worked well for you?": # Thursday
+            elif question == "Why is it important to you to succeed in your behaviour change goal?": # Thursday
                 question = "How can you apply these strategies in the future?"
-            elif question == "What is your main goal for today?": # Friday
+            elif question == "What are the benefits of succeeding in your behaviour change goal?": # Friday
                 question = "What strategies will you use to achieve this goal?"
-            elif question == "What have you done to stay on track with your behaviour change goals?": # Saturday
+            elif question == "What have you done to stay on track with your behaviour change goals??": # Saturday
                 question = "What will you do differently next week?"
-            elif question == "What strategies helped you this week?": # Sunday
+            elif question == "What are the consequences of not succeeding in your behaviour change goal?": # Sunday
                 question = "How can you build on these strategies for next week?"
+            elif question == "What obstacles have prevented froom performing the behaviour?":
+                question = "What can you do to overcome these obstacles?"
             else:
                 self.logger.info(f"No more questions for the week. Returning None.")
                 return None
@@ -289,10 +299,8 @@ class CheckInScenario:
             content="Thank you for checking in. Have a great day!"
         )
         self.communication_interface.publish_robot_behaviour_command("farewell")
-        self.communication_interface.end_check_in()
         self.communication_interface.set_behaviour_running_status("check_in", "standby")
         self.logger.info("Voice assistant service completed successfully.")
-        time.sleep(0.5)
 
     # def save_response(question, response, summary=""):
         # Save the response to a database or file
