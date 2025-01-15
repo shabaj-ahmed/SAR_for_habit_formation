@@ -72,6 +72,7 @@ class ScreenMonitor:
             self.brightness = int(state_value)
 
     def _configure_sleep_timer(self, control):
+        # print(f"sleep timer has been configured to: {control}")
         self.is_sleep_timer_enabled = control
         self.reset_sleep_timer()
 
@@ -80,7 +81,7 @@ class ScreenMonitor:
 
     def reset_sleep_timer(self):
         self.countdown = time.time()
-        self.wake_up_screen()
+        self.wake_up()
     
     def put_to_sleep(self):
         self.screen_dim_value = int(self.brightness) if self.screen_dim_value is None else self.screen_dim_value
@@ -108,10 +109,10 @@ class ScreenMonitor:
         
         time.sleep(0.04)
 
-        print(f"Brightness successfully dimmed")
+        # print(f"Brightness successfully dimmed")
     
     def wake_up(self):
-        print("Waking up screen")
+        # print("Waking up screen")
         self.dispatcher.dispatch_event("send_screen_status", "awake")
         for brightness in range(0, self.brightness):            
             try:
@@ -127,10 +128,12 @@ class ScreenMonitor:
             
             time.sleep(0.04)
         self.screen_dim_value = self.brightness
-        print(f"Brightness successfully lit")
+        self.is_screen_awake = True
+        # print(f"Brightness successfully lit")
             
     def check_for_screen_timeout(self):
         if self.is_sleep_timer_enabled:
+            print("########################### Screen saver started ############################")
             if time.time() - self.countdown > 10:
                 self.put_to_sleep()
                 self.is_screen_awake = False
@@ -139,5 +142,4 @@ class ScreenMonitor:
         if not self.is_screen_awake:
             print("########################### Screen saver restarted ############################")
             self.wake_up()
-            self.is_screen_awake = True
             self.reset_sleep_timer()
