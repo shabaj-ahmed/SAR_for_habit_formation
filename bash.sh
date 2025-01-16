@@ -75,6 +75,8 @@ export_env_variables() {
 # Start all services
 start_services() {
     echo "Starting services..."
+    declare -a pids=()  # Array to store PIDs of background processes
+
     for service_dir in "$SERVICES_DIR"/*; do
 
         if [ "$service_dir" == "$SERVICES_DIR/user_interface" ]; then
@@ -83,12 +85,14 @@ start_services() {
 
             flask run --host=0.0.0.0 &
             flask_pid=$!  # Capture Flask process PID
+            pids+=("$flask_pid")  # Add PID to the array
             echo "Flask started with PID $flask_pid. Logs available at flask.log."
             sleep 2  # Give Flask some time to start
 
             echo "Opening browser in full screen..."
             $BROWSER_CMD "$FLASK_APP_URL" &
             browser_pid=$!  # Capture browser process PID
+            pids+=("$browser_pid")  # Add PID to the array
 
             continue
         fi
@@ -98,10 +102,16 @@ start_services() {
         if [ -f "$entry_point" ]; then
             echo "Starting service in $service_dir..."
             python "$entry_point" &
+            service_pid=$!  # Capture service process PID
+            pids+=("$service_pid")  # Add PID to the array
         else
             echo "No main.py found in $service_dir/app. Skipping..."
         fi
     done
+
+    # Wait for all services to start
+    echo "Waiting for services to start..."
+    wait "${pids[@]}"
 }
 
 # Main script
@@ -124,8 +134,10 @@ start_services
 
 echo "All services are running. Press [ENTER] to stop the services and exit."
 
-# Wait for user input
-read -r
+# Keep the script running indefinitely
+while true; do
+    sleep 60
+done
 
 # Stop all background processes
 cleanup
