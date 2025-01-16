@@ -10,6 +10,7 @@ class StudyConfigs:
         }
         self.implementation_intention = "I will exercise for 30 minutes every day at 8:00 AM"
         self.system_sleep_timer = 5
+        self.brightness = 15
     
     def get_study_duration(self):
         return self.study_duration
@@ -28,4 +29,7 @@ class StudyConfigs:
     
     def get_system_sleep_timer(self):
         return self.system_sleep_timer
+    
+    def get_brightness(self):
+        return self.brightness
         
