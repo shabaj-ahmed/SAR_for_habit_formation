@@ -123,16 +123,15 @@
 {% block scripts %}
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script>
-$(document).ready(function () {
     window.socket.on('reminder_time_update', function (data) {
         // Update the time and am/pm in the DOM
         document.querySelector('#reminder-time').textContent = `Reminder time set to ${data.time} ${data.ampm}`;
     });
 
-    window.onload = function () {
+    document.addEventListener("DOMContentLoaded", function () {
         let countdownInterval;
         const timerDuration = 180; // Time out the settings page after 3 minutes
-
+        
         startCountdown(timerDuration);
 
         function startCountdown(duration) {
@@ -164,7 +163,7 @@ $(document).ready(function () {
                 }
             }, 1000);
         }
-    };
+    });
 
     window.addEventListener('beforeunload', function (event) {
         // Send a synchronous request to ensure the server gets notified before the page unloads
@@ -398,6 +397,5 @@ $(document).ready(function () {
         const walk = (y - touchStartY) * 2;
         settingsPage.scrollTop = touchScrollTop - walk;
     });
-});
 </script>
 {% endblock %}
