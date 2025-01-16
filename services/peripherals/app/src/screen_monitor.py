@@ -51,11 +51,11 @@ class ScreenMonitor:
             return
         
         try:
-            # subprocess.run(
-            #     f'echo {self.screen_dim_value} | sudo tee /sys/class/backlight/4-0045/brightness',
-            #     shell=True,
-            #     check=True
-            # )
+            subprocess.run(
+                f'echo {self.screen_dim_value} | sudo tee /sys/class/backlight/4-0045/brightness',
+                shell=True,
+                check=True
+            )
             pass
             # Return a success response
         except subprocess.CalledProcessError as e:
@@ -71,11 +71,11 @@ class ScreenMonitor:
         self.dispatcher.dispatch_event("send_screen_status", "awake")
         for brightness in range(0, self.brightness):            
             try:
-                # subprocess.run(
-                #     f'echo {brightness} | sudo tee /sys/class/backlight/4-0045/brightness',
-                #     shell=True,
-                #     check=True
-                # )
+                subprocess.run(
+                    f'echo {brightness} | sudo tee /sys/class/backlight/4-0045/brightness',
+                    shell=True,
+                    check=True
+                )
                 pass
             except subprocess.CalledProcessError as e:
                 # Return an error response if the command fails
