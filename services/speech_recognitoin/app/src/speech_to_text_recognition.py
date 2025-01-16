@@ -10,7 +10,7 @@ import audioop
 import logging
 
 # Audio recording parameters
-RATE = 16000
+RATE = 48000
 CHUNK = int(RATE / 10)  # 100ms
 SILENCE_THRESHOLD = 500  # RMS threshold for silence (This value was arbitrarily chosen based on testing)
 INITIAL_SILENCE_DURATION = 15 # Silence duration in seconds
@@ -33,6 +33,7 @@ class SpeechToText:
             response_text = self._recognise_response(expected_format)
         except Exception as e:
             self.logger.error(f"failed to recognise response with error: {e}")
+            response_text = None
         sentiment = ""
         self.logger.info(f"Response received: {response_text}, expected format: {expected_format}")
         if not isinstance(response_text, str) or not response_text.strip():
