@@ -1,6 +1,7 @@
 import time
 import threading
-from src.device_monitors import NetworkMonitor, ScreenMonitor
+from src.network_monitor import NetworkMonitor
+from src.screen_monitor import ScreenMonitor
 from src.communication_interface import CommunicationInterface
 
 import logging
@@ -35,22 +36,18 @@ def publish_heartbeat():
         
         screen_monitor.check_for_screen_timeout()
 
-        time.sleep(0.1)
+        time.sleep(0.2)
 
 if __name__ == "__main__":
     try:
         while True:
+            setup_logger()
+
+            logger = logging.getLogger("Main")
+
+            dispatcher = EventDispatcher()
+            
             try:
-                setup_logger()
-
-                logger = logging.getLogger("Main")
-
-                dispatcher = EventDispatcher()
-                
-                network_monitor = NetworkMonitor(
-                    event_dispatcher=dispatcher
-                )
-
                 screen_monitor = ScreenMonitor(
                     event_dispatcher=dispatcher
                 )
@@ -64,10 +61,21 @@ if __name__ == "__main__":
                 communication_interface.publish_peripherals_status("Awake")
 
                 # wait to recive set up command... before running this...
-                logger.info("Waiting for set up command")
+                logger.info("Peripherals service is waiting for set up command")
                 while not communication_interface.start_command:
                     logger.info("Set up command not recived")
                     time.sleep(1)
+
+                start_network_monitor = True
+                while start_network_monitor:
+                    try:
+                        network_monitor = NetworkMonitor(
+                            event_dispatcher=dispatcher
+                        )
+                        start_network_monitor = False   
+                    except Exception as e:
+                        logger.error(f"Error setting up network monitor: {e}")
+                        time.sleep(60)
 
                 # Check network connection and speed before starting the heartbeat thread
                 network_monitor.check_internet_connection()
