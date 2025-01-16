@@ -1,5 +1,4 @@
 import time
-import threading
 from src.network_monitor import NetworkMonitor
 from src.screen_monitor import ScreenMonitor
 from src.communication_interface import CommunicationInterface
@@ -16,31 +15,11 @@ sys.path.insert(0, project_root)
 from shared_libraries.logging_config import setup_logger
 from shared_libraries.event_dispatcher import EventDispatcher
 
-def publish_heartbeat():
-    network_connection_timer = time.time()
-    network_speed_timer = time.time()
-    
-    while True:
-        current_time = time.time()
-
-        if current_time - network_connection_timer > 5:
-            logger.info("Checking network connection")
-            if network_monitor:
-                network_monitor.check_internet_connection()
-            network_connection_timer = current_time
-        if current_time - network_speed_timer > 60:
-            logger.info("Checking network speed")
-            if network_monitor:
-                network_monitor.check_internet_speed()
-            network_speed_timer = current_time
-        
-        screen_monitor.check_for_screen_timeout()
-
-        time.sleep(0.2)
-
 if __name__ == "__main__":
     try:
         while True:
+            network_connection_timer = time.time()
+            network_speed_timer = time.time()
             setup_logger()
 
             logger = logging.getLogger("Main")
@@ -77,15 +56,22 @@ if __name__ == "__main__":
                         logger.error(f"Error setting up network monitor: {e}")
                         time.sleep(60)
 
-                # Check network connection and speed before starting the heartbeat thread
-                network_monitor.check_internet_connection()
-                network_monitor.check_internet_speed()
-
-                # Start heartbeat thread
-                heart_beat_thread = threading.Thread(target=publish_heartbeat, daemon=True)
-                heart_beat_thread.start()
-
                 while True:
+                    current_time = time.time()
+
+                    if current_time - network_connection_timer > 10:
+                        logger.info("Checking network connection")
+                        if network_monitor:
+                            network_monitor.check_internet_connection()
+                        network_connection_timer = current_time
+                    if current_time - network_speed_timer > 90:
+                        logger.info("Checking network speed")
+                        if network_monitor:
+                            network_monitor.check_internet_speed()
+                        network_speed_timer = current_time
+                    
+                    screen_monitor.check_for_screen_timeout()
+
                     time.sleep(0.4)
 
             except Exception as e:
@@ -93,4 +79,4 @@ if __name__ == "__main__":
                 time.sleep(5)
 
     except KeyboardInterrupt as e:
-        heart_beat_thread.join()
+        pass
