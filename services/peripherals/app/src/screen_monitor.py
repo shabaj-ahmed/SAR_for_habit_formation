@@ -69,7 +69,7 @@ class ScreenMonitor:
     def wake_up(self):
         # print("Waking up screen")
         self.dispatcher.dispatch_event("send_screen_status", "awake")
-        for brightness in range(0, self.brightness):            
+        for brightness in range(self.screen_dim_value, self.brightness):            
             try:
                 subprocess.run(
                     f'echo {brightness} | sudo tee /sys/class/backlight/4-0045/brightness',
