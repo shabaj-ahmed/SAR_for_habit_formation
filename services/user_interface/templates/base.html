@@ -6,7 +6,7 @@
     <title>{{ title|default("My App") }}</title>
     
     <!-- Global Styles -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
     
     <!-- Page-Specific Styles -->
     {% block styles %}
@@ -29,14 +29,14 @@
             <span id="menu-icon" onclick="openNav()">&#9776; Open</span>
             <!-- Indicators -->
             <div id="indicators">
-                <img id="connection-status" src="{{ url_for('static', filename='connected-icons8.png') }}" alt="Connection Status">
-                <img id="wifi-status" src="{{ url_for('static', filename='wifi-off_Freepik.png') }}" alt="WiFi Status">
-                <img id="download-status" src="{{ url_for('static', filename='download_icons8.png') }}" alt="download Status">
+                <img id="connection-status" src="{{ url_for('static', filename='images/connected-icons8.png') }}" alt="Connection Status">
+                <img id="wifi-status" src="{{ url_for('static', filename='images/wifi-off_Freepik.png') }}" alt="WiFi Status">
+                <img id="download-status" src="{{ url_for('static', filename='images/download_icons8.png') }}" alt="download Status">
                 <p id="wifi_download_speed">--</p>
-                <img id="upload-status" src="{{ url_for('static', filename='upload_icons8.png') }}" alt="upload Status">                
+                <img id="upload-status" src="{{ url_for('static', filename='images/upload_icons8.png') }}" alt="upload Status">                
                 <p id="wifi_upload_speed">--</p>
-                <img id="mic-status" src="{{ url_for('static', filename='microphone-off_Dave_Gandy.png') }}" alt="Mic Status">
-                <img id="cam-status" src="{{ url_for('static', filename='videocam_off_icon_small.png') }}" alt="Cam Status">
+                <img id="mic-status" src="{{ url_for('static', filename='images/microphone-off_Dave_Gandy.png') }}" alt="Mic Status">
+                <img id="cam-status" src="{{ url_for('static', filename='images/videocam_off_icon_small.png') }}" alt="Cam Status">
             </div>
         </div>
 
@@ -174,23 +174,23 @@
         function updateIndicators(data) {
             const connectionStatus = document.getElementById('connection-status');
             connectionStatus.src = data.robot
-                ? "{{ url_for('static', filename='connected-icons8.png') }}"
-                : "{{ url_for('static', filename='disconnected-icons8.png') }}";
+                ? "{{ url_for('static', filename='images/connected-icons8.png') }}"
+                : "{{ url_for('static', filename='images/disconnected-icons8.png') }}";
 
             const wifiStatus = document.getElementById('wifi-status');
             wifiStatus.src = data.wifi
-                ? "{{ url_for('static', filename='wifi_redempticon.png') }}"
-                : "{{ url_for('static', filename='wifi-off_Freepik.png') }}";
+                ? "{{ url_for('static', filename='images/wifi_redempticon.png') }}"
+                : "{{ url_for('static', filename='images/wifi-off_Freepik.png') }}";
 
             const micStatus = document.getElementById('mic-status');
             micStatus.src = data.mic
-                ? "{{ url_for('static', filename='microphone-black-shape.png') }}"
-                : "{{ url_for('static', filename='microphone-off_Dave_Gandy.png') }}";
+                ? "{{ url_for('static', filename='images/microphone-black-shape.png') }}"
+                : "{{ url_for('static', filename='images/microphone-off_Dave_Gandy.png') }}";
 
             const camStatus = document.getElementById('cam-status');
             camStatus.src = data.cam
-                ? "{{ url_for('static', filename='videocam_icon_small.png') }}"
-                : "{{ url_for('static', filename='videocam_off_icon_small.png') }}";
+                ? "{{ url_for('static', filename='images/videocam_icon_small.png') }}"
+                : "{{ url_for('static', filename='images/videocam_off_icon_small.png') }}";
             
             const wifiDownloadSpeed = document.getElementById('wifi_download_speed');
             wifiDownloadSpeed.textContent = data.wifi_download_speed || '--';
