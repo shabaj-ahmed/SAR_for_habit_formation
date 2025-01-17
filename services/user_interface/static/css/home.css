@@ -7,7 +7,7 @@
     height: 100%;
     margin: 0;
     padding: 0;
-    gap: 1rem;
+    gap: 32px;
     text-align: center;
 }
 
@@ -16,9 +16,9 @@
     flex: 1;
     display: flex;
     justify-content: center;
-    font-size: 42pt;
+    font-size: 96px;
     font-weight: bold;
-    margin-bottom: 1rem;
+    margin-bottom: 32px;
     align-items: center;
 }
 
@@ -27,15 +27,14 @@
     flex: 1;
     display: flex;
     justify-content: space-around;
-    align-items: center;
+    align-items: top;
     width: 100%;
-    max-width: 800px; /* Optional: Limit the row width */
-    gap: 2rem; /* Adds spacing between items in the row */
+    gap: 32px;
 }
 
 /* Individual Elements in the Row */
 .check-in, .days-remaining {
-    font-size: 32pt;
+    font-size: 64pt;
     font-weight: bold;
     display: flex;
     flex-direction: column;
@@ -48,11 +47,11 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 1rem;
+    gap: 32px;
 }
 
 .date, .time {
     margin: 0;
-    font-size: 24;
+    font-size: 64px;
     font-weight: normal;
 }
