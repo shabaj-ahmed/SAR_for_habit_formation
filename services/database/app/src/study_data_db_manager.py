@@ -31,7 +31,6 @@ class StudyDatabaseManager:
         if not study_meta:
             study_meta = StudyMeta(
                 number_of_interactions_in_a_day=0,  # Initial values
-                total_duration_of_interaction="00:00",
                 date=today_date,
                 reminder_message="",
                 number_of_network_failures=0,
@@ -40,11 +39,11 @@ class StudyDatabaseManager:
             self.session.add(study_meta)
             self.session.commit()  # Commit to generate an ID for the new StudyMeta
             self.session.refresh(study_meta)
-
+                
         # Create a new CheckInMeta for this check-in
         checkin_meta = CheckInMeta(
-            checkin_time=today_date,
-            checkin_duration=check_in_data["check_in_time"],  # Placeholder duration
+            checkin_time=check_in_data["check_in_time"],
+            checkin_duration=check_in_data["check_in_duration_seconds"],  # Placeholder duration
             study_meta_id=study_meta.id,
         )
         self.session.add(checkin_meta)
@@ -79,7 +78,7 @@ class StudyDatabaseManager:
         # If no StudyMeta entry exists, create one
         if not study_meta:
             study_meta = StudyMeta(
-                number_of_interactions_in_a_day=0,  # Initial values
+                number_of_interactions_in_a_day=1,  # Initial values
                 total_duration_of_interaction="",
                 date=today_date,
                 reminder_message = "",
@@ -88,7 +87,8 @@ class StudyDatabaseManager:
             )
         
         study_meta.reminder_message = reminder_message
-        
+        study_meta.number_of_interactions_in_a_day += 1
+
         self.session.add(study_meta)
         self.session.commit()  # Commit to generate an ID for the new StudyMeta
         self.session.refresh(study_meta)

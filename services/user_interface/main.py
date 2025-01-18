@@ -26,7 +26,7 @@ setup_logger()
 logger = logging.getLogger(__name__)
 
 # Persistent check in data
-check_in_time = None
+check_in_start_time = None
 chat_history = []
 
 volume_button_states = {
@@ -103,11 +103,11 @@ def update_state(payload):
         brightness_value = int(payload.get("state_value", ""))
         logger.info(f"Brightness updated: {brightness_value}")
         try:
-            # subprocess.run(
-            #     f'echo {brightness_value} | sudo tee /sys/class/backlight/4-0045/brightness',
-            #     shell=True,
-            #     check=True
-            # )
+            subprocess.run(
+                f'echo {brightness_value} | sudo tee /sys/class/backlight/4-0045/brightness',
+                shell=True,
+                check=True
+            )
             pass
         except subprocess.CalledProcessError as e:
             logger.error(f"Failed to set brightness: {e}")
@@ -196,8 +196,8 @@ def reconnect():
 def check_in():
     global chat_history
     chat_history = []
-    global check_in_time
-    check_in_time = datetime.now()
+    global check_in_start_time
+    check_in_start_time = datetime.now()
     return render_template('check_in.html', chat_history=chat_history)
 
 @app.route('/save-checkin', methods=['POST'])
@@ -227,9 +227,12 @@ def save_check_in():
 
         # Add metadata to the check-in data
         check_in_end_time = datetime.now()
-        check_in_duration = (check_in_end_time - check_in_time).total_seconds()
+        check_in_duration = (check_in_end_time - check_in_start_time).total_seconds()
         print(f"Check-in duration: {check_in_duration}")
-        check_in_data = {"check_in_time": check_in_duration, "responses": chat_data}
+        check_in_data = {
+            "check_in_time": check_in_start_time.strftime("%H:%M:%S"),
+            "check_in_duration_seconds": check_in_duration,
+            "responses": chat_data}
         
         # Publish the check-in data to the MQTT broker
         communication_interface.save_check_in(check_in_data)
@@ -308,11 +311,11 @@ def brightness_slider_change(brightness_value):
     logger.info(f"Brightness slider changed: {brightness_value}")
     try:
         # Update the brightness using the mapped value
-        # subprocess.run(
-        #     f'echo {mapped_value} | sudo tee /sys/class/backlight/4-0045/brightness',
-        #     shell=True,
-        #     check=True
-        # )
+        subprocess.run(
+            f'echo {mapped_value} | sudo tee /sys/class/backlight/4-0045/brightness',
+            shell=True,
+            check=True
+        )
         communication_interface.change_brightness(mapped_value)
         # Return a success response
         return f"Brightness successfully set to {mapped_value}", 200
