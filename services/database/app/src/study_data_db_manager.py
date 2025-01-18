@@ -18,7 +18,7 @@ class StudyDatabaseManager:
             self.dispatcher.register_event("create_new_reminder", self.create_new_reminder)
             self.dispatcher.register_event("request_history", self.retrieve_history)
     
-    def save_check_in(self, responses):
+    def save_check_in(self, check_in_data):
         print("Saving check-in data")
 
         today_date = datetime.now().date().strftime("%Y-%m-%d")
@@ -34,39 +34,33 @@ class StudyDatabaseManager:
                 total_duration_of_interaction="00:00",
                 date=today_date,
                 reminder_message="",
+                number_of_network_failures=0,
+                number_of_robot_crashes=0
             )
             self.session.add(study_meta)
             self.session.commit()  # Commit to generate an ID for the new StudyMeta
             self.session.refresh(study_meta)
 
-        # Check if a CheckInMeta entry already exists for today's StudyMeta
-        checkin_meta = (
-            self.session.exec(
-                select(CheckInMeta)
-                .where(CheckInMeta.study_meta_id == study_meta.id)
-            ).one_or_none()
+        # Create a new CheckInMeta for this check-in
+        checkin_meta = CheckInMeta(
+            checkin_time=today_date,
+            checkin_duration=check_in_data["check_in_time"],  # Placeholder duration
+            study_meta_id=study_meta.id,
         )
-
-        if not checkin_meta:
-            # If no CheckInMeta exists, create one
-            checkin_meta = CheckInMeta(
-                checkin_time=today_date,
-                checkin_duration="00:00",  # Placeholder duration
-                study_meta_id=study_meta.id,
-            )
-            self.session.add(checkin_meta)
-            self.session.commit()  # Commit to generate an ID for the new CheckInMeta
-            self.session.refresh(checkin_meta)
+        self.session.add(checkin_meta)
+        self.session.commit()  # Commit to generate an ID for the new CheckInMeta
+        self.session.refresh(checkin_meta)
         
+        responses = check_in_data["responses"]
         print(f"responses received: {responses}")
-        # Add CheckIn responses and associate them with StudyMeta
-        for response in responses:
+        # Add CheckIn responses and associate them with CheckInMeta
+        for response in check_in_data["responses"]:
             new_checkin = CheckIn(
                 question=response["question"],
                 response=response["response"],
-                study_meta_id=checkin_meta.id  # Link to the correct StudyMeta entry
+                checkin_meta_id=checkin_meta.id  # Link to the correct CheckInMeta entry
             )
-            checkin_meta.checkins.append(new_checkin)
+            self.session.add(new_checkin)
 
         self.session.commit()
 
