@@ -227,7 +227,7 @@ def save_check_in():
 
         # Add metadata to the check-in data
         check_in_end_time = datetime.now()
-        check_in_duration = (check_in_end_time - check_in_time).total_seconds
+        check_in_duration = (check_in_end_time - check_in_time).total_seconds()
         print(f"Check-in duration: {check_in_duration}")
         check_in_data = {"check_in_time": check_in_duration, "responses": chat_data}
         
