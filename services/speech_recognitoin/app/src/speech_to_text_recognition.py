@@ -14,7 +14,7 @@ RATE = 48000
 CHUNK = int(RATE / 10)  # 100ms
 SILENCE_THRESHOLD = 500  # RMS threshold for silence (This value was arbitrarily chosen based on testing)
 INITIAL_SILENCE_DURATION = 15 # Silence duration in seconds
-SILENCE_DURATION = 4  # Silence duration in seconds
+SILENCE_DURATION = 3  # Silence duration in seconds
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
 
