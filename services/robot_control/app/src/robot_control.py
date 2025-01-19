@@ -25,7 +25,6 @@ class VectorRobotController:
         self.prevent_robot_timeout = True
         self.error = None
         self.max_retries = 1
-        self.timeout = 8
         self.robot_states = {}
 
     def reconnect_on_fail(func):
@@ -79,9 +78,9 @@ class VectorRobotController:
     @reconnect_on_fail
     def connect(self):
         """Wrapper for connection logic."""
-        self.timeout = 15
         self.max_retries = 10
         self._direct_connect()
+        self.max_retries = 1
     
     def _direct_connect(self):
         """Direct connection logic without decorator."""
@@ -224,7 +223,6 @@ class VectorRobotController:
         except Exception as e:
             self.logger.error(f"Error processing TTS command {e}")
             status = "failed"
-            return RuntimeError(f"Failed to execute TTS command after {self.max_retries} retries")
             
         response = {
                     "behaviour_name": payload["message_type"],
@@ -386,14 +384,5 @@ class VectorRobotController:
             selected_animation = neutral[neutral_animation_index]
         self.logger.info(f"The following animation has been selected: {selected_animation}")
         self.robot.anim.play_animation(selected_animation)
-    
-    def set_time_out(self, command):
-        self.max_retries = 1
-        if command == "enable_timeout":
-            self.timeout = 2
-        elif command == "disable_timeout":
-            self.timeout = 90 # Usually the robot will throw an error well before this time
-
-        self.logger.info(f"Timeout set to {self.timeout} seconds and max_retries set to {self.max_retries}")
 
     

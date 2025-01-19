@@ -89,9 +89,7 @@ class RobotController(Leaf):
     def set_up(self):
         self.comm_interface.behaviour_controller(self.name, "set_up")
         self.logger.info("Setting up robot controller")
-        if self.branch_name == "reminder" or self.branch_name == "check_in":
-            self.comm_interface.behaviour_timeout("disable")
-        elif self.branch_name == "configuring":
+        if self.branch_name == "configuring":
             self.logger.info("Sending wake up command")
             self.comm_interface.publish_robot_behaviour_command("wake_up")
 
@@ -103,8 +101,6 @@ class RobotController(Leaf):
 
     def end(self):
         self.comm_interface.behaviour_controller(self.name, "end")
-        if self.branch_name == "reminder" or self.branch_name == "check_in":
-            self.comm_interface.behaviour_timeout("enable")
 
 class Reminder(Leaf):
     def __init__(self, communication_interface=None, priority='critical', branch_name=''):
