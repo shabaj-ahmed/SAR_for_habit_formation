@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block styles %}
-<link rel="stylesheet" href="{{ url_for('static', filename='settings_style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/settings_style.css') }}">
 {% endblock %}
 
 {% block content %}
@@ -58,27 +58,27 @@
         <div class="radios-container" id="custom-radios">
             <div>
                 <input type="radio" class="custom-radio" id="green" name="colour" value="green" />
-                <label for="green"><span><img src="./static/check.svg" alt="Checked Icon" /></span></label>
+                <label for="green"><span><img src="./static/images/check.svg" alt="Checked Icon" /></span></label>
             </div>
             <div>
                 <input type="radio" class="custom-radio" id="sapphire" name="colour" value="sapphire" />
-                <label for="sapphire"><span><img src="./static/check.svg" alt="Checked Icon" /></span></label>
+                <label for="sapphire"><span><img src="./static/images/check.svg" alt="Checked Icon" /></span></label>
             </div>
             <div>
                 <input type="radio" class="custom-radio" id="yellow" name="colour" value="yellow" />
-                <label for="yellow"><span><img src="./static/check.svg" alt="Checked Icon" /></span></label>
+                <label for="yellow"><span><img src="./static/images/check.svg" alt="Checked Icon" /></span></label>
             </div>
             <div>
                 <input type="radio" class="custom-radio" id="red" name="colour" value="red" />
-                <label for="red"><span><img src="./static/check.svg" alt="Checked Icon" /></span></label>
+                <label for="red"><span><img src="./static/images/check.svg" alt="Checked Icon" /></span></label>
             </div>
             <div>
                 <input type="radio" class="custom-radio" id="purple" name="colour" value="purple" />
-                <label for="purple"><span><img src="./static/check.svg" alt="Checked Icon" /></span></label>
+                <label for="purple"><span><img src="./static/images/check.svg" alt="Checked Icon" /></span></label>
             </div>
             <div>
                 <input type="radio" class="custom-radio" id="orange" name="colour" value="orange" />
-                <label for="orange"><span><img src="./static/check.svg" alt="Checked Icon" /></span></label>
+                <label for="orange"><span><img src="./static/images/check.svg" alt="Checked Icon" /></span></label>
             </div>
         </div>
 
@@ -123,16 +123,15 @@
 {% block scripts %}
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script>
-$(document).ready(function () {
     window.socket.on('reminder_time_update', function (data) {
         // Update the time and am/pm in the DOM
         document.querySelector('#reminder-time').textContent = `Reminder time set to ${data.time} ${data.ampm}`;
     });
 
-    window.onload = function () {
+    document.addEventListener("DOMContentLoaded", function () {
         let countdownInterval;
         const timerDuration = 180; // Time out the settings page after 3 minutes
-
+        
         startCountdown(timerDuration);
 
         function startCountdown(duration) {
@@ -164,7 +163,7 @@ $(document).ready(function () {
                 }
             }, 1000);
         }
-    };
+    });
 
     window.addEventListener('beforeunload', function (event) {
         // Send a synchronous request to ensure the server gets notified before the page unloads
@@ -398,6 +397,5 @@ $(document).ready(function () {
         const walk = (y - touchStartY) * 2;
         settingsPage.scrollTop = touchScrollTop - walk;
     });
-});
 </script>
 {% endblock %}

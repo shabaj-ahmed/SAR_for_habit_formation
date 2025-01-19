@@ -66,10 +66,7 @@ class CommunicationInterface(MQTTClientBase):
         try:
             payload = json.loads(message.payload.decode("utf-8"))
             command = payload.get("cmd", "")
-            if command == "enable_timeout" or command == "disable_timeout":
-                self.robot_controler.set_time_out(command)
-                return
-            elif command == "set_up":
+            if command == "set_up":
                 self.start_command = command
             else:
                 self.robot_controler.handle_control_command(command)

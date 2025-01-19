@@ -7,7 +7,6 @@ class StudyMeta(SQLModel, table=True):
     """
     id: int = Field(default=None, primary_key=True)
     number_of_interactions_in_a_day: int
-    total_duration_of_interaction: str  # Format: HH:MM
     number_of_robot_crashes: int
     number_of_network_failures: int
     date: str  # Format: YYYY-MM-DD

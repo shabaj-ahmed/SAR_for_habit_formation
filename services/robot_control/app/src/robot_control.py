@@ -5,7 +5,6 @@ import logging
 import os
 import random
 
-import threading
 import time
 import logging
 from functools import wraps
@@ -26,7 +25,6 @@ class VectorRobotController:
         self.prevent_robot_timeout = True
         self.error = None
         self.max_retries = 1
-        self.timeout = 8
         self.robot_states = {}
 
     def reconnect_on_fail(func):
@@ -38,60 +36,21 @@ class VectorRobotController:
             attempt_counter = 0
 
             while attempt_counter < self.max_retries:
-                thread = None
-                result = None
-                func_executed = threading.Event()  # Flag to track if `func()` completed
-                exception_raised = None
-                
-                def issue_warning():
-                    self.logger.warning(f"{func.__name__} is taking too long. Please wait or check the robot.")
-                
-                warning_timer = threading.Timer(TIMEOUT_WARNING, issue_warning)
-                warning_timer.start()
+                try:
+                    return func(self, *args, **kwargs)
+                except Exception as e:
+                    self.logger.error(f"Exception in {func.__name__}: {e}")
 
-                def run_function():
-                    nonlocal result, exception_raised
-                    try:
-                        result = func(self, *args, **kwargs)
-                        func_executed.set()  # Mark function as completed
-                    except Exception as e:
-                        self.logger.error(f"Exception in {func.__name__}: {e}")
-                        exception_raised = e
-
-                thread = threading.Thread(target=run_function, daemon=True)
-                thread.start()
-
-                # Wait for the function to complete or timeout
-                self.logger.info(f"Waiting for {func.__name__} to complete or timeout...")
-                thread.join(self.timeout)
-                
-                if func_executed.is_set():
-                    # Function completed successfully
-                    self.logger.info("function executed sucessfully")
-                    warning_timer.cancel()
-                    return result
-                else:
-                    self.logger.warning(f"{func.__name__} did not complete in time ({self.timeout} timeout).")
-                    # if self.connected:
-                    #     self.connected = False
-                    #     try:
-                    #         self.communication_interface.publish_service_error({"message": "Connection to robot lost.\nAttempting to reconnect", "response": "reconnect"})
-                    #         self.disconnect_robot()
-                    #     except Exception as e:
-                    #         self.logger.debug(f"Attempted to disconnect but recived an error: {e}")
-                    #         retries += 1
-                    #         # If there is an error during disconnect assume the robot is not connected
+                    self.connected = False
                     
                     self.logger.info(f"Attempt {attempt_counter} of {self.max_retries}")
-                    self.logger.warning(f"{func.__name__} took too long. Forcing a reconnect...")
-
+                    
                     try:
-                        self.logger.warning(f"{func.__name__} is being directly invoked to avoid recursion.")
-                        self._direct_connect()  # Direct method for `connect` logic
+                        self._direct_connect()  # Try to reconnect to the robot
                         if func.__name__ == "connect":
-                            return True  # Return after successful direct invocation
-                    except Exception as e:
-                        self.logger.error(f"Direct connect() invocation failed: {e}")
+                            return True  # If _direct_connect() succeeds and connect is the parent function then connection to robot is successful so no retry necessary
+                    except Exception as e: 
+                        self.logger.error(f"The followng error occurred in robot controller: {e}")
                         attempt_counter += 1
                         time.sleep(RETRY_DELAY)
             
@@ -99,12 +58,11 @@ class VectorRobotController:
                 "error_message": "Connection to robot lost.\nEnsure the robot and router are turned on.", 
                 "response": "reconnect",
                 "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
-                })
+                })  
             self.communication_interface.publish_robot_connection_status("disconnected")
             # Exhausted retries
             self.logger.error(f"Failed to execute {func.__name__} after {self.max_retries} retries.")
             return False
-
         return wrapper
     
     def run_if_robot_is_enabled(func):
@@ -120,10 +78,10 @@ class VectorRobotController:
     @reconnect_on_fail
     def connect(self):
         """Wrapper for connection logic."""
-        self.timeout = 15
         self.max_retries = 10
         self._direct_connect()
-
+        self.max_retries = 1
+    
     def _direct_connect(self):
         """Direct connection logic without decorator."""
         self.robot = anki_vector.Robot(self.robot_serial)
@@ -143,7 +101,9 @@ class VectorRobotController:
         if not self.connected:
             self.logger.info(f"Failed to connect to the robot after multiple attempts. Ended with error {self.error}")
             self.robot_awake = True
+            self.communication_interface.publish_robot_connection_status("disconnected")
             return False
+        self.communication_interface.publish_robot_connection_status("connected")
         self.logger.info("Battery checked and robot is, Connected successfully!")
         print("Robot is on charger platform: {0}".format(battery_state.is_on_charger_platform))
         if self.prevent_robot_timeout:
@@ -263,7 +223,6 @@ class VectorRobotController:
         except Exception as e:
             self.logger.error(f"Error processing TTS command {e}")
             status = "failed"
-            return RuntimeError(f"Failed to execute TTS command after {self.max_retries} retries")
             
         response = {
                     "behaviour_name": payload["message_type"],
@@ -423,16 +382,7 @@ class VectorRobotController:
         else:
             neutral_animation_index = random.randint(0,len(neutral)-1)
             selected_animation = neutral[neutral_animation_index]
-        self.logger.info(f"Generating feedback animation: {selected_animation}")
+        self.logger.info(f"The following animation has been selected: {selected_animation}")
         self.robot.anim.play_animation(selected_animation)
-
-    def set_time_out(self, command):
-        self.max_retries = 1
-        if command == "enable_timeout":
-            self.timeout = 8
-        elif command == "disable_timeout":
-            self.timeout = 90 # Usually the robot will throw an error well before this time
-
-        self.logger.info(f"Timeout set to {self.timeout} seconds and max_retries set to {self.max_retries}")
 
     

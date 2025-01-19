@@ -16,7 +16,7 @@
 
 #myBar {
     width: 1%;
-    height: 40px;
+    height: 80px;
     background-color: #04AA6D;
 }
 
@@ -25,30 +25,30 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 36px;
+    font-size: 62px;
     font-weight: bold;
     font-family: 'Arial', sans-serif;
 }
 
 #pending-services-container {
-    margin-top: 20px;
+    margin-top: 40px;
 }
 
 #pending-services-container h3 {
-    font-size: 36px;
+    font-size: 62px;
     font-family: 'Arial', sans-serif;
     font-weight: bold;
-    margin-bottom: 10px;
+    margin-bottom: 20px;
 }
 
 #pending-services-container ul {
     list-style-type: circle;
-    padding: 10;
-    font-size: 30px;
+    padding: 20;
+    font-size: 60px;
     font-family: 'Arial', sans-serif;
 
 }
 
 #pending-services-container li {
-    margin: 5px 0;
+    margin: 10px 0;
 }
