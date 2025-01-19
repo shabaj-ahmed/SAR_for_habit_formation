@@ -5,7 +5,6 @@ import logging
 import os
 import random
 
-import threading
 import time
 import logging
 from functools import wraps
@@ -38,56 +37,17 @@ class VectorRobotController:
             attempt_counter = 0
 
             while attempt_counter < self.max_retries:
-                thread = None
-                result = None
-                func_executed = threading.Event()  # Flag to track if `func()` completed
-                exception_raised = None
-                
-                def issue_warning():
-                    self.logger.warning(f"{func.__name__} is taking too long. Please wait or check the robot.")
-                
-                warning_timer = threading.Timer(TIMEOUT_WARNING, issue_warning)
-                warning_timer.start()
+                try:
+                    return func(self, *args, **kwargs)
+                except Exception as e:
+                    self.logger.error(f"Exception in {func.__name__}: {e}")
 
-                def run_function():
-                    nonlocal result, exception_raised
-                    try:
-                        result = func(self, *args, **kwargs)
-                        func_executed.set()  # Mark function as completed
-                    except Exception as e:
-                        self.logger.error(f"Exception in {func.__name__}: {e}")
-                        exception_raised = e
-
-                thread = threading.Thread(target=run_function, daemon=True)
-                thread.start()
-
-                # Wait for the function to complete or timeout
-                self.logger.info(f"Waiting for {func.__name__} to complete or timeout...")
-                thread.join(self.timeout)
-                
-                if func_executed.is_set():
-                    # Function completed successfully
-                    self.logger.info("function executed sucessfully")
-                    warning_timer.cancel()
-                    return result
-                else:
-                    self.logger.warning(f"{func.__name__} did not complete in time ({self.timeout} timeout).")
-                    # if self.connected:
-                    #     self.connected = False
-                    #     try:
-                    #         self.communication_interface.publish_service_error({"message": "Connection to robot lost.\nAttempting to reconnect", "response": "reconnect"})
-                    #         self.disconnect_robot()
-                    #     except Exception as e:
-                    #         self.logger.debug(f"Attempted to disconnect but recived an error: {e}")
-                    #         retries += 1
-                    #         # If there is an error during disconnect assume the robot is not connected
+                    self.connected = False
                     
                     self.logger.info(f"Attempt {attempt_counter} of {self.max_retries}")
-                    self.logger.warning(f"{func.__name__} took too long. Forcing a reconnect...")
                     
                     try:
-                        self.logger.warning(f"{func.__name__} is being directly invoked to avoid recursion.")
-                        self._direct_connect()  # Direct method for `connect` logic
+                        self._direct_connect()  # Try to reconnect to the robot
                         if func.__name__ == "connect":
                             return True  # If _direct_connect() succeeds and connect is the parent function then connection to robot is successful so no retry necessary
                     except Exception as e: 
@@ -104,7 +64,6 @@ class VectorRobotController:
             # Exhausted retries
             self.logger.error(f"Failed to execute {func.__name__} after {self.max_retries} retries.")
             return False
-
         return wrapper
     
     def run_if_robot_is_enabled(func):
@@ -431,7 +390,7 @@ class VectorRobotController:
     def set_time_out(self, command):
         self.max_retries = 1
         if command == "enable_timeout":
-            self.timeout = 8
+            self.timeout = 2
         elif command == "disable_timeout":
             self.timeout = 90 # Usually the robot will throw an error well before this time
 
