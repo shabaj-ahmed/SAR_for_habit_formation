@@ -1,6 +1,8 @@
+from datetime import datetime
+
 class StudyConfigs:
     def __init__(self):
-        self.start_date = "2025-01-01"
+        self.start_date = datetime.now().date().strftime("%Y-%m-%d")
         self.study_duration = 21
         self.user_name = "anonymous"
         self.reminder_time = {
