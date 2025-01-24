@@ -3,6 +3,7 @@ import sys
 import os
 import logging
 import time
+from datetime import datetime
 
 # Add the project root directory to sys.path
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -37,6 +38,9 @@ class CommunicationInterface(MQTTClientBase):
         self.robot_behaviour_completion_status = {}
         self.user_response = {}
 
+        self.first_day = False
+        self.user_name = ""
+
         # Subscription topics
         self.reminder_status_topic = "reminder_status"
         self.reminder_heartbeat_topic = "reminder_heartbeat"
@@ -53,6 +57,7 @@ class CommunicationInterface(MQTTClientBase):
         self.database_status_topic = "database_status"
         self.peripherals_status_topic = "peripherals_status"
         self.configuration_controls_topic = "configuration_controller"
+        self.update_state_topic = "service/state_machine/update_state"
 
         # Publish topics
         self.request_service_status_topic = "request/service_status"
@@ -85,7 +90,8 @@ class CommunicationInterface(MQTTClientBase):
         self.subscribe(self.robot_control_status_topic, self._process_robot_behaviour_status)
         self.subscribe(self.conversation_history_topic, self._handle_user_response)
         self.subscribe(self.send_reminder_topic, self._send_reminder)
-
+        self.subscribe(self.update_state_topic, self._update_service_state)
+                       
     def _process_check_in_request(self, client, userdata, message):
         '''
         Process the check in request from the user interface
@@ -160,6 +166,19 @@ class CommunicationInterface(MQTTClientBase):
         else:
             self.behaviourRunningStatus['reminder'] = "disabled"
             self.logger.info("disable reminder")
+
+    def _update_service_state(self, client, userdata, message):
+        try:
+            payload = json.loads(message.payload.decode("utf-8"))
+            state_name = payload.get("state_name", "")
+            state = payload.get("state_value", [])
+            self.logger.info(f"in state machine and received state update for {state_name}: {state}")
+            if state_name == "start_date":
+                self.first_day = state == datetime.now().date().strftime("%Y-%m-%d")
+            elif state_name == "user_name":
+                self.user_name = state
+        except json.JSONDecodeError:
+            self.logger.error("Invalid JSON payload for updating service state. Using default retry parameters.")
 
     def request_service_status(self):
         '''
@@ -258,3 +277,9 @@ class CommunicationInterface(MQTTClientBase):
     
     def get_user_response(self):
         return self.user_response
+    
+    def get_first_day(self):
+        return self.first_day
+    
+    def get_user_name(self):
+        return self.user_name
