@@ -60,7 +60,7 @@ class CommunicationInterface(MQTTClientBase):
                 self.command = ""
             elif cmd == "set_up" or cmd == "start":
                 self.command = cmd
-            elif cmd == "open-ended" or cmd =="short":
+            elif cmd == "open-ended" or cmd == "closed-ended" or cmd =="short":
                 self.collect_response = True
                 self.format = cmd
             else:
@@ -73,7 +73,8 @@ class CommunicationInterface(MQTTClientBase):
             "start": "running",
             "end": "completed",
             "open-ended": "running",
-            "short": "running"
+            "short": "running",
+            "closed-ended": "running"
         }
 
         self.publish_speech_recognition_status(status[cmd])

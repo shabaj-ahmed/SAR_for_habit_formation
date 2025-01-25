@@ -29,6 +29,7 @@ class SpeechToText:
         self.logger = logging.getLogger(self.__class__.__name__)
     
     def get_response(self, expected_format):
+        self.logger.info(f"Getting response with expected format: {expected_format}")
         try:
             response_text = self._recognise_response(expected_format)
         except Exception as e:
@@ -53,6 +54,16 @@ class SpeechToText:
             except ValueError:
                 self.logger.debug(f"Invalid response: {response_text}. Expected a number.")
                 return {"response_text": "", "sentiment": sentiment}
+        elif expected_format == "closed-ended":
+            if "yes" in response_text.lower():
+                sentiment = "8"
+                return {"response_text": "Yes", "sentiment": sentiment}
+            elif "no" in response_text.lower():
+                sentiment = "2"
+                return {"response_text": "No", "sentiment": sentiment}
+            else:
+                self.logger.debug(f"Invalid response: {response_text}. Expected 'yes' or 'no'.")
+                return {"response_text": "", "sentiment": sentiment}
         # TODO: publish respones to the orchestrator and the user interface for display
         # Send the response to the orchestrator
         return {"response_text": response_text, "sentiment": sentiment}
@@ -60,7 +71,7 @@ class SpeechToText:
     def _recognise_response(self, response_type):
         while True:
             # Configure recognition settings based on the response type
-            config = self.short_response() if response_type == "short" else self.long_response()
+            config = self.long_response() if response_type == "open-ended" else self.short_response()
             streaming_config = speech.StreamingRecognitionConfig(
                 config=config,
                 interim_results=True,
