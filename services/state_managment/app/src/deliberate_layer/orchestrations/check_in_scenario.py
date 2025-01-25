@@ -363,7 +363,108 @@ class CheckInQuestions:
             return None
         
     def sundays_question(self, question = "", response = ""):
-        '''
-        
-        '''
-        pass
+        self.logger.info(f"In sundays_question: question = {question}, response = {response}")
+        if question == "":
+            return {"question": "Did you exercise today?", "expected_format": "closed-ended"}
+        elif question == "Did you exercise today?":
+            return {"question": "How would you rate your progress on a scale of 1 to 10?", "expected_format": "short"}
+        elif question == "How would you rate your progress on a scale of 1 to 10?":
+            try:
+                if response is None or response == "" or int(response) < 1 or int(response) > 10:
+                    # Handle the case where no valid number was found
+                    return {"question": "Please provide a valid number between 1 and 10.", "expected_format": "short"}
+                elif int(response) < 5:
+                    return {"question": "What obstacles kept you from meeting your goals?", "expected_format": "open-ended"}
+                elif 5 <= int(response) <= 7:
+                    return {"question": "What can you improve next week?", "expected_format": "open-ended"}
+                else:
+                    return {"question": "Great! What strategies worked well for you?", "expected_format": "open-ended"}
+            except ValueError:
+                return {"question": question, "ValueError": "Please provide a valid number between 1 and 10.", "expected_format": "short"}
+        elif question == "What obstacles kept you from meeting your goals?" or question == "What can you improve next week?" or question == "Great! What strategies worked well for you?":
+            return {"question": "thinking about staying active over the past week, for each of the questions that I will ask you, please respond with a number between 1 and 10, with 1 being never and 10 being always. Over the past week, how often did you feel like you wanted to exercise?", "expected_format": "short"}
+        # intensity
+        if question == "thinking about staying active over the past week, for each of the questions that I will ask you, please respond with a number between 1 and 10, with 1 being never and 10 being always. Over the past week, how often did you feel like you wanted to exercise?" or question == "Please provide a valid number between 1 and 10. Over the past week, how often did you feel like you wanted to exercise?":
+            if response is None or response == "" or int(response) < 1 or int(response) > 10:
+                # Handle the case where no valid number was found
+                return {"question": "Please provide a valid number between 1 and 10. Over the past week, how often did you feel like you wanted to exercise?", "expected_format": "short"}
+            else:
+                return {"question": "Over the past week, how often did you feel like you needed to exercise?", "expected_format": "short"}
+        elif question == "Over the past week, how often did you feel like you needed to exercise?" or question == "Please provide a valid number between 1 and 10. Over the past week, how often did you feel like you needed to exercise?":
+            if response is None or response == "" or int(response) < 1 or int(response) > 10:
+                # Handle the case where no valid number was found
+                return {"question": "Please provide a valid number between 1 and 10. Over the past week, how often did you feel like you needed to exercise?", "expected_format": "short"}
+            else:
+                return {"question": "Over the past week, how often did you have a strong urge to exercise?", "expected_format": "short"}
+        elif question == "Over the past week, how often did you have a strong urge to exercise?" or question == "Please provide a valid number between 1 and 10. Over the past week, how often did you have a strong urge to exercise?":
+            if response is None or response == "" or int(response) < 1 or int(response) > 10:
+                # Handle the case where no valid number was found
+                return {"question": "Please provide a valid number between 1 and 10. Over the past week, how often did you have a strong urge to exercise?", "expected_format": "short"}
+            else:
+                return {"question": "Over the past week, how often did you imagine how good it would be to exercise?", "expected_format": "short"}
+        # Incentives imagery
+        elif question == "Over the past week, how often did you imagine how good it would be to exercise?" or question == "Please provide a valid number between 1 and 10. Over the past week, how often did you imagine how good it would be to exercise?":
+            if response is None or response == "" or int(response) < 1 or int(response) > 10:
+                # Handle the case where no valid number was found
+                return {"question": "Please provide a valid number between 1 and 10. Over the past week, how often did you imagine how good it would be to exercise?", "expected_format": "short"}
+            else:
+                return {"question": "Over the past week, how often did you imagine how much better you would feel after exercising?", "expected_format": "short"}
+        elif question == "Over the past week, how often did you imagine how much better you would feel after exercising?" or question == "Please provide a valid number between 1 and 10. Over the past week, how often did you imagine how much worse you’d feel if you didn’t exercise?":
+            if response is None or response == "" or int(response) < 1 or int(response) > 10:
+                # Handle the case where no valid number was found
+                return {"question": "Please provide a valid number between 1 and 10. Over the past week, how often did you imagine how much better you would feel after exercising?", "expected_format": "short"}
+            else:
+                return {"question": "Over the past week, how often did you imagine how much worse you would feel if you didn not exercise?", "expected_format": "short"}
+        # Self-efficacy
+        elif question == "Over the past week, how often did you imagine how much worse you would feel if you didn not exercise?" or question == "Please provide a valid number between 1 and 10. Over the past week, how often did you imagine how much worse you’d feel if you didn’t exercise?":
+            if response is None or response == "" or int(response) < 1 or int(response) > 10:
+                # Handle the case where no valid number was found
+                return {"question": "Please provide a valid number between 1 and 10. Over the past week, how often did you imagine how much worse you would feel if you didn not exercise?", "expected_format": "short"}
+            else:
+                return {"question": "Over the past week, how often did you imagine yourself exercising?", "expected_format": "short"}
+        elif question == "Over the past week, how often did you imagine yourself exercising?" or question == "Please provide a valid number between 1 and 10. Over the past week, how often did you imagine yourself exercising?":
+            if response is None or response == "" or int(response) < 1 or int(response) > 10:
+                # Handle the case where no valid number was found
+                return {"question": "Please provide a valid number between 1 and 10. Over the past week, how often did you imagine yourself exercising?", "expected_format": "short"}
+            else:
+                return {"question": "Over the past week, how often did you imagine how you would exercise?", "expected_format": "short"}
+        elif question == "Over the past week, how often did you imagine how you would exercise?" or question == "Please provide a valid number between 1 and 10. Over the past week, how often did you imagine how you would exercise?":
+            if response is None or response == "" or int(response) < 1 or int(response) > 10:
+                # Handle the case where no valid number was found
+                return {"question": "Please provide a valid number between 1 and 10. Over the past week, how often did you imagine how you would exercise?", "expected_format": "short"}
+            else:
+                return {"question": "Over the past week, how often did you imagine succeeding at exercising?", "expected_format": "short"}
+        elif question == "Over the past week, how often did you imagine succeeding at exercising?" or question == "Please provide a valid number between 1 and 10. Over the past week, how often did you imagine succeeding at exercising?":
+            if response is None or response == "" or int(response) < 1 or int(response) > 10:
+                # Handle the case where no valid number was found
+                return {"question": "Please provide a valid number between 1 and 10. Over the past week, how often did you imagine succeeding at exercising?", "expected_format": "short"}
+            else:
+                return {"question": "Over the past week, how often did you picture times you did picture doing something like this in the past?", "expected_format": "short"}
+        elif question == "Over the past week, how often did you picture times you did picture doing something like this in the past?" or question == "Please provide a valid number between 1 and 10. Over the past week, how often did you picture times you did picture doing something like this in the past?":
+            if response is None or response == "" or int(response) < 1 or int(response) > 10:
+                # Handle the case where no valid number was found
+                return {"question": "Please provide a valid number between 1 and 10. Over the past week, how often did you picture times you did picture doing something like this in the past?", "expected_format": "short"}
+            else:
+                return {"question": "Over the past week, how often did thoughts of exercising come to mind?", "expected_format": "short"}
+        # Availability
+        elif question == "Over the past week, how often did thoughts of exercising come to mind?" or question == "Please provide a valid number between 1 and 10. Over the past week, how often did thoughts of exercising come to mind?":
+            if response is None or response == "" or int(response) < 1 or int(response) > 10:
+                # Handle the case where no valid number was found
+                return {"question": "Please provide a valid number between 1 and 10. Over the past week, how often did thoughts of exercising come to mind?", "expected_format": "short"}
+            else:
+                return {"question": "Over the past week, how often did other things remind you of exercising?", "expected_format": "short"}
+        elif question == "Over the past week, how often did other things remind you of exercising?" or question == "Please provide a valid number between 1 and 10. Over the past week, how often did other things remind you of exercising?":
+            if response is None or response == "" or int(response) < 1 or int(response) > 10:
+                # Handle the case where no valid number was found
+                return {"question": "Please provide a valid number between 1 and 10. Over the past week, how often did other things remind you of exercising?", "expected_format": "short"}
+            else:
+                return {"question": "Over the past week, how often did thoughts about exercising grab your attention?", "expected_format": "short"}
+        elif question == "Over the past week, how often did thoughts about exercising grab your attention?" or question == "Please provide a valid number between 1 and 10. 3. Over the past week, how often did thoughts about exercising grab your attention?":
+            if response is None or response == "" or int(response) < 1 or int(response) > 10:
+                # Handle the case where no valid number was found
+                return {"question": "Please provide a valid number between 1 and 10. 3. Over the past week, how often did thoughts about exercising grab your attention?", "expected_format": "short"}
+            else:
+                return {"question": "Thank you for answering those questions. What was one thing you are excited to achieve by the end of the week?", "expected_format": "open-ended"}
+        else:
+            self.logger.info(f"No more questions for experience sampling. Returning None.")
+            return None
