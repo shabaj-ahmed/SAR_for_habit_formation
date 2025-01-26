@@ -81,6 +81,19 @@ class PersistentDataManager:
 
         print(f"All service states to be updated: {service_states}")
 
+        if not service_states:
+            print(f"No service states found for {state_name}.")
+            service_name = payload.get("service_name", "")
+            service_state = ServiceState(
+                service_name=service_name,
+                state_name=state_name,
+                state_value=value,
+            )
+            self.session.add(service_state)
+            self.session.commit()
+            self.session.refresh(service_state)
+            return
+
         updated_services = []
         for service_state in service_states:
             setattr(service_state, "state_value", value)  # Update the field in the object
