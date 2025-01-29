@@ -46,6 +46,7 @@ fi
 
 start_mqtt_broker() {
     echo "Starting MQTT broker..."
+    sudo apt install mosquitto mosquitto-clients
     sudo systemctl start $MQTT_BROKER_SERVICE
     if [ $? -ne 0 ]; then
         echo "Failed to start MQTT broker. Please check your setup."
