@@ -42,7 +42,6 @@ def initialise_persistent_database(session):
             ServiceState(service_name="reminder", state_name="reminder_time_min", state_value=str(reminder_time["minutes"])),
             ServiceState(service_name="reminder", state_name="reminder_time_ampm", state_value=reminder_time["ampm"]),
             ServiceState(service_name="reminder", state_name="start_date", state_value=str(configs.get_start_date())),
-            ServiceState(service_name="reminder", state_name="study_duration", state_value=str(configs.get_study_duration())),
 
             ServiceState(service_name="robot_control", state_name="robot_colour", state_value="green"),
             ServiceState(service_name="robot_control", state_name="robot_volume", state_value="default"),
@@ -61,6 +60,9 @@ def initialise_persistent_database(session):
             ServiceState(service_name="speech_recognition", state_name="user_name", state_value=str(configs.get_user_name())),
 
             ServiceState(service_name="peripherals", state_name="brightness", state_value=str(configs.get_brightness())),
+
+            ServiceState(service_name="state_machine", state_name="start_date", state_value=str(configs.get_start_date())),
+            ServiceState(service_name="state_machine", state_name="user_name", state_value=str(configs.get_user_name())),
         ]
         
         session.add_all(service_states)

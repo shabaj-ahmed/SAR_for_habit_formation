@@ -1,5 +1,6 @@
 import speedtest
 import subprocess
+import os
 
 class NetworkMonitor:
     def __init__(self, event_dispatcher):
@@ -7,6 +8,7 @@ class NetworkMonitor:
         self.threads = None
         self.speed_test = speedtest.Speedtest()
         self.dispatcher = event_dispatcher
+        self.network_name = str(os.getenv("NETWORK_NAME"))
     
     def get_servers(self):
         self.speed_test.get_servers(self.servers)
@@ -40,12 +42,13 @@ class NetworkMonitor:
         try:
             ps = subprocess.Popen(['iwgetid'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
             output = subprocess.check_output(('grep', 'ESSID'), stdin=ps.stdout)
-            if 'TP-Link_A58E' in str(output):
-                print("Connected to the TP-Link_A58E network")
+            if self.network_name in str(output):
+                print(f"Connected to the {self.network_name} network")
                 self.dispatcher.dispatch_event("send_network_status", "connected")
             else:
                 self.dispatcher.dispatch_event("send_network_status", "disconnected")
-                print(f"Could not find the TP-Link_A5BE network in the output: {str(output)}")
+                print(f"Could not find the {self.network_name} network in the output: {str(output)}")
+            pass
         except subprocess.CalledProcessError:
             self.dispatcher.dispatch_event("send_network_status", "disconnected")
             # grep did not match any lines

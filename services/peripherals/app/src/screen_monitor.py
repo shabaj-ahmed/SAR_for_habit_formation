@@ -1,5 +1,6 @@
 import subprocess
 import time
+import os
 
 class ScreenMonitor:
     def __init__(self, event_dispatcher):
@@ -9,6 +10,7 @@ class ScreenMonitor:
         self.is_sleep_timer_enabled = False
         self.is_screen_awake = True
         self.countdown = time.time()
+        self.brightness_file = str(os.getenv("BRIGHTNESS_FILE"))
 
         self.dispatcher.register_event("configure_sleep_timer", self._configure_sleep_timer)
         self.dispatcher.register_event("update_screen_brightness", self._set_screen_brightness)
@@ -52,7 +54,7 @@ class ScreenMonitor:
         
         try:
             subprocess.run(
-                f'echo {self.screen_dim_value} | sudo tee /sys/class/backlight/4-0045/brightness',
+                f'echo {self.screen_dim_value} | sudo tee {self.brightness_file}',
                 shell=True,
                 check=True
             )
@@ -72,7 +74,7 @@ class ScreenMonitor:
         for brightness in range(self.screen_dim_value, self.brightness):            
             try:
                 subprocess.run(
-                    f'echo {brightness} | sudo tee /sys/class/backlight/4-0045/brightness',
+                    f'echo {brightness} | sudo tee {self.brightness_file}',
                     shell=True,
                     check=True
                 )

@@ -30,7 +30,18 @@ echo "Environment File: $ENV_FILE"
 echo "Script Path: $SCRIPT_PATH"
 
 # Change to the project directory
-cd "$PROJECT_DIR" || { echo "Error: Cannot change to project directory $PROJECT_DIR"; exit 1; }
+# Change to the project directory
+if cd "$PROJECT_DIR"; then
+    echo "Pulling latest changes from the remote repository..."
+    git pull
+    if [ $? -ne 0 ]; then
+        echo "Error: 'git pull' failed. Please check the repository and resolve any issues."
+        exit 1
+    fi
+else
+    echo "Error: Cannot change to project directory $PROJECT_DIR. Exiting."
+    exit 1
+fi
 
 
 start_mqtt_broker() {

@@ -7,7 +7,7 @@ class ReminderController:
         self.reminder_time = initial_reminder_time
         self.dispatcher = event_dispatcher
         self.todays_reminder_sent = False
-        self.reminder_date = datetime.datetime.now().date()
+        self.reminder_date = ""
         self.enable_reminder = True
         self.user_name = ""
         self.study_duration = 0
@@ -44,6 +44,9 @@ class ReminderController:
         elif state_name == "start_date":
             self.start_date = datetime.datetime.strptime(state_value, "%Y-%m-%d").date()
             self.logger.info(f"Start date updated to {self.start_date}")
+        elif state_name == "date_reminder_sent":
+            self.reminder_date = state_value
+            self.logger.info(f"Reminder date updated to {self.reminder_date}")
     
     def is_reminder_enabled(func):
         '''
@@ -64,20 +67,26 @@ class ReminderController:
     def check_time(self):
         # Look in database to check if the reminder has been sent today
             # Reset reminder if it has been sent
-        self._reset_reminder()
-        now = datetime.datetime.now().time()
-        if now > self.reminder_time and not self.todays_reminder_sent:
+        now = datetime.datetime.now()
+        print(now.time(), self.reminder_time)
+        if now.time() > self.reminder_time and self.reminder_date != now.date().strftime("%Y-%m-%d"):
             self.send_reminder()
+            # Update the reminder date in the database to prevent multiple reminders
+            state_update = {
+                "state_name": "date_reminder_sent",
+                "state_value": self.reminder_date
+            }
+            self.dispatcher.dispatch_event("update_persistent_data", state_update)
             return True
         time.sleep(1)
         return False
     
     @is_reminder_enabled
     def send_reminder(self):
+        self.logger.info("Sending reminder")
         now = datetime.datetime.now()
-        self.reminder_date = now.date()
+        self.reminder_date = now.date().strftime("%Y-%m-%d")
         self.dispatcher.dispatch_event("send_reminder")
-        self.todays_reminder_sent = True
     
     @is_reminder_enabled
     def set_reminder_time(self, time):
@@ -88,14 +97,5 @@ class ReminderController:
         if ampm == "PM" and hours < 12:
             hours += 12
         self.reminder_time = datetime.time(hour=hours, minute=minutes)
-        self.reminder_date = datetime.datetime.now().date()
         self.logger.info(f"Reminder set for {self.reminder_time}")
     
-    @is_reminder_enabled
-    def _reset_reminder(self):
-        now = datetime.datetime.now()
-        current_date = now.date()
-
-        if self.reminder_date is not None and current_date > self.reminder_date and self.todays_reminder_sent:
-            self.todays_reminder_sent = False
-            self.logger.info("Reminder reset")
