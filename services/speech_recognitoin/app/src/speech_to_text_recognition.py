@@ -150,6 +150,7 @@ class MicrophoneStream:
         self._buff = queue.Queue()
         self.closed = True
         self.communication_interface = communication_interface
+        self.microphone_index = int(os.getenv("MICROPHONE_INDEX"))
 
     def __enter__(self):
         self._audio_interface = pyaudio.PyAudio()
@@ -160,11 +161,11 @@ class MicrophoneStream:
             input=True,
             frames_per_buffer=self._chunk,
             stream_callback=self._fill_buffer,
-            input_device_index=0,
+            input_device_index=self.microphone_index,
         )
         self.closed = False
         return self
-
+    
     def __exit__(self, type, value, traceback):
         self._audio_stream.stop_stream()
         self._audio_stream.close()
@@ -175,8 +176,7 @@ class MicrophoneStream:
     def _fill_buffer(self, in_data, frame_count, time_info, status_flags):
         self._buff.put(in_data)
         return None, pyaudio.paContinue
-
-
+    
     def generator(self):
         """Generate audio chunks and detect silence.
         Waits {INITIAL_SILENCE_DURATION} seconds for the user to start speaking.

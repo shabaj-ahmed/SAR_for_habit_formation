@@ -59,6 +59,8 @@ communication_interface = CommunicationInterface(
 
 communication_interface.socketio = socketio
 
+brightness_file = str(os.getenv("BRIGHTNESS_FILE"))
+
 def _register_event_handlers():
     dispatcher.register_event("update_service_state", update_state)
     dispatcher.register_event("update_connectoin_status", handle_status_update)
@@ -104,7 +106,7 @@ def update_state(payload):
         logger.info(f"Brightness updated: {brightness_value}")
         try:
             subprocess.run(
-                f'echo {brightness_value} | sudo tee /sys/class/backlight/4-0045/brightness',
+                f'echo {brightness_value} | sudo tee {brightness_file}',
                 shell=True,
                 check=True
             )
@@ -311,8 +313,9 @@ def brightness_slider_change(brightness_value):
     logger.info(f"Brightness slider changed: {brightness_value}")
     try:
         # Update the brightness using the mapped value
+
         subprocess.run(
-            f'echo {mapped_value} | sudo tee /sys/class/backlight/4-0045/brightness',
+            f'echo {mapped_value} | sudo tee {brightness_file}',
             shell=True,
             check=True
         )
