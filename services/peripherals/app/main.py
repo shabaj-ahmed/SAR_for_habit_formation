@@ -59,12 +59,12 @@ if __name__ == "__main__":
                 while True:
                     current_time = time.time()
 
-                    if current_time - network_connection_timer > 10:
+                    if current_time - network_connection_timer > 10: # Check network connection every 10 seconds
                         logger.info("Checking network connection")
                         if network_monitor:
                             network_monitor.check_internet_connection()
                         network_connection_timer = current_time
-                    if current_time - network_speed_timer > 90:
+                    if current_time - network_speed_timer > 6000: # Check network speed every 10 minutes
                         logger.info("Checking network speed")
                         if network_monitor:
                             network_monitor.check_internet_speed()
