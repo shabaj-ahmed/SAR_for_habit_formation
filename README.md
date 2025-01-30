@@ -1,60 +1,78 @@
-This code is for developing a study in which a Socially Assistive Robot (SAR) is used to aid in fostering long-term healthy behaviours. The main focus of this study is to understand how SARs can promote healthy lifestyle choices that can improve both lifespan and health span. My research explores the psychological and behavioural effects of prolonged robot interaction and how SARs can be used to encourage positive behavioural changes. Unlike traditional methods that rely on reflective behavioural change, my research focuses on habitual behaviour modification. The aim is to empower individuals to adopt healthier routines naturally. Through my work, I want to contribute to the development of robots that can coexist with humans and actively support their health and success.
+# SAR for Habit Formation
 
-Current development will be done in the _development branch_ and published on the _main branch_ when it is ready for beta testing.
+This repository contains the codebase for a study investigating how a Socially Assistive Robot (SAR) can foster long-term healthy behaviors. The primary focus is to explore how SARs can promote healthy lifestyle choices that improve both lifespan and healthspan. This research examines the psychological and behavioral effects of prolonged robot interaction and how SARs can encourage positive behavior changes through habit formation.
 
-## Control flow
+## Project Overview
+This project aims to contribute to the development of robot coaches that can coexist with humans and actively support their health and well-being. The study is structured around:
+- A daily check-in that is based on motvational interviewing principeles and uses decision tree driven dialogue.
+- A microservice architecture that ensures scalability and modularity.
+- A state-driven control system using finite state machines (FSM) and behavior trees.
 
-This code is built using a microservice architecture to ensure scalability. To make each service as stateless as possible, all service states and configurations are stored in a centralised database and loaded upon request. MQTT is used as the message broker to exchange messages and commands between the services.
+## Branches
+- development branch – Active development takes place here.
+- main branch – Stable releases and beta versions are published here.
 
-I have used a centralised control system that uses state machines to orchestrate behaviour, ensuring that the robot's behaviour is coherent and appropriate. The robot's behaviour is divided into three layers:
-1. High-level finite state machine (FSM),
-2. Behaviour tree for orchestrating complex behaviour,
-3. Reactive layer for responding to environmental stimuli.
-   This architecture provides a clear separation between reactive and deliberative actions while ensuring real-time responsiveness.
+## System Architecture
+This project follows a microservice architecture where each service operates statelessly by storing configurations and states in a centralised database. MQTT is used as a message broker to handle inter-service communication.
 
+The robot's behavior is governed by a three-layered control system:
+1. High-Level Finite State Machine (FSM) – Manages primary system states.
+2. Behavior Tree (BT) – Orchestrates complex behaviors.
+3. Reactive Layer – Handles immediate responses to environmental stimuli.
+
+This architecture provides a clear separation between reactive and deliberative actions while ensuring near real-time responsiveness.
+
+### Advantages of This Approach
 - Centralised Decision Making: The state machines act as central points for decision-making, ensuring that the robot's state is always considered before any action is taken.
 - Simplified Debugging and Maintenance: With all decisions passing through a known point, tracking issues and understanding behaviour becomes more manageable.
-- Consistency in Behaviour: Ensures that the robot's actions are always consistent with its current state, as defined by the state machines.
+- Consistency in Behaviour: Ensures predictable and logical interactions.
 
-However, this approach may introduce latency since the state machines must process every piece of data synchronously before any action is taken. Nevertheless, we chose a centralised approach for decision-making over a direct-to-service invocation since this system is not time-sensitive or safety-critical, and a little latency can be tolerated.
+Note: This approach introduces some latency due to centralised processing. However, since this study is not time-sensitive or safety-critical, minor latency is acceptable.
 
-# Set up
+# Installation and set up
+## Prerequitites
+Before running the project, ensure you have:
+- Debian Bookworm installed on your Raspberry Pi 5.
+- Put google speech key.json in ~/.google-cloud directory
+- Ensure that Vector robot authentication certificate is located in the ~/.anki_vector directory and the the sdk_config.ini is configured correctly
+- API keys and hardware specifications properly configured in the .env file (located in the configurations folder).
 
-Activate the Python environment from the root directory:
-`source .venv/bin/activate`
+## Run Installation Script
+The setup process is automated using a Bash script.
+1. Ensure Correct File Path
+set up the project in the following location:
 
-## Install libraries
+```
+~/Documents/hri_study/SAR_FOR_HABIT_FORMATION
+```
 
-`pip3 install -r requirements`
+Or you will have to mofify the bash script
 
-## Install Mosquitto MQTT broker
+2. Run the setup script
+Navigate to the project root directory and run:
 
-Set up the MQTT client so that messages are propagated properly
-Start Mosquitto server using the following
+```
+$ chmod +x bash.sh
+$ ./bash.sh
+```
 
-### MacOS
+This script will:
+- Pull the latest code from the repository.
+- Install Mosquitto (MQTT broker) and all required dependencies.
+- Configure the system to run on a Raspberry Pi 5.
+- If sucessful a chromium window should open in full screen
 
-`brew install mosquitto`
-`brew services start mosquitto`
-
-## Run bash
-In the root of the project there is a .bach.sh file, which will set up and run the project.
-
-# Hardware used
-
+## Hardware used
 - Digital Dream Labs Vector 2.0,
 - Raspberry Pi 5 8 GB,
-- Micro SD card,
+- Micro SD card with Debian Bookworm installed,
 - USB microphone,
 - Raspberry Pi touch display 2,
 - 5V power supplies,
 - Mobile WiFi module
 
-## Sensors
+# License
+This project is licensed under the MIT License.
 
-- Microphone
-- Touch interface to interact with user interface
-
-## Actuators
-
-- Speaker
+# Contact
+If you have questions or need assistance, feel free to reach out.
