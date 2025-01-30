@@ -1,3 +1,31 @@
+/* Root Variables for 720×1280 Screen */
+:root {
+    /* Screen Size */
+    --screen-width: 720px;
+    --screen-height: 1280px;
+
+    /* General Layout */
+    --container-gap: 32px;
+    --text-align: center;
+
+    /* Title Styling */
+    --title-font-size: 96px;
+    --title-font-weight: bold;
+    --title-margin-bottom: 32px;
+
+    /* Row Layout */
+    --row-gap: 32px;
+
+    /* Element Sizes */
+    --check-in-font-size: 64pt;
+    --check-in-font-weight: bold;
+
+    /* Date & Time Styling */
+    --date-time-gap: 32px;
+    --date-time-font-size: 64px;
+    --date-time-font-weight: normal;
+}
+
 /* General Layout for Home Page */
 .container {
     display: flex;
@@ -7,8 +35,8 @@
     height: 100%;
     margin: 0;
     padding: 0;
-    gap: 32px;
-    text-align: center;
+    gap: var(--container-gap);
+    text-align: var(--text-align);
 }
 
 /* Implementation Intention Title */
@@ -16,9 +44,9 @@
     flex: 1;
     display: flex;
     justify-content: center;
-    font-size: 96px;
-    font-weight: bold;
-    margin-bottom: 32px;
+    font-size: var(--title-font-size);
+    font-weight: var(--title-font-weight);
+    margin-bottom: var(--title-margin-bottom);
     align-items: center;
 }
 
@@ -29,13 +57,13 @@
     justify-content: space-around;
     align-items: top;
     width: 100%;
-    gap: 32px;
+    gap: var(--row-gap);
 }
 
 /* Individual Elements in the Row */
 .check-in, .days-remaining {
-    font-size: 64pt;
-    font-weight: bold;
+    font-size: var(--check-in-font-size);
+    font-weight: var(--check-in-font-weight);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -47,11 +75,11 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 32px;
+    gap: var(--date-time-gap);
 }
 
 .date, .time {
     margin: 0;
-    font-size: 64px;
-    font-weight: normal;
+    font-size: var(--date-time-font-size);
+    font-weight: var(--date-time-font-weight);
 }

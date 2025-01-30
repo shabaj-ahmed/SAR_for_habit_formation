@@ -1,0 +1,1 @@
+This is a empty directory that sqlmodel uses to create the hri_study.db and persistent.db databases.

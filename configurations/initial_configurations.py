@@ -11,8 +11,7 @@ class StudyConfigs:
             "ampm": "PM"
         }
         self.implementation_intention = "I will exercise for 30 minutes every day at 8:00 AM"
-        self.system_sleep_timer = 5
-        self.brightness = 15
+        self.default_brightness = 20
     
     def get_study_duration(self):
         return self.study_duration
@@ -29,9 +28,6 @@ class StudyConfigs:
     def get_implementation_intention(self):
         return self.implementation_intention
     
-    def get_system_sleep_timer(self):
-        return self.system_sleep_timer
-    
     def get_brightness(self):
-        return self.brightness
+        return self.default_brightness
         
