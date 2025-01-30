@@ -1,8 +1,26 @@
+/* Root Variables for 720×1280 Screen */
 :root {
+    /* Screen Size Variables */
+    --screen-width: 720px;
+    --screen-height: 1280px;
+    
+    /* Font Sizes */
+    --heading: 84px;
+    --sub-heading: 64px;
+    --font-size-sm: 48px;
+    --button-font-size: 56px;
+    --toggle-font-size: 44px;
+    
+    /* Spacing and Padding */
+    --padding-size: 32px;
+    --margin-size: 24px;
+    --gap-size: 28px;
+
+    /* Color Variables */
     --primary-color: #4CAF50;
     --secondary-color: #45a049;
     --background-color: white;
-    --secondary_background-colour: #ddd;
+    --secondary-background-color: #ddd;
     --shadow-color: rgba(0, 0, 0, 0.6);
     --green-color: #2ecc71;
     --sapphire-color: #3498db;
@@ -10,10 +28,6 @@
     --red-color: #e74c3c;
     --orange-color: #FFA500;
     --purple-color: #800080;
-
-    --heading: 72px;
-    --sub-heading: 56px;
-    --font-size-sm: 40px;
 }
 
 /* General Layout */
@@ -25,8 +39,8 @@
 
 .settings-container {
     text-align: center;
-    padding: 2rem 1.5rem;
-    margin: 1rem auto;
+    padding: var(--padding-size);
+    margin: var(--margin-size) auto;
     max-width: 1600px;
     background: var(--background-color);
     border-radius: 10px;
@@ -35,16 +49,16 @@
 }
 
 /* Responsive Adjustments */
-@media (max-width: 600px) {
+@media (max-width: 720px) {
     .settings-container {
-        padding: 1.5rem;
-        width: calc(100% - 1rem); /* Reduce side gaps on smaller screens */
+        padding: calc(var(--padding-size) * 0.8);
+        width: calc(100% - var(--margin-size));
     }
 
     .radios-container {
         flex-direction: column;
         align-items: center;
-        gap: 0.5rem;
+        gap: var(--gap-size);
     }
 
     .volume-buttons {
@@ -65,12 +79,13 @@ p {
     font-size: var(--font-size-sm);
 }
 
+/* Custom Time Picker */
 .custom-time-picker {
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: var(--gap-size);
     justify-content: center;
-    margin-bottom: 20px;
+    margin-bottom: var(--gap-size);
 }
 
 /* Time Section (Hour/Minute) */
@@ -78,7 +93,7 @@ p {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 5px;
+    gap: 10px;
 }
 
 .time-section span {
@@ -89,16 +104,16 @@ p {
 
 /* AM/PM Toggle */
 .ampm-toggle {
-    display: flex; /* Horizontal alignment */
-    align-items: center; /* Vertical alignment */
-    gap: 90px; /* Space between toggle and text */
+    display: flex;
+    align-items: center;
+    gap: 100px; /* Increased spacing */
 }
 
 .toggle-switch {
     display: inline-block;
     position: relative;
-    width: 100px;
-    height: 50px;
+    width: 120px;
+    height: 60px;
 }
 
 .toggle-switch input {
@@ -110,7 +125,7 @@ p {
 .toggle {
     position: absolute;
     cursor: pointer;
-    background-color: var(--secondary_background-colour);
+    background-color: var(--secondary-background-color);
     border-radius: 50px;
     width: 100%;
     height: 100%;
@@ -120,8 +135,8 @@ p {
 .toggle::before {
     content: "";
     position: absolute;
-    height: 40px;
-    width: 40px;
+    height: 48px;
+    width: 48px;
     left: 8px;
     bottom: 6px;
     background-color: var(--background-color);
@@ -134,17 +149,17 @@ p {
 }
 
 .toggle-switch input:checked + .toggle::before {
-    transform: translateX(44px);
+    transform: translateX(52px);
 }
 
 #ampm-display {
-    font-size: var(--font-size-sm);
+    font-size: var(--toggle-font-size);
 }
 
 /* Common button style */
 .common-button {
-    padding: 10px 20px;
-    font-size: var(--heading);
+    padding: var(--padding-size);
+    font-size: var(--button-font-size);
     background-color: var(--primary-color);
     color: var(--background-color);
     border: none;
@@ -161,10 +176,10 @@ p {
 .radios-container {
     display: flex;
     justify-content: center;
-    flex-wrap: wrap; /* Allow wrapping for smaller screens */
-    gap: 1rem; /* Add spacing between radio buttons */
+    flex-wrap: wrap;
+    gap: var(--gap-size);
     width: 100%;
-    margin-bottom: 2rem;
+    margin-bottom: 48px;
 }
 
 /* Custom Radios */
@@ -173,20 +188,19 @@ p {
 }
 
 #custom-radios input[type="radio"] {
-    display: none; /* Hide the radio input */
+    display: none;
 }
 
 #custom-radios input[type="radio"] + label {
-    font-family: Arial, sans-serif;
     font-size: var(--font-size-sm);
     cursor: pointer;
 }
 
 #custom-radios input[type="radio"] + label span {
     display: inline-block;
-    width: 80px;
-    height: 80px;
-    margin: -1px 4px 0 0;
+    width: 96px;
+    height: 96px;
+    margin: var(--margin-size);
     vertical-align: middle;
     cursor: pointer;
     border-radius: 50%;
@@ -199,8 +213,7 @@ p {
     transition: box-shadow 0.3s ease, transform 0.2s ease;
 }
 
-/* Color Option-range-thumb {
-    width: s */
+/* Color Options */
 #custom-radios #green + label span { background-color: var(--green-color); }
 #custom-radios #sapphire + label span { background-color: var(--sapphire-color); }
 #custom-radios #yellow + label span { background-color: var(--yellow-color); }
@@ -211,20 +224,7 @@ p {
 /* Checked State */
 #custom-radios input[type="radio"]:checked + label span {
     box-shadow: 0 0 8px var(--shadow-color);
-    transform: scale(1.2); /* Slightly enlarge the checked option */
-}
-
-/* Default state: Hide the image */
-#custom-radios input[type="radio"] + label span img {
-    opacity: 0;
-    visibility: hidden; /* Ensures the image is not interactive when hidden */
-    transition: opacity 0.3s ease, visibility 0.3s ease;
-}
-
-/* Checked state: Show the image */
-#custom-radios input[type="radio"]:checked + label span img {
-    opacity: 1;
-    visibility: visible; /* Image becomes visible */
+    transform: scale(1.2);
 }
 
 /* Volume Settings */
@@ -232,60 +232,41 @@ p {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1rem; /* Add spacing between elements */
+    gap: var(--gap-size);
 }
 
 .volume-buttons {
     display: flex;
     justify-content: center;
-    gap: 1rem; /* Space between buttons */
-    flex-wrap: wrap; /* Wrap buttons for smaller screens */
+    gap: var(--gap-size);
+    flex-wrap: wrap;
 }
 
-/* Container for slider */
+/* Slider Container */
 .slidecontainer {
     display: flex;
     align-items: center;
-    vertical-align: middle;
     justify-content: center;
-    width: 100%; /* Full-width container */
-    margin: 20px 0; /* Add some spacing */
+    width: 100%;
+    margin: var(--gap-size) 0;
 }
 
-/* The slider */
+/* The Slider */
 .slider {
-    -webkit-appearance: none; /* Remove default styling */
-    appearance: none;
-    width: 80%; /* Width of the slider */
-    height: 50px; /* Increase height for touch-friendly design */
-    background: var(--secondary_background-colour); /* Track background */
-    border-radius: 10px; /* Rounded edges */
-    outline: none; /* Remove outline */
-    opacity: 0.9; /* Slight transparency */
-    transition: opacity 0.2s; /* Smooth hover effect */
+    width: 85%;
+    height: 60px;
+    background: var(--secondary-background-color);
+    border-radius: 10px;
+    outline: none;
+    opacity: 0.9;
+    transition: opacity 0.2s;
     cursor: pointer;
 }
 
-/* Thumb styling */
+/* Slider Thumb */
 .slider::-webkit-slider-thumb {
-    -webkit-appearance: none; /* Remove default styling */
-    appearance: none;
-    width: 100px; /* Thumb width */
-    height: 100px; /* Thumb height */
-    background: var(--primary-color); /* Thumb color */
-    border-radius: 50%; /* Circular thumb */
-    box-shadow: 0 0 5px var(--shadow-color); /* Slight shadow */
-    cursor: pointer; /* Pointer cursor on hover */
-    transition: background 0.3s ease; /* Smooth color change */
-}
-
-.slider::-webkit-slider-thumb:hover {
-    background: var(--secondary-color); /* Darken thumb color on hover */
-}
-
-.slider::-moz-range-thumb {
-    width: 100px;
-    height: 100px;
+    width: 120px;
+    height: 120px;
     background: var(--primary-color);
     border-radius: 50%;
     box-shadow: 0 0 5px var(--shadow-color);
@@ -293,16 +274,21 @@ p {
     transition: background 0.3s ease;
 }
 
-.slider::-moz-range-thumb:hover {
+.slider::-webkit-slider-thumb:hover {
     background: var(--secondary-color);
 }
 
-/* Focused styling */
-.slider:focus {
-    opacity: 1; /* Fully opaque when focused */
+/* Responsive Adjustments */
+@media screen and (max-width: 720px) {
+    :root {
+        --screen-width: 720px;
+        --screen-height: 1280px;
+    }
 }
 
-/* Active state for the track (when dragging) */
-.slider:active {
-    background: var(--secondary_background-colour); /* Slightly darker track while dragging */
+@media screen and (min-width: 1281px) {
+    :root {
+        --screen-width: 800px;
+        --screen-height: 480px;
+    }
 }

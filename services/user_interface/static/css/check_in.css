@@ -1,76 +1,133 @@
+/* Root Variables for 720×1280 Screen */
+:root {
+    /* Chat Layout */
+    --chat-wrapper-bg: #f0f0f0;
+    --chat-container-bg: white;
+    --chat-border-radius: 15px;
+    --chat-box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+
+    /* Messages Area */
+    --messages-bg: #f9f9f9;
+    --messages-gap: 10px;
+    --messages-padding: 15px;
+
+    /* Fonts */
+    --notification-font-size: 24pt;
+    --message-font-size: 40px;
+    --message-line-height: 1.5;
+    --timestamp-font-size: 20px;
+    --loading-font-size: 40px;
+
+    /* Received Messages */
+    --received-msg-bg: #efefef;
+    --received-msg-border-radius: 10px;
+    --received-msg-padding: 10px;
+    --received-msg-box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+
+    /* Outgoing Messages */
+    --outgoing-msg-bg: linear-gradient(45deg, #ee087f, #DD2A7B, #9858ac, #8134AF, #515BD4);
+    --outgoing-msg-color: white;
+    --outgoing-msg-border-radius: 10px;
+    --outgoing-msg-padding: 10px;
+    --outgoing-msg-box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+
+    /* Chat Controls */
+    --chat-controls-bg: #fff;
+    --chat-controls-border: 1px solid #ccc;
+    --chat-controls-padding: 10px;
+    
+    /* Button */
+    --button-bg: #4CAF50;
+    --button-hover-bg: #45a049;
+    --button-text-color: white;
+    --button-padding: 10px 20px;
+    --button-font-size: 56px;
+    --button-border-radius: 5px;
+
+    /* Progress Bar */
+    --progress-bar-bg: #ddd;
+    --progress-bar-color: #04AA6D;
+    --progress-bar-height: 20px;
+
+    /* Loading State */
+    --loading-overlay-bg: rgba(0, 0, 0, 0.5);
+    --loading-border-color: #ddd;
+    --loading-top-color: #04AA6D;
+}
+
 /* Wrapper for the entire chat area */
 .chat-wrapper {
-    height: 100%; /* Fill the remaining height within #main */
+    height: 100%;
     display: flex;
     flex-direction: column;
-    background-color: #f0f0f0;
+    background-color: var(--chat-wrapper-bg);
     padding: 20px;
     box-sizing: border-box;
-    overflow: hidden; /* Prevent overflow outside wrapper */
+    overflow: hidden;
 }
 
 /* Chat Container */
 .chat-container {
-    flex: 1; /* Expand to fill available space */
+    flex: 1;
     display: flex;
     flex-direction: column;
-    max-height: calc(100vh - 100px); /* Ensure it does not exceed the viewport (adjust for margins) */
-    background-color: white;
-    border-radius: 15px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    overflow: hidden; /* Ensure children don't overflow container */
+    max-height: calc(100vh - 100px);
+    background-color: var(--chat-container-bg);
+    border-radius: var(--chat-border-radius);
+    box-shadow: var(--chat-box-shadow);
+    overflow: hidden;
 }
 
 /* Messages Area */
 .messages {
-    flex: 1; /* Allow it to grow and take available vertical space */
-    max-height: 100%; /* Maintain a fixed height within the parent container */
-    overflow-y: auto; /* Enable vertical scrolling */
-    padding: 15px;
-    background-color: #f9f9f9;
+    flex: 1;
+    max-height: 100%;
+    overflow-y: auto;
+    padding: var(--messages-padding);
+    background-color: var(--messages-bg);
     display: flex;
     flex-direction: column;
-    gap: 10px; /* Add spacing between messages */
+    gap: var(--messages-gap);
     box-sizing: border-box;
-    scroll-behavior: smooth; /* Smooth scrolling */
+    scroll-behavior: smooth;
 }
 
-.notification-message{
-    font-size: 24pt;
+.notification-message {
+    font-size: var(--notification-font-size);
     text-align: center;
     color: #999;
 }
 
 /* Received Messages */
 .received-message {
-    font-size: 40px;
-    line-height: 1.5;
+    font-size: var(--message-font-size);
+    line-height: var(--message-line-height);
     align-self: flex-start;
-    background-color: #efefef;
-    border-radius: 10px;
-    padding: 10px;
+    background-color: var(--received-msg-bg);
+    border-radius: var(--received-msg-border-radius);
+    padding: var(--received-msg-padding);
     max-width: 70%;
-    word-wrap: break-word; /* Prevent long words from breaking layout */
-    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+    word-wrap: break-word;
+    box-shadow: var(--received-msg-box-shadow);
 }
 
 /* Outgoing Messages */
 .outgoing-message {
-    font-size: 40px;
-    line-height: 1.5;
+    font-size: var(--message-font-size);
+    line-height: var(--message-line-height);
     align-self: flex-end;
-    background: linear-gradient(45deg, #ee087f, #DD2A7B, #9858ac, #8134AF, #515BD4);
-    color: white;
-    border-radius: 10px;
-    padding: 10px;
+    background: var(--outgoing-msg-bg);
+    color: var(--outgoing-msg-color);
+    border-radius: var(--outgoing-msg-border-radius);
+    padding: var(--outgoing-msg-padding);
     max-width: 70%;
     word-wrap: break-word;
-    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--outgoing-msg-box-shadow);
 }
 
 /* Timestamp Style */
 .time {
-    font-size: 20px;
+    font-size: var(--timestamp-font-size);
     color: #777;
     margin-top: 5px;
     display: block;
@@ -79,58 +136,60 @@
 
 /* Chat Controls */
 .chat-controls {
-    flex-shrink: 0; /* Prevent shrinking */
-    padding: 10px;
-    background-color: #fff;
-    border-top: 1px solid #ccc;
+    flex-shrink: 0;
+    padding: var(--chat-controls-padding);
+    background-color: var(--chat-controls-bg);
+    border-top: var(--chat-controls-border);
     text-align: center;
 }
 
 .chat-controls button {
-    background-color: #4CAF50;
-    color: white;
+    background-color: var(--button-bg);
+    color: var(--button-text-color);
     border: none;
-    padding: 10px 20px;
-    font-size: 56px;
+    padding: var(--button-padding);
+    font-size: var(--button-font-size);
     cursor: pointer;
-    border-radius: 5px;
+    border-radius: var(--button-border-radius);
 }
 
 .chat-controls button:hover {
-    background-color: #45a049;
+    background-color: var(--button-hover-bg);
 }
 
+/* Progress Bar */
 #myProgress {
     width: 100%;
-    background-color: #ddd;
+    background-color: var(--progress-bar-bg);
     position: relative;
     overflow: hidden;
-    height: 20px; /* Ensure container has height */
+    height: var(--progress-bar-height);
 }
 
 #myBar {
-    width: 100%; /* Full width for scaling */
-    height: 100%; /* Match the container height */
-    background-color: #04AA6D;
+    width: 100%;
+    height: 100%;
+    background-color: var(--progress-bar-color);
     position: absolute;
-    left: 0; /* Align to the left */
-    transform-origin: center center; /* Scale from center */
-    transform: scaleX(0); /* Start hidden */
-    transition: transform 0.1s ease-out; /* Smooth animation */
+    left: 0;
+    transform-origin: center center;
+    transform: scaleX(0);
+    transition: transform 0.1s ease-out;
 }
 
+/* Loading State */
 .loading-state {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5); /* Darker semi-transparent overlay */
-    z-index: 9999; /* Highest priority to stay above all content */
+    background-color: var(--loading-overlay-bg);
+    z-index: 9999;
     display: flex;
     justify-content: center;
     align-items: center;
-    pointer-events: none; /* Prevent interaction with content behind the overlay */
+    pointer-events: none;
 }
 
 .loading-state .column {
@@ -143,8 +202,8 @@
     width: 100px;
     height: 100px;
     border-radius: 50%;
-    border: 10px solid #ddd;
-    border-top-color: #04AA6D; /* Primary color for animation */
+    border: 10px solid var(--loading-border-color);
+    border-top-color: var(--loading-top-color);
     animation: loading 1s linear infinite;
 }
 
@@ -156,7 +215,7 @@
 
 #loading-message {
     margin-top: 10px;
-    font-size: 40px; /* Slightly larger for better visibility */
-    color: #ffffff; /* White text for better contrast against the background */
+    font-size: var(--loading-font-size);
+    color: #ffffff;
     text-align: center;
 }

@@ -1,47 +1,85 @@
+/* Root Variables */
+:root {
+    /* Screen Size */
+    --screen-width: 720px;
+    --screen-height: 1280px;
+
+    /* General Layout */
+    --container-padding: 1rem;
+    --container-gap: 2rem;
+    --container-bg: white;
+    --container-border-radius: 10px;
+    --container-box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+    /* Title Styling */
+    --title-font-size: 48px;
+    --title-font-weight: bold;
+    --title-margin-bottom: 1rem;
+
+    /* History Container */
+    --history-container-gap: 1rem;
+    --history-container-max-width: 600px;
+
+    /* History Item (Tile) */
+    --history-item-padding: 1rem;
+    --history-item-border-radius: 8px;
+    --history-item-box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    --history-item-transition: transform 0.2s, background-color 0.2s;
+    --history-item-font-size: 32px;
+    --history-item-gap: 1rem;
+
+    /* Number Styling */
+    --number-font-weight: bold;
+    --number-font-size: 32px;
+
+    /* Date and Time Styling */
+    --date-time-gap: 0.5rem;
+}
+
 /* General Container Styling */
 .container {
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
     align-items: center;
-    height: 100%; /* Ensure it fits within the parent */
+    height: 100%;
     margin: 0;
-    padding: 1rem;
-    gap: 2rem;
+    padding: var(--container-padding);
+    gap: var(--container-gap);
     text-align: center;
-    background: white;
-    border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background: var(--container-bg);
+    border-radius: var(--container-border-radius);
+    box-shadow: var(--container-box-shadow);
 }
 
 /* Title Styling */
 .title {
-    font-size: 48px;
-    font-weight: bold;
-    margin-bottom: 1rem;
+    font-size: var(--title-font-size);
+    font-weight: var(--title-font-weight);
+    margin-bottom: var(--title-margin-bottom);
 }
 
 /* History Container */
 .history-container {
     display: flex;
     flex-direction: column;
-    gap: 1rem; /* Space between items */
+    gap: var(--history-container-gap);
     width: 100%;
-    max-width: 600px; /* Optional: Limit the container width */
+    max-width: var(--history-container-max-width);
 }
 
 /* History Item (Tile) */
 .history-item {
     display: flex;
     align-items: center;
-    padding: 1rem;
+    padding: var(--history-item-padding);
     background-color: var(--secondary-color);
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s, background-color 0.2s;
+    border-radius: var(--history-item-border-radius);
+    box-shadow: var(--history-item-box-shadow);
+    transition: var(--history-item-transition);
     color: var(--primary-color);
-    font-size: 32px;
-    gap: 1rem; /* Space between number and text */
+    font-size: var(--history-item-font-size);
+    gap: var(--history-item-gap);
 }
 
 /* Hover Effect for History Item */
@@ -53,8 +91,8 @@
 
 /* Number Styling */
 .number {
-    font-weight: bold;
-    font-size: 32px;
+    font-weight: var(--number-font-weight);
+    font-size: var(--number-font-size);
     color: var(--primary-color);
 }
 
@@ -62,7 +100,7 @@
 .date-time {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: var(--date-time-gap);
     font-weight: normal;
 }
 

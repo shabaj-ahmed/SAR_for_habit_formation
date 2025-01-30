@@ -1,54 +1,94 @@
+/* Root Variables for 720×1280 Screen */
+:root {
+    /* Screen Size */
+    --screen-width: 720px;
+    --screen-height: 1280px;
+
+    /* Layout */
+    --loading-page-width: 100%;
+    --loading-page-min-height: 100vh;
+
+    /* Progress Bar */
+    --progress-bar-width: 100%;
+    --progress-bar-height: 80px;
+    --progress-bar-bg: #ddd;
+    --progress-fill-bg: #04AA6D;
+
+    /* Progress Text */
+    --progress-text-font-size: 62px;
+    --progress-text-font-weight: bold;
+    --progress-text-font-family: 'Arial', sans-serif;
+
+    /* Pending Services */
+    --pending-services-margin-top: 40px;
+    --pending-services-header-font-size: 62px;
+    --pending-services-header-font-weight: bold;
+    --pending-services-header-margin-bottom: 20px;
+
+    /* Pending Services List */
+    --pending-services-list-padding: 20px;
+    --pending-services-list-font-size: 60px;
+
+    /* List Items */
+    --list-item-margin: 10px 0;
+}
+
+/* Loading Page */
 #loading-page {
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
-    width: 100%;
-    min-height: 100vh;
+    width: var(--loading-page-width);
+    min-height: var(--loading-page-min-height);
     overflow: visible;
     box-sizing: border-box;
 }
 
+/* Progress Bar */
 #myProgress {
-    width: 100%;
-    background-color: #ddd;
+    width: var(--progress-bar-width);
+    background-color: var(--progress-bar-bg);
     position: relative;
 }
 
 #myBar {
     width: 1%;
-    height: 80px;
-    background-color: #04AA6D;
+    height: var(--progress-bar-height);
+    background-color: var(--progress-fill-bg);
 }
 
+/* Progress Text */
 #progress-text {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 62px;
-    font-weight: bold;
-    font-family: 'Arial', sans-serif;
+    font-size: var(--progress-text-font-size);
+    font-weight: var(--progress-text-font-weight);
+    font-family: var(--progress-text-font-family);
 }
 
+/* Pending Services */
 #pending-services-container {
-    margin-top: 40px;
+    margin-top: var(--pending-services-margin-top);
 }
 
 #pending-services-container h3 {
-    font-size: 62px;
-    font-family: 'Arial', sans-serif;
-    font-weight: bold;
-    margin-bottom: 20px;
+    font-size: var(--pending-services-header-font-size);
+    font-family: var(--progress-text-font-family);
+    font-weight: var(--pending-services-header-font-weight);
+    margin-bottom: var(--pending-services-header-margin-bottom);
 }
 
+/* Pending Services List */
 #pending-services-container ul {
     list-style-type: circle;
-    padding: 20;
-    font-size: 60px;
-    font-family: 'Arial', sans-serif;
-
+    padding: var(--pending-services-list-padding);
+    font-size: var(--pending-services-list-font-size);
+    font-family: var(--progress-text-font-family);
 }
 
+/* List Items */
 #pending-services-container li {
-    margin: 10px 0;
+    margin: var(--list-item-margin);
 }
