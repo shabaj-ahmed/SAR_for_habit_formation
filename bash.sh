@@ -55,6 +55,20 @@ start_mqtt_broker() {
 }
 
 activate_virtualenv() {
+    echo "Checking if virtual environment exists..."
+    
+    if [ ! -d "$VENV_DIR" ]; then
+        echo "Virtual environment not found. Creating one..."
+        python3 -m venv "$VENV_DIR"
+
+        if [ $? -ne 0 ]; then
+            echo "Error: Failed to create virtual environment. Exiting."
+            exit 1
+        fi
+
+        echo "Virtual environment created successfully."
+    fi
+
     echo "Activating virtual environment..."
     source "$VENV_DIR/bin/activate"
     if [ $? -ne 0 ]; then
@@ -72,6 +86,34 @@ install_requirements() {
         exit 1
     fi
 }
+
+update_anki_vector_library() {
+    ANKI_VECTOR_DIR="$VENV_DIR/lib/python3.11/site-packages/anki_vector"
+    VECTOR_SDK_UPDATES_DIR="$PROJECT_DIR/vector_sdk_updates"
+
+    echo "Updating anki_vector library..."
+
+    # Ensure the anki_vector directory exists
+    if [ -d "$ANKI_VECTOR_DIR" ]; then
+        # Remove the messaging directory and specified files
+        echo "Removing old files and folders.."
+        rm -rf "$ANKI_VECTOR_DIR/messaging"
+        rm -f "$ANKI_VECTOR_DIR/connection.py"
+        rm -f "$ANKI_VECTOR_DIR/events.py"
+
+        # Copy new files from vector_sdk_updates
+        echo "Copying updated files and folders..."
+        cp -r "$VECTOR_SDK_UPDATES_DIR/messaging" "$ANKI_VECTOR_DIR/"
+        cp "$VECTOR_SDK_UPDATES_DIR/connection.py" "$ANKI_VECTOR_DIR/"
+        cp "$VECTOR_SDK_UPDATES_DIR/events.py" "$ANKI_VECTOR_DIR/"
+
+        echo "anki_vector library updated successfully."
+    else
+        echo "Error: anki_vector library not found in virtual environment."
+        exit 1
+    fi
+}
+
 
 export_env_variables() {
     if [ ! -f "$ENV_FILE" ]; then
@@ -140,9 +182,12 @@ activate_virtualenv
 install_requirements
 
 # Step 4:
-export_env_variables
+update_anki_vector_library()
 
 # Step 5:
+export_env_variables
+
+# Step 6:
 start_services
 
 echo "All services are running. Press [ENTER] to stop the services and exit."
