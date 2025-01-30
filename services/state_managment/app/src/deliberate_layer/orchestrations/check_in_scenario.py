@@ -212,7 +212,7 @@ class CheckInQuestions:
             return {"question": "Have you tried to change your behaviour before?", "expected_format": "closed-ended"}
         elif question == "Have you tried to change your behaviour before?":
             if "yes" in response.lower():
-                return {"question": "WWhat has worked well for you?", "expected_format": "open-ended"}
+                return {"question": "What has worked well for you?", "expected_format": "open-ended"}
             else:
                 return {"question": "What obstacles have prevented you from changing your behaviour?", "expected_format": "open-ended"}
         elif question == "What has worked well for you?" or question == "What obstacles have prevented you from changing your behaviour?":
