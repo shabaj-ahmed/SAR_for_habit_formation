@@ -62,6 +62,7 @@ This script will:
 - Create a Python virtual environment
 - Install the required dependencies
 - Update the Vector SDK
+
 If successful a chromium window should open in full screen
 
 ## Hardware used
