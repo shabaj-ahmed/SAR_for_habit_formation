@@ -60,6 +60,7 @@ communication_interface = CommunicationInterface(
 communication_interface.socketio = socketio
 
 brightness_file = str(os.getenv("BRIGHTNESS_FILE"))
+max_brightness_value = int(os.getenv("BRIGHTNESS_VALUE"))
 
 def _register_event_handlers():
     dispatcher.register_event("update_service_state", update_state)
@@ -306,8 +307,8 @@ def volume_button_click(button_name):
 
 @app.route('/brightness/<int:brightness_value>')
 def brightness_slider_change(brightness_value):
-    # Map the brightness value from range 1-100 to 0-31
-    mapped_value = int(1 + ((31 - 1) / (100 - 1)) * (brightness_value - 1))
+    # Map the brightness value from range 1-100 to 0-{max_brightness_value}
+    mapped_value = int(1 + ((max_brightness_value - 1) / (100 - 1)) * (brightness_value - 1))
 
 
     logger.info(f"Brightness slider changed: {brightness_value}")
