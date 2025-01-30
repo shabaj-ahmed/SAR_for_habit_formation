@@ -78,8 +78,10 @@ activate_virtualenv() {
 }
 
 install_requirements() {
+    echo "Ensure system dependencies for PyAudio are installed"
+    sudo apt-get install -y portaudio19-dev python3-pyaudio
+    
     echo "Installing required libraries..."
-    sudo apt-get install python-pyaudio
     pip install -r "$REQUIREMENTS_FILE"
     if [ $? -ne 0 ]; then
         echo "Failed to install requirements. Please check your requirements.txt file."
