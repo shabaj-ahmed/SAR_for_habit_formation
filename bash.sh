@@ -182,7 +182,7 @@ activate_virtualenv
 install_requirements
 
 # Step 4:
-update_anki_vector_library()
+update_anki_vector_library
 
 # Step 5:
 export_env_variables
