@@ -125,7 +125,7 @@ mkdir -p ~/.config/autostart
 Create an autostart file:
 
 ```
-nano ~/.config/autostart/browser_autostart.desktop
+nano ~/.config/autostart/run_study.desktop
 ```
 
 Add the following content:
