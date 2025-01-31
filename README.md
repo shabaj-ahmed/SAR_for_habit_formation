@@ -115,6 +115,30 @@ Follow the instructions on the webpage to connect to the vector, you may have to
 
 Once the vector is activated, copy the serial number, located on the bottom of the vector into the .evn file.
 
+# Auto start script
+To ensure that the browser launches on start-up you will want to launch the application after the desktop enviroment has finished loading. This can be done by creating a launch script in the autostart directory.
+
+```
+mkdir -p ~/.config/autostart
+```
+
+Create an autostart file:
+
+```
+nano ~/.config/autostart/browser_autostart.desktop
+```
+
+Add the following content:
+
+```
+[Desktop Entry]
+Type=Application
+Exec=/home/pi/Documents/hri_study/SAR_for_habit_formation/bash.sh
+X-GNOME-Autostart-enabled=true
+```
+
+Save, exit and reboot.
+
 # License
 This project is licensed under the MIT License.
 
