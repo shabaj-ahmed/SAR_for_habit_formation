@@ -109,11 +109,7 @@ Configuration page: http://192.168.1.221:8080
 
 Open a browser and head to the configuration page. In the example above this is http://192.168.1.221:8080
 
-Press and hold the Vecrots power button for 15 seconds until you see a white LED and then release. Now open an incognito browser and head to:
-
-```
- https://wpsetup.keriganc.com/
-```
+Press and hold the Vecrots power button for 15 seconds until you see a white LED and then release. Now open an incognito browser and head to https://wpsetup.keriganc.com/
 
 Follow the instructions on the webpage to connect to the vector, you may have to attempt the connection a few times before it works.
 
