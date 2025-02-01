@@ -137,6 +137,7 @@ Once the vector has updated you will be presented with an **Activate** button, e
 Once the vector is activated you can close WirePod.
 
 3. Update the .env file
+
 Copy the serial number, located underneath the Vector Robot into the .evn file.
 
 # License
