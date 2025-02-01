@@ -2,6 +2,8 @@
 
 This repository contains the codebase for a study investigating how a Socially Assistive Robot (SAR) can foster long-term healthy behaviours. The primary focus is to explore how SARs can promote healthy lifestyle choices that improve both lifespan and healthspan. This research examines the psychological and behavioural effects of prolonged robot interaction and how SARs can encourage positive behaviour changes through habit formation.
 
+This is the first attempt at an ecologically valid long-term interaction with a robot for behaviour change.
+
 ## Project Overview
 This project aims to contribute to the development of robot coaches that can coexist with humans and actively support their health and well-being. The study is structured around:
 - A daily check-in that is based on motivational interviewing principles and uses decision tree driven dialogue.
