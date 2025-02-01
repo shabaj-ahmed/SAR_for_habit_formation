@@ -50,8 +50,8 @@ Before running the project, ensure you have:
 - Debian Bookworm installed on your Raspberry Pi 5.
 - Ensure that the [Vector robot authentication](#authenticate-the-vector-robot) certificate is located in the ~/.anki_vector directory and the sdk_config.ini is configured correctly.
 - Create a .env file in the /configuration directory using the example.env as a template
-- Sign up for Google Cloud and create a project with speech-to-text. Retrieve the JSON API key and put google speech key.json in ~/.google-cloud directory. Add the file path to the Google API key to .env file.
-- Add hardware configuration properties to the .env file
+- This project uses Google Cloud for Speech-to-Text (STT) recognition. We found its accuracy to be much better than local STT. To use this project as it is you will need to sign up for Google Cloud and create a project with speech-to-text. Retrieve the JSON API key and create the directory ~/.google-cloud to store it in. Add the file path to the Google API key to .env file.
+- Add the remaining hardware configuration properties to the .env file
 
 ## Run Installation Script
 The setup process is automated using a Bash script.
