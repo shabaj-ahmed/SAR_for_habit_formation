@@ -80,7 +80,9 @@ If successful a chromium window should open in full-screen
 - USB microphone,
 - Raspberry Pi touch display 2,
 - 5V power supplies,
-- Mobile WiFi module
+- TP-Link M7350 4G LTE Mobile Wi-Fi Router with pre-paid data only SIM
+
+All devices were powered by the Raspberry Pi's USB ports
 
 # Authenticate the vector robot
 The following steps have been used to authenticate a vector robot on a Raspberry Pi 5 running Debian version: 12 (bookworm). Ensure you have a WiFi network with internet access, allowing devices to communicate with each other. The university Eduroam network will not work for this. Open the terminal on the Pi and run the following:
@@ -93,7 +95,7 @@ sudo STT=vosk ./setup.sh
 sudo ./chipper/start.sh
 ```
 
-This will install and set up Wire Pod, an open-source server for activating the vector robot. Once it has completed, in the terminal you should see something similar to:
+This will install and set up Wire Pod, an open-source server for activating the vector robot. Once it has completed installing, in the terminal you should see something similar to:
 
 ```
 Initializing variables
@@ -115,30 +117,6 @@ Press and hold the Vecrots power button for 15 seconds until you see a white LED
 Follow the instructions on the webpage to connect to the vector, you may have to attempt the connection a few times before it works.
 
 Once the vector is activated, copy the serial number, located on the bottom of the vector into the .evn file.
-
-# Auto start script
-To ensure that the browser launches on start-up you will want to launch the application after the desktop enviroment has finished loading. This can be done by creating a launch script in the autostart directory.
-
-```
-mkdir -p ~/.config/autostart
-```
-
-Create an autostart file:
-
-```
-nano ~/.config/autostart/run_study.desktop
-```
-
-Add the following content:
-
-```
-[Desktop Entry]
-Type=Application
-Exec=/home/pi/Documents/hri_study/SAR_for_habit_formation/bash.sh
-X-GNOME-Autostart-enabled=true
-```
-
-Save, exit and reboot.
 
 # License
 This project is licensed under the MIT License.
