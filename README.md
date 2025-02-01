@@ -29,14 +29,27 @@ This architecture provides a clear separation between reactive and deliberative 
 
 Note: This approach introduces some latency due to centralised processing. However, since this study is not time-sensitive or safety-critical, minor latency is acceptable.
 
+---
+
 # Installation and set up
+## Hardware used
+- Digital Dream Labs Vector 2.0,
+- Raspberry Pi 5 8 GB,
+- Micro SD card with Debian Bookworm installed,
+- USB microphone,
+- Raspberry Pi touch display 2,
+- 5V power supplies,
+- TP-Link M7350 4G LTE Mobile Wi-Fi Router with pre-paid data only SIM
+
+All devices were powered by the Raspberry Pi's USB ports
+
 ## Prerequisites
 Before running the project, ensure you have:
 - Debian Bookworm installed on your Raspberry Pi 5.
-- Put google speech key.json in ~/.google-cloud directory
 - Ensure that the [Vector robot authentication](#authenticate-the-vector-robot) certificate is located in the ~/.anki_vector directory and the sdk_config.ini is configured correctly.
-- Sign up for Google Cloud and create a project with speech-to-text. Retrieve the JSON API key and the file path to .env file in the /configurations folder.
-- Add hardware configuration properties to the .env file in the /configurations folder, use the template in example.env.
+- Create a .env file in the /configuration directory using the example.env as a template
+- Sign up for Google Cloud and create a project with speech-to-text. Retrieve the JSON API key and put google speech key.json in ~/.google-cloud directory. Add the file path to the Google API key to .env file.
+- Add hardware configuration properties to the .env file
 
 ## Run Installation Script
 The setup process is automated using a Bash script.
@@ -49,40 +62,34 @@ set up the project in the following location:
 
 Or you will have to modify the bash script
 
-clone the repository here using:
+2. clone the repository here using
+Open a terminal and navigate to the hri_study directory and clone this repository
 
 ```
-git clone https://github.com/msahmed1/SAR_for_habit_formation.git
+$ cd ~/Documents/hri_study
+$ git clone https://github.com/msahmed1/SAR_for_habit_formation.git
 ```
 
-2. Run the setup script
-Navigate to the project root directory and run:
+3. Run the setup script
+Before running the bash.sh ensure that the [prerequisites](#prerequisites) have are satisfied. Following this, navigate to the project root directory and make bash.sh executable before running it:
 
 ```
+$ cd ~/Documents/hri_study/SAR_for_habit_formation
 $ chmod +x bash.sh
 $ ./bash.sh
 ```
 
 This script will:
-- Pull the latest code from the repository.
-- Install Mosquitto (MQTT broker) and start the message broker
+- Pull the latest code from the repository (continuous deployment).
+- Install and start the Mosquitto MQTT broker
 - Create a Python virtual environment
-- Install the required dependencies
+- Install the required packages and dependencies
 - Update the Vector SDK
-- launch all services
+- Launch all services
 
 If successful a chromium window should open in full-screen
 
-## Hardware used
-- Digital Dream Labs Vector 2.0,
-- Raspberry Pi 5 8 GB,
-- Micro SD card with Debian Bookworm installed,
-- USB microphone,
-- Raspberry Pi touch display 2,
-- 5V power supplies,
-- TP-Link M7350 4G LTE Mobile Wi-Fi Router with pre-paid data only SIM
-
-All devices were powered by the Raspberry Pi's USB ports
+---
 
 # Authenticate the vector robot
 The following steps have been used to authenticate a vector robot on a Raspberry Pi 5 running Debian version: 12 (bookworm). Ensure you have a WiFi network with internet access, allowing devices to communicate with each other. The university Eduroam network will not work for this. Open the terminal on the Pi and run the following:
