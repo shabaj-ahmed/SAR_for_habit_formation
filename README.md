@@ -65,10 +65,11 @@ $ ./bash.sh
 
 This script will:
 - Pull the latest code from the repository.
-- Install Mosquitto (MQTT broker) and all required dependencies.
+- Install Mosquitto (MQTT broker) and start the message broker
 - Create a Python virtual environment
 - Install the required dependencies
 - Update the Vector SDK
+- launch all services
 
 If successful a chromium window should open in full-screen
 
