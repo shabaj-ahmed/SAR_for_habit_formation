@@ -32,6 +32,8 @@ Note: This approach introduces some latency due to centralised processing. Howev
 ---
 
 # Installation and set up
+The following are instructions to replicate our study. If you would like to collaborate or need help setting up your won system please get in contact with me.
+
 ## Hardware used
 - Digital Dream Labs Vector 2.0,
 - Raspberry Pi 5 8 GB,
