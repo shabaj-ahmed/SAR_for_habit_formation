@@ -86,7 +86,7 @@ This script will:
 - Install and start the Mosquitto MQTT broker
 - Create a Python virtual environment
 - Install the required packages and dependencies
-- Update the Vector SDK
+- Update the Vector SDK Library by updating the Protobuf files and parching broken code
 - Launch all services
 
 If successful a chromium window should open in full-screen
