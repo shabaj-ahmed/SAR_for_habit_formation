@@ -94,7 +94,7 @@ If successful a chromium window should open in full-screen
 ---
 
 # Authenticate the vector robot
-The following steps have been used to authenticate a vector robot on a Raspberry Pi 5 running Debian version: 12 (bookworm). Ensure you have a WiFi network with internet access, allowing devices to communicate with each other. The university Eduroam network will not work for this. Open the terminal on the Pi and run the following:
+The following steps have been used to authenticate a vector robot on a Raspberry Pi 5 running Debian version: 12 (bookworm). Ensure you have a WiFi network with internet access that allows devices on the same network to communicate with each other. The university Eduroam network will not work for this. You will then need to install and set up [Wire Pod](https://github.com/kercre123/wire-pod?tab=readme-ov-file), an open-source server for activating the vector robot. Open the terminal on the Pi and run the following:
 
 ```
 cd ~
@@ -104,7 +104,7 @@ sudo STT=vosk ./setup.sh
 sudo ./chipper/start.sh
 ```
 
-This will install and set up Wire Pod, an open-source server for activating the vector robot. Once it has completed installing, in the terminal you should see something similar to:
+Once it has completed installing, in the terminal you should see something similar to:
 
 ```
 Initializing variables
@@ -119,7 +119,7 @@ Starting server at port 80 for connCheck
 Configuration page: http://192.168.1.221:8080
 ```
 
-Open a browser and head to the configuration page. In the example above this is http://192.168.1.221:8080
+Open a browser and head to the **Configuration page**. In the example above this is http://192.168.1.221:8080
 
 Press and hold the Vecrots power button for 15 seconds until you see a white LED and then release. Now open an incognito browser and head to https://wpsetup.keriganc.com/
 
