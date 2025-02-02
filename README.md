@@ -1,6 +1,6 @@
 # SAR for Habit Formation
 
-This repository contains the codebase for a study investigating how a Socially Assistive Robot (SAR) can foster long-term healthy behaviours. The primary focus is to explore how SARs can promote healthy lifestyle choices that improve both lifespan and healthspan. This research examines the psychological and behavioural effects of prolonged robot interaction and how SARs can encourage positive behaviour changes through habit formation.
+This repository contains the codebase for a study investigating how a Socially Assistive Robot (SAR) can foster long-term healthy behaviours. The primary focus is to explore how SARs can promote healthy lifestyle choices that improve both lifespan and healthspan. This research examines the psychological and behavioural effects of interacting with a SAR for three weeks and how SARs can encourage positive behaviour changes through habit formation.
 
 This is the first attempt at an ecologically valid long-term interaction with a robot for behaviour change.
 
@@ -31,10 +31,13 @@ This architecture provides a clear separation between reactive and deliberative 
 
 Note: This approach introduces some latency due to centralised processing. However, since this study is not time-sensitive or safety-critical, minor latency is acceptable.
 
----
+### Interaction design
+During the three-week study, participants interact with the SAR twice daily:
+- Morning Reminder: The robot provides a brief motivational prompt based on the participant’s implementation intention.
+- Evening Check-In: A 3–5 minute structured dialogue based on motivational interviewing principles to track progress, address challenges, and encourage reflection. A decision tree controls the conversational flow, adapting questions based on responses.
 
 # Installation and set up
-The following are instructions to replicate our study. If you would like to collaborate or need help setting up your won system please get in contact with me.
+The following are instructions on how to replicate our study. If you would like to collaborate or need help setting up your own system please get in contact with me.
 
 ## Hardware used
 - Digital Dream Labs Vector 2.0,
