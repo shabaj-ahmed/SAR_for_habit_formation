@@ -24,6 +24,7 @@ During the three-week study, participants interact with the SAR twice daily:
 
 - **Development** branch – Active development takes place here.
 - **Master** branch – Stable releases and beta versions are published here.
+
 For the final implementation, a Bash script automates code updates by pulling the latest version from the repository, enabling a continuous deployment setup.
 
 
