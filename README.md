@@ -32,10 +32,9 @@ For the final implementation, a Bash script automates code updates by pulling th
 
 This project follows a microservice architecture where each service operates statelessly by storing configurations and states in a centralised database. MQTT is used as a message broker to handle inter-service communication.
 
-The robot's behavior is governed by a three-layered control system:
-1. High-Level Finite State Machine (FSM) – Manages primary system states.
-2. Behavior Tree (BT) – Orchestrates complex behaviours.
-3. Reactive Layer – Handles immediate responses to environmental stimuli.
+The robot's behaviour is governed by a two-layered control system:
+1. Reactive Layer – Handles immediate responses to environmental stimuli.
+2. Deliberate Layer - High-Level Finite State Machine to manage primary system states and a behaviour Tree to orchestrate complex behaviours.
 
 This architecture provides a clear separation between reactive and deliberative actions while ensuring near real-time responsiveness.
 
@@ -51,7 +50,7 @@ Note: This approach introduces some latency due to centralised processing. Howev
 
 # Installation and set up
 
-The following are instructions on how to replicate our study. If you would like to collaborate or need help setting up your own system please get in contact with me.
+The following are instructions on how to replicate our study. If you would like to collaborate or need help with replicating this setup please get in contact with me.
 
 
 ## Hardware used
