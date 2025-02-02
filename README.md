@@ -93,55 +93,6 @@ This script will:
 
 If successful a chromium window should open in full-screen
 
----
-
-# Authenticate the vector robot
-To connect a Vector robot using the Python SDK you need to have the same authentication certificate as the Vecot for it to accept your request. If this program is being run in the same computer Wire Pod has been installed then no other changes need to be made. Otherwise, you will need to copy the configuration file that was generated into the /home/.anki_vector/ file.
-
-The following steps have been used to authenticate a vector robot on a Raspberry Pi 5 running Debian version: 12 (bookworm). Ensure you have a WiFi network with internet access that allows devices on the same network to communicate with each other. A university Eduroam network will not work for this. You will then need to install and set up [Wire Pod](https://github.com/kercre123/wire-pod?tab=readme-ov-file), an open-source server for activating the vector robot. For ease of setup here are the distilled instructions:
-
-1. Install and start WirePod
-Open the terminal on the Pi and run the following:
-
-```
-cd ~
-git clone https://github.com/kercre123/wire-pod --depth=1
-cd ~/wire-pod
-sudo STT=vosk ./setup.sh
-sudo ./chipper/start.sh
-```
-
-Once it has completed installing, in the terminal you should see something similar to:
-
-```
-Initializing variables
-SDK info path: /home/kerigan/.anki_vector/
-API config JSON created
-Initiating vosk voice processor with language 
-Loading plugins
-Wire-pod is not setup. Use the webserver at port 8080 to set up wire-pod.
-Starting webserver at port 8080 (http://localhost:8080)
-Starting SDK app
-Starting server at port 80 for connCheck
-Configuration page: http://192.168.1.221:8080
-```
-
-Open a browser and head to the **Configuration page**. In the example above this is http://192.168.1.221:8080.
-
-2. Update the Vector firmware and Activate it
-
-Press and hold the Vecrots power button for 15 seconds until you see a white LED and then release. Now open an incognito browser and head to https://wpsetup.keriganc.com/
-
-Follow the instructions on the webpage to connect to the vector, you may have to attempt the connection a few times before it works.
-
-Once the vector has updated you will be presented with an **Activate** button, ensure that WirePod is still running before clicking it.
-
-Once the vector is activated you can close WirePod.
-
-3. Update the .env file
-
-Copy the serial number, located underneath the Vector Robot into the .evn file.
-
 # License
 This project is licensed under the MIT License.
 
