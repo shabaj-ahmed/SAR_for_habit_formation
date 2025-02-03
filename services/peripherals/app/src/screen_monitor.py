@@ -11,6 +11,7 @@ class ScreenMonitor:
         self.is_screen_awake = True
         self.countdown = time.time()
         self.brightness_file = str(os.getenv("BRIGHTNESS_FILE"))
+        self.brightness_interval = 1 if int(os.getenv("BRIGHTNESS_VALUE") == 255 else 4
 
         self.dispatcher.register_event("configure_sleep_timer", self._configure_sleep_timer)
         self.dispatcher.register_event("update_screen_brightness", self._set_screen_brightness)
@@ -44,7 +45,7 @@ class ScreenMonitor:
         self.screen_dim_value = int(self.brightness) if self.screen_dim_value is None else self.screen_dim_value
 
         # set new brightness
-        self.screen_dim_value = self.screen_dim_value - 1
+        self.screen_dim_value = self.screen_dim_value - self.brightness_interval
 
         # make sure the new brightness is not less than 0
         if self.screen_dim_value <= 1:
@@ -59,19 +60,16 @@ class ScreenMonitor:
                 check=True
             )
             pass
-            # Return a success response
         except subprocess.CalledProcessError as e:
             # Return an error response if the command fails
             return f"send_service_error: {e}"
-        
-        time.sleep(0.04)
 
         # print(f"Brightness successfully dimmed")
     
     def wake_up(self):
         # print("Waking up screen")
         self.dispatcher.dispatch_event("send_screen_status", "awake")
-        for brightness in range(self.screen_dim_value, self.brightness):            
+        for brightness in range(self.screen_dim_value, self.brightness, self.brightness_interval):            
             try:
                 subprocess.run(
                     f'echo {brightness} | sudo tee {self.brightness_file}',
@@ -83,7 +81,6 @@ class ScreenMonitor:
                 # Return an error response if the command fails
                 return f"send_service_error: {e}"
             
-            time.sleep(0.04)
         self.screen_dim_value = self.brightness
         self.is_screen_awake = True
         # print(f"Brightness successfully lit")
