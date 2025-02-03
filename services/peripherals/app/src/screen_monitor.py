@@ -11,7 +11,7 @@ class ScreenMonitor:
         self.is_screen_awake = True
         self.countdown = time.time()
         self.brightness_file = str(os.getenv("BRIGHTNESS_FILE"))
-        self.brightness_interval = 1 if int(os.getenv("BRIGHTNESS_VALUE")) == 255 else 4
+        self.brightness_interval = 4 if int(os.getenv("BRIGHTNESS_VALUE")) == 255 else 1
 
         self.dispatcher.register_event("configure_sleep_timer", self._configure_sleep_timer)
         self.dispatcher.register_event("update_screen_brightness", self._set_screen_brightness)
