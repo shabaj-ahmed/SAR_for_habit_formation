@@ -72,7 +72,7 @@ if __name__ == "__main__":
                     
                     screen_monitor.check_for_screen_timeout()
 
-                    time.sleep(0.4)
+                    time.sleep(0.04)
 
             except Exception as e:
                 logger.error(f"Peripherals service threw the following Error: {e}")
