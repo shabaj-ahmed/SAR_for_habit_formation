@@ -33,11 +33,7 @@ echo "Script Path: $SCRIPT_PATH"
 # Change to the project directory
 if cd "$PROJECT_DIR"; then
     echo "Pulling latest changes from the remote repository..."
-    git pull
-    if [ $? -ne 0 ]; then
-        echo "Error: 'git pull' failed. Please check the repository and resolve any issues."
-        exit 1
-    fi
+    git pull || echo "Warning: 'git pull' failed. Continuing with current codebase..."
 else
     echo "Error: Cannot change to project directory $PROJECT_DIR. Exiting."
     exit 1
