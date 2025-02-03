@@ -115,7 +115,11 @@ def update_state(payload):
         except subprocess.CalledProcessError as e:
             logger.error(f"Failed to set brightness: {e}")
         logger.info(f"Mapped brightness value: {brightness_value}")
-    
+
+    if implementationIntention != "" and start_date != None:
+        logger.info(f"All required states updated")
+        dispatcher.dispatch_event("all_states_updated")
+
     if state_name.startswith("reminder_time"):
         reminder_time = reminder_time.replace(second=0, microsecond=0)
         logger.info(f"Reminder time updated: {reminder_time}")
