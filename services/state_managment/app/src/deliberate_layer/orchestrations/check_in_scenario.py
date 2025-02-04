@@ -287,10 +287,10 @@ class CheckInQuestions:
                 # Handle the case where no valid number was found
                 return {"question": "On a scale of 1 to 10, with 1 being never and 10 being all the time. Do you find yourself exercising automatically, without having to think about it?", "expected_format": "short"}
             else:
-                return {"question": "On a scale of 1 to 10, with 1 being never and 10 being all the time. Do you start exercising before you realize you're doing it?", "expected_format": "short"}
-        elif question == "On a scale of 1 to 10, with 1 being never and 10 being all the time. Do you start exercising before you realize you're doing it?":
+                return {"question": "On a scale of 1 to 10, with 1 being never and 10 being all the time. Do you start exercising before you realise you're doing it?", "expected_format": "short"}
+        elif question == "On a scale of 1 to 10, with 1 being never and 10 being all the time. Do you start exercising before you realise you're doing it?":
             if response is None or response == "" or int(response) < 1 or int(response) > 10:
-                return {"question": "On a scale of 1 to 10, with 1 being never and 10 being all the time. Do you start exercising before you realize you're doing it?", "expected_format": "short"}
+                return {"question": "On a scale of 1 to 10, with 1 being never and 10 being all the time. Do you start exercising before you realise you're doing it?", "expected_format": "short"}
             else:
                 return {"question": "On a scale of 1 to 10, with 1 being never and 10 being all the time. Would you find it difficult to go a day without exercising?", "expected_format": "short"}
         if question == "On a scale of 1 to 10, with 1 being never and 10 being all the time. Would you find it difficult to go a day without exercising?":
@@ -321,8 +321,8 @@ class CheckInQuestions:
         if question == "":
             return {"question": "Did you exercise today?", "expected_format": "closed-ended"}
         elif question == "Did you exercise today?":
-            return {"question": "What is been the most rewarding part of staying active this week?", "expected_format": "open-ended"}
-        elif question == "What is been the most rewarding part of staying active this week?":
+            return {"question": "What has been the most rewarding part of staying active this week?", "expected_format": "open-ended"}
+        elif question == "What has been the most rewarding part of staying active this week?":
             return {"question": "On a scale of 1 to 10, with 1 being not at all important and 10 being very important, how important is it for you to exercise more?", "expected_format": "short"}
         elif question == "On a scale of 1 to 10, with 1 being not at all important and 10 being very important, how important is it for you to exercise more?" or question == "Please provide a valid number between 1 and 10.":
             if response is None or response == "" or int(response) < 0 or int(response) > 10:
@@ -352,17 +352,15 @@ class CheckInQuestions:
         elif question == "What is one thing you have learned about yourself this week?":
             return {"question": "What is one thing you would like to focus on next week to improve your routine?", "expected_format": "open-ended"}
         elif question == "What is one thing you would like to focus on next week to improve your routine?":
-            return {"question": "What is one small step you could take to make next week even better?", "expected_format": "open-ended"}
-        elif question == "What is one small step you could take to make next week even better?":
             return {"question": "On a scale of 1 to 10, with 1 being never and 10 being all the time. Do you find yourself exercising automatically, without having to think about it?", "expected_format": "short"}
         elif question == "On a scale of 1 to 10, with 1 being never and 10 being all the time. Do you find yourself exercising automatically, without having to think about it?":
             if response is None or response == "" or int(response) < 1 or int(response) > 10:
                 return {"question": "On a scale of 1 to 10, with 1 being never and 10 being all the time. Do you find yourself exercising automatically, without having to think about it?", "expected_format": "short"}
             else:
-                return {"question": "On a scale of 1 to 10, with 1 being never and 10 being all the time. Do you start exercising before you realize you're doing it?", "expected_format": "short"}
-        elif question == "On a scale of 1 to 10, with 1 being never and 10 being all the time. Do you start exercising before you realize you're doing it?":
+                return {"question": "On a scale of 1 to 10, with 1 being never and 10 being all the time. Do you start exercising before you realise you're doing it?", "expected_format": "short"}
+        elif question == "On a scale of 1 to 10, with 1 being never and 10 being all the time. Do you start exercising before you realise you're doing it?":
             if response is None or response == "" or int(response) < 1 or int(response) > 10:
-                return {"question": "On a scale of 1 to 10, with 1 being never and 10 being all the time. Do you start exercising before you realize you're doing it?", "expected_format": "short"}
+                return {"question": "On a scale of 1 to 10, with 1 being never and 10 being all the time. Do you start exercising before you realise you're doing it?", "expected_format": "short"}
             else:
                 return {"question": "On a scale of 1 to 10, with 1 being never and 10 being all the time. Would you find it difficult to go a day without exercising?", "expected_format": "short"}
         if question == "On a scale of 1 to 10, with 1 being never and 10 being all the time. Would you find it difficult to go a day without exercising?":
@@ -415,11 +413,11 @@ class CheckInQuestions:
             if response is None or response == "" or int(response) < 1 or int(response) > 10:
                 return {"question": "Please provide a valid number between 1 and 10. Over the past week, how often did you imagine how much better you would feel after exercising?", "expected_format": "short"}
             else:
-                return {"question": "On a scale between 1 and 10, over the past week, how often did you imagine how much worse you would feel if you didn not exercise?", "expected_format": "short"}
+                return {"question": "On a scale between 1 and 10, over the past week, how often did you imagine how much worse you would feel if you did not exercise?", "expected_format": "short"}
         # Self-efficacy
-        elif question == "On a scale between 1 and 10, over the past week, how often did you imagine how much worse you would feel if you didn not exercise?" or question == "Please provide a valid number between 1 and 10. Over the past week, how often did you imagine how much worse you would feel if you didn not exercise?":
+        elif question == "On a scale between 1 and 10, over the past week, how often did you imagine how much worse you would feel if you did not exercise?" or question == "Please provide a valid number between 1 and 10. Over the past week, how often did you imagine how much worse you would feel if you did not exercise?":
             if response is None or response == "" or int(response) < 1 or int(response) > 10:
-                return {"question": "Please provide a valid number between 1 and 10. Over the past week, how often did you imagine how much worse you would feel if you didn not exercise?", "expected_format": "short"}
+                return {"question": "Please provide a valid number between 1 and 10. Over the past week, how often did you imagine how much worse you would feel if you did not exercise?", "expected_format": "short"}
             else:
                 return {"question": "On a scale between 1 and 10, over the past week, how often did you imagine yourself exercising?", "expected_format": "short"}
         elif question == "On a scale between 1 and 10, over the past week, how often did you imagine yourself exercising?" or question == "Please provide a valid number between 1 and 10. Over the past week, how often did you imagine yourself exercising?":
@@ -437,12 +435,12 @@ class CheckInQuestions:
                 return {"question": "Please provide a valid number between 1 and 10. Over the past week, how often did you imagine succeeding at exercising?", "expected_format": "short"}
             else:
                 return {"question": "On a scale between 1 and 10, over the past week, how often did you picture times you did picture doing something like this in the past?", "expected_format": "short"}
+        # Availability
         elif question == "On a scale between 1 and 10, over the past week, how often did you picture times you did picture doing something like this in the past?" or question == "Please provide a valid number between 1 and 10. Over the past week, how often did you picture times you did picture doing something like this in the past?":
             if response is None or response == "" or int(response) < 1 or int(response) > 10:
                 return {"question": "Please provide a valid number between 1 and 10. Over the past week, how often did you picture times you did picture doing something like this in the past?", "expected_format": "short"}
             else:
                 return {"question": "On a scale between 1 and 10, over the past week, how often did thoughts of exercising come to mind?", "expected_format": "short"}
-        # Availability
         elif question == "On a scale between 1 and 10, over the past week, how often did thoughts of exercising come to mind?" or question == "Please provide a valid number between 1 and 10. Over the past week, how often did thoughts of exercising come to mind?":
             if response is None or response == "" or int(response) < 1 or int(response) > 10:
                 return {"question": "Please provide a valid number between 1 and 10. Over the past week, how often did thoughts of exercising come to mind?", "expected_format": "short"}
