@@ -92,17 +92,17 @@ Or you will have to modify the bash script
 Open a terminal and navigate to the hri_study directory and clone this repository
 
 ```
-$ cd ~/Documents/hri_study
-$ git clone https://github.com/msahmed1/SAR_for_habit_formation.git
+cd ~/Documents/hri_study
+git clone https://github.com/msahmed1/SAR_for_habit_formation.git
 ```
 
 3. Run the setup script
 Before running the bash.sh ensure that the [prerequisites](#prerequisites) have are satisfied. Following this, navigate to the project root directory and make bash.sh executable before running it:
 
 ```
-$ cd ~/Documents/hri_study/SAR_for_habit_formation
-$ chmod +x bash.sh
-$ ./bash.sh
+cd ~/Documents/hri_study/SAR_for_habit_formation
+chmod +x bash.sh
+./bash.sh
 ```
 
 This script will:
