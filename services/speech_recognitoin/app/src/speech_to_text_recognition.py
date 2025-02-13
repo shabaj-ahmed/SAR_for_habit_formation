@@ -150,7 +150,33 @@ class MicrophoneStream:
         self._buff = queue.Queue()
         self.closed = True
         self.communication_interface = communication_interface
-        self.microphone_index = int(os.getenv("MICROPHONE_INDEX"))
+        self.microphone_index = self.get_microphone_index()
+
+    def get_microphone_index(self):
+        """Finds the microphone index, prioritising device 0 with 'USB Audio' in its name."""
+        audio = pyaudio.PyAudio()
+        mic_index = None
+
+        for i in range(audio.get_device_count()):
+            device_info = audio.get_device_info_by_index(i)
+            device_name = device_info["name"]
+            input_channels = device_info.get("maxInputChannels", 0)
+
+            if i == 0 and "USB Audio" in device_name:
+                mic_index = i  # Prioritise device 0
+                break
+
+            if "USB" in device_name and input_channels > 0:
+                mic_index = i  # Fallback if device 0 is incorrect
+
+        audio.terminate()
+        
+        if mic_index is None:
+            raise RuntimeError("USB microphone not found! Check the connection.")
+        
+        print(f"Microphne index detected at {mic_index}")
+
+        return mic_index
 
     def __enter__(self):
         self._audio_interface = pyaudio.PyAudio()
