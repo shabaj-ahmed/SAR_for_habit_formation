@@ -211,7 +211,11 @@ class VectorRobotController:
         status = "complete"
         try: 
             self.logger.info(f"In handel tts command func, text from {payload['sender']} is: {payload['content']}")
-            self._tts(payload["content"])
+            if self.robot_enabled:
+                self._tts(payload["content"])
+            else:
+                tts = payload["content"]
+                os.system(f"flite -t '{tts}'")
             if payload.get("message_type", "") == "greeting":
                 self.generate_greetings_animation()
             elif payload.get("message_type", "") == "farewell":
