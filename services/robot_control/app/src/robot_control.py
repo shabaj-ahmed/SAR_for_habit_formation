@@ -212,14 +212,10 @@ class VectorRobotController:
         try: 
             self.logger.info(f"In handel tts command func, text from {payload['sender']} is: {payload['content']}")
             self._tts(payload["content"])
-            # Add delay to allow the robot to finish speaking before sending completion status
-            delay = len(payload["content"].split()) / 8 # This is an arbitrary delay, it allows time for the robot to complete speaking before sending the completion status
             if payload.get("message_type", "") == "greeting":
                 self.generate_greetings_animation()
             elif payload.get("message_type", "") == "farewell":
                 self.generate_farewell_animation()
-            self.logger.info(f"Delaying for {delay} seconds")
-            time.sleep(int(delay))
         except Exception as e:
             self.logger.error(f"Error processing TTS command {e}")
             status = "failed"
