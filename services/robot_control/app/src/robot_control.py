@@ -215,7 +215,7 @@ class VectorRobotController:
                 self._tts(payload["content"])
             else:
                 tts = payload["content"]
-                os.system(f"flite -t '{tts}'")
+                os.system(f"espeak-ng -p 99 '{tts}'")
             if payload.get("message_type", "") == "greeting":
                 self.generate_greetings_animation()
             elif payload.get("message_type", "") == "farewell":
