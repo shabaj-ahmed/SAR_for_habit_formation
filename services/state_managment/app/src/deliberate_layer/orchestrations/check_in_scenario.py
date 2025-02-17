@@ -451,9 +451,9 @@ class CheckInQuestions:
                 return {"question": "Please provide a valid number between 1 and 10. Over the past week, how often did other things remind you of exercising?", "expected_format": "short"}
             else:
                 return {"question": "On a scale between 1 and 10, over the past week, how often did thoughts about exercising grab your attention?", "expected_format": "short"}
-        elif question == "On a scale between 1 and 10, over the past week, how often did thoughts about exercising grab your attention?" or question == "Please provide a valid number between 1 and 10. 3. Over the past week, how often did thoughts about exercising grab your attention?":
+        elif question == "On a scale between 1 and 10, over the past week, how often did thoughts about exercising grab your attention?" or question == "Please provide a valid number between 1 and 10. Over the past week, how often did thoughts about exercising grab your attention?":
             if response is None or response == "" or int(response) < 1 or int(response) > 10:
-                return {"question": "Please provide a valid number between 1 and 10. 3. Over the past week, how often did thoughts about exercising grab your attention?", "expected_format": "short"}
+                return {"question": "Please provide a valid number between 1 and 10. Over the past week, how often did thoughts about exercising grab your attention?", "expected_format": "short"}
             else:
                 return {"question": "Thank you for answering those questions. Is there anything you are excited to achieve by the end of next week?", "expected_format": "open-ended"}
         self.logger.info(f"No more questions for experience sampling. Returning None.")
