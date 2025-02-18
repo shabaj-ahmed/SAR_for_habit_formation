@@ -4,6 +4,7 @@ from anki_vector.util import degrees
 import logging
 import os
 import random
+import pygame
 
 import time
 import logging
@@ -26,6 +27,8 @@ class VectorRobotController:
         self.error = None
         self.max_retries = 1
         self.robot_states = {}
+
+        pygame.mixer.init()
 
     def reconnect_on_fail(func):
         '''
@@ -215,7 +218,16 @@ class VectorRobotController:
                 self._tts(payload["content"])
             else:
                 tts = payload["content"]
-                os.system(f"espeak-ng -p 99 '{tts}'")
+
+                audio_path = f"services/robot_control/app/assets/{tts}.mp3"
+
+                self.logger.info("Running pygame audio")
+                pygame.mixer.music.load(audio_path)
+                pygame.mixer.music.play()
+                
+                while pygame.mixer.music.get_busy():
+                    time.sleep(0.1)  # Prevents CPU overuse while waiting for the audio to finish
+            
             if payload.get("message_type", "") == "greeting":
                 self.generate_greetings_animation()
             elif payload.get("message_type", "") == "farewell":

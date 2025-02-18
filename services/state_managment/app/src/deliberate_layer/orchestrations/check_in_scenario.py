@@ -34,23 +34,27 @@ class CheckInScenario:
             return
         
         # Step 1: Set up
-        elif self.step == 1: 
+        elif self.step == 1:
+            self.logger.info("Check in scenario step 1")
             if self._drive_off_charger():
                  self.step = 2
 
         # Step 2: Greet the user
         elif self.step == 2:
+            self.logger.info("Check in scenario step 2")
             if self._greet_user():
                 self.step = 3
         
         # # Step 3: Look up
         elif self.step == 3:
+            self.logger.info("Check in scenario step 3")
             self.communication_interface.publish_robot_behaviour_command("look_up")
             time.sleep(0.4)
             self.step = 4
                 
         # # Step 4: Ask questions
         elif self.step == 4:
+            self.logger.info("Check in scenario step 4")
             if not self.waiting_for_response:
                 if self.current_question is not None:
                     self.logger.info("Current question exists, checking for response.")
