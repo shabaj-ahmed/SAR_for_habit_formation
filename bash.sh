@@ -76,8 +76,6 @@ activate_virtualenv() {
 install_requirements() {
     echo "Ensure system dependencies for PyAudio are installed"
     sudo apt-get install -y portaudio19-dev python3-pyaudio
-
-    sudo apt install -y espeak-ng
     
     echo "Installing required libraries..."
     pip install -r "$REQUIREMENTS_FILE"
