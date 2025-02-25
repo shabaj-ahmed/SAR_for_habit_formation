@@ -221,9 +221,9 @@ class CheckInQuestions:
                 return {"question": "What obstacles have prevented you from changing your behaviour?", "expected_format": "open-ended"}
         elif question == "What has worked well for you?" or question == "What obstacles have prevented you from changing your behaviour?":
             return {"question": "On a scale of 1 to 10, with 1 being not at all important and 10 being very important, how important is it for you to exercise more?", "expected_format": "short"}
-        elif question == "On a scale of 1 to 10, with 1 being not at all important and 10 being very important, how important is it for you to exercise more?" or question == "Please provide a valid number between 1 and 10.":
+        elif question == "On a scale of 1 to 10, with 1 being not at all important and 10 being very important, how important is it for you to exercise more?" or question == "Please provide a valid number between 1 and 10":
             if response is None or response == "" or int(response) < 1 or int(response) > 10:
-                return {"question": "Please provide a valid number between 1 and 10.", "expected_format": "short"}
+                return {"question": "Please provide a valid number between 1 and 10", "expected_format": "short"}
             else:
                 return {"question": "Why is increasing your activity level important to you?", "expected_format": "open-ended"}
         elif question == "Why is increasing your activity level important to you?":
@@ -239,10 +239,10 @@ class CheckInQuestions:
             return {"question": "What does a typical day of physical activity look like for you?", "expected_format": "open-ended"}
         elif question == "What does a typical day of physical activity look like for you?":
             return {"question": "On a scale of 1 to 10, with 1 being low and 10 being high, how confident are you about staying active this week?", "expected_format": "short"}
-        elif question == "On a scale of 1 to 10, with 1 being low and 10 being high, how confident are you about staying active this week?" or question == "Please provide a valid number between 1 and 10.":
+        elif question == "On a scale of 1 to 10, with 1 being low and 10 being high, how confident are you about staying active this week?" or question == "Please provide a valid number between 1 and 10":
             if response is None or response == "" or int(response) < 1 or int(response) > 10:
                 # Handle the case where no valid number was found
-                return {"question": "Please provide a valid number between 1 and 10.", "expected_format": "short"}
+                return {"question": "Please provide a valid number between 1 and 10", "expected_format": "short"}
             elif int(response) < 5:
                 return {"question": "What obstacles kept you from meeting your goals?", "expected_format": "open-ended"}
             elif 5 <= int(response) <= 7:
@@ -328,10 +328,10 @@ class CheckInQuestions:
             return {"question": "What has been the most rewarding part of staying active this week?", "expected_format": "open-ended"}
         elif question == "What has been the most rewarding part of staying active this week?":
             return {"question": "On a scale of 1 to 10, with 1 being not at all important and 10 being very important, how important is it for you to exercise more?", "expected_format": "short"}
-        elif question == "On a scale of 1 to 10, with 1 being not at all important and 10 being very important, how important is it for you to exercise more?" or question == "Please provide a valid number between 1 and 10.":
+        elif question == "On a scale of 1 to 10, with 1 being not at all important and 10 being very important, how important is it for you to exercise more?" or question == "Please provide a valid number between 1 and 10":
             if response is None or response == "" or int(response) < 0 or int(response) > 10:
                 # Handle the case where no valid number was found
-                return {"question": "Please provide a valid number between 1 and 10.", "expected_format": "short"}
+                return {"question": "Please provide a valid number between 1 and 10", "expected_format": "short"}
             elif int(response) < 5:
                 return {"question": "What obstacles have prevented you from performing the behaviour?", "expected_format": "open-ended"}
             elif 5 <= int(response) <= 8:
